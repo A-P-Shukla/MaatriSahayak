@@ -1,0 +1,42 @@
+{
+    "vitalSignId": {
+        "S": "VS-001"
+    },
+    "pregnancyId": {
+        "S": "PREG-001"
+    },
+    "timestamp": {
+        "N": "1708156800"
+    },
+    "heartRate": {
+        "N": "85"
+    },
+    "temperature": {
+        "N": "37.2"
+    },
+    "oxygenSaturation": {
+        "N": "98"
+    },
+    "fetalHeartRate": {
+        "N": "145"
+    },
+    "contractionFrequency": {
+        "N": "0"
+    },
+    "alertTriggered": {
+        "BOOL": true
+    },
+    "alertType": {
+        "S": "HIGH_BP"
+    },
+    "bloodPressure": {
+        "M": {
+            "systolic": {
+                "N": "130"
+            },
+            "diastolic": {
+                "N": "85"
+            }
+        }
+    }
+}

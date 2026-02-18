@@ -1,0 +1,59 @@
+{
+    "pregnancyId": {
+        "S": "PREG-001"
+    },
+    "patientId": {
+        "S": "PAT-001"
+    },
+    "patientName": {
+        "S": "Jane Doe"
+    },
+    "age": {
+        "N": "28"
+    },
+    "bloodType": {
+        "S": "O+"
+    },
+    "riskLevel": {
+        "S": "MEDIUM"
+    },
+    "gestationalAge": {
+        "N": "32"
+    },
+    "estimatedDueDate": {
+        "N": "1740000000"
+    },
+    "assignedHospitalId": {
+        "S": "HOSP-001"
+    },
+    "lastUpdated": {
+        "N": "1708156800"
+    },
+    "createdAt": {
+        "N": "1700000000"
+    },
+    "medicalHistory": {
+        "L": [
+            {
+                "S": "gestational_diabetes"
+            }
+        ]
+    },
+    "currentConditions": {
+        "L": [
+            {
+                "S": "high_blood_pressure"
+            }
+        ]
+    },
+    "emergencyContact": {
+        "M": {
+            "name": {
+                "S": "John Doe"
+            },
+            "phone": {
+                "S": "+1234567890"
+            }
+        }
+    }
+}

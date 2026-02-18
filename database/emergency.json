@@ -1,0 +1,48 @@
+{
+    "eventId": {
+        "S": "EVENT-001"
+    },
+    "pregnancyId": {
+        "S": "PREG-001"
+    },
+    "timestamp": {
+        "N": "1708156800"
+    },
+    "eventType": {
+        "S": "SEVERE_BLEEDING"
+    },
+    "severity": {
+        "S": "CRITICAL"
+    },
+    "status": {
+        "S": "ACTIVE"
+    },
+    "location": {
+        "M": {
+            "latitude": {
+                "N": "40.7128"
+            },
+            "longitude": {
+                "N": "-74.0060"
+            },
+            "address": {
+                "S": "123 Main St, New York, NY"
+            }
+        }
+    },
+    "assignedAmbulanceId": {
+        "S": "AMB-001"
+    },
+    "assignedHospitalId": {
+        "S": "HOSP-001"
+    },
+    "estimatedArrivalTime": {
+        "N": "1708157400"
+    },
+    "notes": {
+        "S": "Patient experiencing severe bleeding"
+    },
+    "resolvedAt": {
+        "NULL": true
+    }
+}

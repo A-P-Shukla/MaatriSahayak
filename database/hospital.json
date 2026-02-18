@@ -1,0 +1,56 @@
+{
+    "hospitalId": {
+        "S": "HOSP-001"
+    },
+    "name": {
+        "S": "City General Hospital"
+    },
+    "address": {
+        "S": "456 Hospital Ave, New York, NY"
+    },
+    "city": {
+        "S": "New York"
+    },
+    "capacity": {
+        "N": "50"
+    },
+    "currentOccupancy": {
+        "N": "35"
+    },
+    "contactNumber": {
+        "S": "+1234567890"
+    },
+    "specializations": {
+        "L": [
+            {
+                "S": "MATERNITY"
+            },
+            {
+                "S": "NICU"
+            },
+            {
+                "S": "EMERGENCY"
+            }
+        ]
+    },
+    "emergencyDepartment": {
+        "M": {
+            "available": {
+                "BOOL": true
+            },
+            "waitTime": {
+                "N": "15"
+            }
+        }
+    },
+    "maternityWard": {
+        "M": {
+            "bedsAvailable": {
+                "N": "8"
+            },
+            "nicuAvailable": {
+                "BOOL": true
+            }
+        }
+    }
+}

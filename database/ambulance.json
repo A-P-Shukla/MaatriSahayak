@@ -1,0 +1,40 @@
+{
+    "ambulanceId": {
+        "S": "AMB-001"
+    },
+    "vehicleNumber": {
+        "S": "AMB-NYC-001"
+    },
+    "status": {
+        "S": "AVAILABLE"
+    },
+    "baseHospitalId": {
+        "S": "HOSP-001"
+    },
+    "lastUpdated": {
+        "N": "1708156800"
+    },
+    "equipment": {
+        "L": [
+            {
+                "S": "OXYGEN"
+            },
+            {
+                "S": "DEFIBRILLATOR"
+            },
+            {
+                "S": "OBSTETRIC_KIT"
+            }
+        ]
+    },
+    "currentLocation": {
+        "M": {
+            "latitude": {
+                "N": "40.7580"
+            },
+            "longitude": {
+                "N": "-73.9855"
+            }
+        }
+    }
+}
