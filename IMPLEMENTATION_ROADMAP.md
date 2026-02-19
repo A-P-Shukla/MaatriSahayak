@@ -80,8 +80,8 @@ By March 13, we must have:
 - [ ✅] Create Lambda function: `RecordVitals`
   - Store vital signs
   - Timestamp handling
-- [ ] Test APIs with Postman
-- [ ] Create Postman collection for all APIs
+- [ ✅] Test APIs with Postman
+- [ ✅] Create Postman collection for all APIs
 
 **Afternoon (4-5 hours)**:
 - [ ✅] Create Lambda function: `GetPregnancyDetails`

@@ -1,9 +1,2 @@
-# MaatriSahayak - Register Pregnancy Lambda Requirements
-
-# Shared layer provides these dependencies:
-# - boto3
-# - pydantic
-# - python-dotenv
-
-# No additional dependencies required
-# All functionality is provided by the shared layer
+boto3>=1.34.0
+pydantic>=2.5.0

@@ -24,20 +24,6 @@ Parameters:
     Description: Environment name
 
 Resources:
-  # ==================== Lambda Layer ====================
-  SharedLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: !Sub maatrisahayak-shared-layer-${Environment}
-      Description: Shared utilities for MaatriSahayak Lambda functions
-      ContentUri: ../lambda_functions/shared/
-      CompatibleRuntimes:
-        - python3.12
-      RetentionPolicy: Retain
-    Metadata:
-      BuildMethod: python3.12
-      BuildArchitecture: x86_64
-
   # ==================== API Gateway ====================
   MaatriSahayakApi:
     Type: AWS::Serverless::Api
@@ -278,6 +264,19 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
 
+  # ==================== Lambda Layers ====================
+  SharedDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub maatrisahayak-shared-dependencies-${Environment}
+      Description: Shared dependencies and utilities for MaatriSahayak Lambda functions
+      ContentUri: ../lambda_functions/
+      CompatibleRuntimes:
+        - python3.12
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: python3.12
+
   # ==================== Lambda Functions ====================
   RegisterPregnancyFunction:
     Type: AWS::Serverless::Function
@@ -286,6 +285,8 @@ Resources:
       CodeUri: ../lambda_functions/register_pregnancy/
       Handler: handler.lambda_handler
       Description: Register a new pregnancy in the system
+      Layers:
+        - !Ref SharedDependenciesLayer
       Environment:
         Variables:
           PREGNANCIES_TABLE: !Ref PregnanciesTable
@@ -307,6 +308,8 @@ Resources:
       CodeUri: ../lambda_functions/record_vitals/
       Handler: handler.lambda_handler
       Description: Record vital signs for a pregnancy
+      Layers:
+        - !Ref SharedDependenciesLayer
       Environment:
         Variables:
           VITAL_SIGNS_TABLE: !Ref VitalSignsTable
@@ -331,6 +334,8 @@ Resources:
       CodeUri: ../lambda_functions/get_pregnancy_details/
       Handler: handler.lambda_handler
       Description: Get detailed information about a pregnancy
+      Layers:
+        - !Ref SharedDependenciesLayer
       Environment:
         Variables:
           PREGNANCIES_TABLE: !Ref PregnanciesTable
@@ -355,6 +360,8 @@ Resources:
       CodeUri: ../lambda_functions/list_pregnancies/
       Handler: handler.lambda_handler
       Description: List pregnancies with filtering and pagination
+      Layers:
+        - !Ref SharedDependenciesLayer
       Environment:
         Variables:
           PREGNANCIES_TABLE: !Ref PregnanciesTable

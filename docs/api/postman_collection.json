@@ -7,7 +7,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "https://your-api-id.execute-api.us-east-1.amazonaws.com/dev",
+      "value": "https://w4l9cd82rc.execute-api.ap-south-1.amazonaws.com/dev",
       "type": "string"
     },
     {
@@ -64,12 +64,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"patient_name\": \"Priya Sharma\",\n  \"age\": 26,\n  \"phone\": \"+919876543210\",\n  \"district\": \"Sitapur\",\n  \"block\": \"Biswan\",\n  \"village\": \"Rampur Kalan\",\n  \"latitude\": 27.5706,\n  \"longitude\": 80.2792,\n  \"lmp_date\": \"2024-01-15\",\n  \"edd\": \"2024-10-22\",\n  \"gestational_age_weeks\": 8,\n  \"blood_type\": \"O+\",\n  \"gravida\": 2,\n  \"parity\": 1,\n  \"previous_complications\": [],\n  \"chronic_conditions\": [],\n  \"asha_worker_id\": \"asha_001\",\n  \"asha_worker_name\": \"Sunita Devi\",\n  \"asha_worker_phone\": \"+919876543211\"\n}"
+              "raw": "{\n  \"patient_name\": \"Krishna Test\",\n  \"age\": 25,\n  \"phone\": \"+919876543210\",\n  \"district\": \"Sitapur\",\n  \"village\": \"Test Village\",\n  \"lmp_date\": \"2024-05-01\",\n  \"edd\": \"2025-02-05\",\n  \"gestational_age_weeks\": 28,\n  \"blood_type\": \"O+\",\n  \"asha_worker_id\": \"asha_001\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/pregnancies",
-              "host": ["{{base_url}}"],
-              "path": ["pregnancies"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pregnancies"
+              ]
             },
             "description": "Register a new pregnancy in the system"
           },
@@ -82,8 +86,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/pregnancies/{{pregnancy_id}}?include_vitals=true&vitals_limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["pregnancies", "{{pregnancy_id}}"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pregnancies",
+                "{{pregnancy_id}}"
+              ],
               "query": [
                 {
                   "key": "include_vitals",
@@ -106,8 +115,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/pregnancies?page=1&page_size=20",
-              "host": ["{{base_url}}"],
-              "path": ["pregnancies"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pregnancies"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -130,8 +143,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/pregnancies?asha_worker_id=asha_001&status=ACTIVE&page=1&page_size=20",
-              "host": ["{{base_url}}"],
-              "path": ["pregnancies"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pregnancies"
+              ],
               "query": [
                 {
                   "key": "asha_worker_id",
@@ -162,8 +179,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/pregnancies?risk_level=HIGH&district=Sitapur&page=1&page_size=20",
-              "host": ["{{base_url}}"],
-              "path": ["pregnancies"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pregnancies"
+              ],
               "query": [
                 {
                   "key": "risk_level",
@@ -208,8 +229,12 @@
             },
             "url": {
               "raw": "{{base_url}}/vitals",
-              "host": ["{{base_url}}"],
-              "path": ["vitals"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "vitals"
+              ]
             },
             "description": "Record normal vital signs"
           },
@@ -231,8 +256,12 @@
             },
             "url": {
               "raw": "{{base_url}}/vitals",
-              "host": ["{{base_url}}"],
-              "path": ["vitals"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "vitals"
+              ]
             },
             "description": "Record vital signs with high blood pressure alert"
           },
@@ -254,8 +283,12 @@
             },
             "url": {
               "raw": "{{base_url}}/vitals",
-              "host": ["{{base_url}}"],
-              "path": ["vitals"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "vitals"
+              ]
             },
             "description": "Record vital signs with multiple critical alerts"
           },
@@ -273,8 +306,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/health",
-              "host": ["{{base_url}}"],
-              "path": ["health"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
             },
             "description": "Check if API is running"
           },
