@@ -1,0 +1,65 @@
+name: Cleanup Stack
+
+on:
+  workflow_dispatch:
+    inputs:
+      stack_name:
+        description: 'Stack name to delete'
+        required: true
+        default: 'maatrisahayak'
+      confirm:
+        description: 'Type DELETE to confirm'
+        required: true
+
+env:
+  AWS_REGION: ap-south-1
+
+jobs:
+  cleanup:
+    name: Delete CloudFormation Stack
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DELETE" ]; then
+            echo "❌ Confirmation failed. You must type DELETE to proceed."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete CloudFormation stack
+        run: |
+          echo "Deleting stack: ${{ github.event.inputs.stack_name }}"
+          aws cloudformation delete-stack --stack-name ${{ github.event.inputs.stack_name }}
+          
+          echo "Waiting for stack deletion to complete..."
+          aws cloudformation wait stack-delete-complete --stack-name ${{ github.event.inputs.stack_name }}
+
+      - name: Display cleanup info
+        run: |
+          echo "### Stack Deleted Successfully 🗑️" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Stack Name:** ${{ github.event.inputs.stack_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All resources have been removed:" >> $GITHUB_STEP_SUMMARY
+          echo "- DynamoDB Tables" >> $GITHUB_STEP_SUMMARY
+          echo "- Lambda Functions" >> $GITHUB_STEP_SUMMARY
+          echo "- API Gateway" >> $GITHUB_STEP_SUMMARY
+          echo "- Cognito User Pool" >> $GITHUB_STEP_SUMMARY
+          echo "- IAM Roles" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "### Cleanup Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for error details." >> $GITHUB_STEP_SUMMARY
+          echo "You may need to manually delete resources from AWS Console." >> $GITHUB_STEP_SUMMARY

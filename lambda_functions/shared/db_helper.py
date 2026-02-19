@@ -15,7 +15,7 @@ from .utils import log_info, log_error, convert_decimals
 
 
 # Initialize DynamoDB client
-dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_DEFAULT_REGION', 'ap-south-1'))
+dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_REGION', 'ap-south-1'))
 
 
 def get_table(table_name: str):

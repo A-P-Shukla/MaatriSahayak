@@ -64,12 +64,14 @@ HTTP_STATUS = {
 }
 
 # DynamoDB Table Names
+import os
+
 TABLE_NAMES = {
-    'PREGNANCIES': 'maatrisahayak-pregnancies',
-    'VITAL_SIGNS': 'maatrisahayak-vital-signs',
-    'EMERGENCY_EVENTS': 'maatrisahayak-emergency-events',
-    'AMBULANCES': 'maatrisahayak-ambulances',
-    'HOSPITALS': 'maatrisahayak-hospitals'
+    'PREGNANCIES': os.getenv('PREGNANCIES_TABLE', 'maatrisahayak-pregnancies-dev'),
+    'VITAL_SIGNS': os.getenv('VITAL_SIGNS_TABLE', 'maatrisahayak-vital-signs-dev'),
+    'EMERGENCY_EVENTS': os.getenv('EMERGENCY_EVENTS_TABLE', 'maatrisahayak-emergency-events-dev'),
+    'AMBULANCES': os.getenv('AMBULANCES_TABLE', 'maatrisahayak-ambulances-dev'),
+    'HOSPITALS': os.getenv('HOSPITALS_TABLE', 'maatrisahayak-hospitals-dev')
 }
 
 # GSI Names

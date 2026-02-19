@@ -4,32 +4,7 @@ This folder contains utility scripts for setting up and managing the MaatriSahay
 
 ## 📋 Available Scripts
 
-### 1. `setup_dynamodb.py`
-Creates all required DynamoDB tables for the platform.
-
-**Usage:**
-```bash
-python scripts/setup_dynamodb.py
-```
-
-**Features:**
-- Creates 5 DynamoDB tables with proper schemas
-- Checks for existing tables
-- Prompts before deleting existing tables
-- Creates Global Secondary Indexes (GSIs)
-- Enables DynamoDB Streams where needed
-- Uses PAY_PER_REQUEST billing mode (cost-effective)
-
-**Tables Created:**
-- `maatrisahayak-pregnancies` - Pregnancy records
-- `maatrisahayak-vital-signs` - Vital signs history
-- `maatrisahayak-emergency-events` - Emergency events
-- `maatrisahayak-ambulances` - Ambulance fleet
-- `maatrisahayak-hospitals` - Hospital information
-
----
-
-### 2. `seed_data.py`
+### 1. `seed_data.py`
 Populates DynamoDB tables with sample data for testing and demo.
 
 **Usage:**
@@ -38,12 +13,13 @@ python scripts/seed_data.py
 ```
 
 **Features:**
-- Seeds realistic sample data
+- Seeds realistic sample data into deployed DynamoDB tables
 - Creates 3 pregnancies (LOW, HIGH, CRITICAL risk)
 - Generates 7 days of vital signs
 - Creates 1 completed emergency event
 - Adds 3 ambulances (2 available, 1 in maintenance)
 - Adds 2 hospitals with capacity information
+- Uses environment suffix for table names (e.g., maatrisahayak-pregnancies-dev)
 
 **Sample Data:**
 - 3 Pregnancies
@@ -51,6 +27,27 @@ python scripts/seed_data.py
 - 1 Emergency Event
 - 3 Ambulances
 - 2 Hospitals
+
+---
+
+### 2. `test_apis.py`
+Tests deployed API endpoints with sample requests.
+
+**Usage:**
+```bash
+# Set environment variables first
+export API_BASE_URL=https://w4l9cd82rc.execute-api.ap-south-1.amazonaws.com/dev
+export AUTH_TOKEN=your_cognito_id_token
+
+# Run tests
+python scripts/test_apis.py
+```
+
+**Features:**
+- Tests all API endpoints
+- Validates request/response formats
+- Tests error handling
+- Checks authentication
 
 ---
 
@@ -72,22 +69,15 @@ python scripts/test_local.py
 
 ---
 
-### 4. `deploy_all.sh`
-Deploys the entire platform to AWS (Lambda functions, API Gateway, etc.).
+### 4. `setup_dynamodb.py`
+**Note:** This script is for local development only. The CloudFormation stack already creates all required tables.
+
+Creates DynamoDB tables manually if needed for testing.
 
 **Usage:**
 ```bash
-bash scripts/deploy_all.sh
+python scripts/setup_dynamodb.py
 ```
-
-**Features:**
-- Checks prerequisites (AWS CLI, SAM CLI, Python)
-- Installs dependencies
-- Builds SAM application
-- Deploys to AWS
-- Optionally sets up DynamoDB tables
-- Optionally seeds test data
-- Retrieves API endpoint
 
 ---
 
@@ -95,7 +85,12 @@ bash scripts/deploy_all.sh
 
 ### Prerequisites
 
-1. **Install Python 3.11+**
+1. **AWS Account with Deployed Stack**
+   - The MaatriSahayak stack should already be deployed
+   - API Endpoint: `https://w4l9cd82rc.execute-api.ap-south-1.amazonaws.com/dev`
+   - Tables are created with `-dev` suffix
+
+2. **Install Python 3.11+**
    ```bash
    # Check version
    python --version
@@ -103,15 +98,15 @@ bash scripts/deploy_all.sh
    # Should be 3.11 or higher
    ```
 
-2. **Install Required Packages**
+3. **Install Required Packages**
    ```bash
-   pip install boto3 python-dotenv
+   pip install boto3 python-dotenv requests
    
    # Or install from requirements file
    pip install -r scripts/requirements.txt
    ```
 
-3. **Create .env File**
+4. **Create .env File**
    ```bash
    # Copy the example file
    cp .env.example .env
@@ -119,7 +114,8 @@ bash scripts/deploy_all.sh
    # Edit .env and add your AWS credentials
    # AWS_ACCESS_KEY_ID=your-access-key-id
    # AWS_SECRET_ACCESS_KEY=your-secret-access-key
-   # AWS_DEFAULT_REGION=us-east-1
+   # AWS_DEFAULT_REGION=ap-south-1
+   # ENVIRONMENT=dev
    ```
 
 ---
@@ -132,7 +128,9 @@ Create a `.env` file in the project root with your AWS credentials:
 # .env file
 AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
 AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_DEFAULT_REGION=us-east-1
+AWS_DEFAULT_REGION=ap-south-1
+ENVIRONMENT=dev
+API_BASE_URL=https://w4l9cd82rc.execute-api.ap-south-1.amazonaws.com/dev
 ```
 
 **To get AWS credentials:**
@@ -147,63 +145,25 @@ AWS_DEFAULT_REGION=us-east-1
 
 ---
 
-### Step 2: Create DynamoDB Tables
+### Step 2: Seed Test Data
 
-```bash
-python scripts/setup_dynamodb.py
-```
-
-The script will:
-1. Load AWS credentials from `.env` file
-2. Check for existing tables
-3. Prompt before deleting (if tables exist)
-4. Create 5 DynamoDB tables
-
-**Expected Output:**
-```
-✅ Loaded environment variables from /path/to/.env
-🔑 Using credentials from .env file
-📍 Region: us-east-1
-
-======================================================================
-🏥 MaatriSahayak - DynamoDB Tables Setup
-======================================================================
-
-📝 Creating DynamoDB tables...
-
-  📝 Creating table: maatrisahayak-pregnancies...
-  ✅ Table created: maatrisahayak-pregnancies
-
-  📝 Creating table: maatrisahayak-vital-signs...
-  ✅ Table created: maatrisahayak-vital-signs
-
-  ... (more tables)
-
-======================================================================
-📊 Setup Summary
-======================================================================
-✅ Successfully created: 5 tables
-
-🎉 All tables created successfully!
-
-📋 Created Tables:
-   ✓ maatrisahayak-pregnancies
-   ✓ maatrisahayak-vital-signs
-   ✓ maatrisahayak-emergency-events
-   ✓ maatrisahayak-ambulances
-   ✓ maatrisahayak-hospitals
-```
-
----
-
-### Step 3: Seed Test Data
+The DynamoDB tables are already created by CloudFormation. Now populate them with test data:
 
 ```bash
 python scripts/seed_data.py
 ```
 
+The script will:
+1. Load AWS credentials from `.env` file
+2. Connect to deployed DynamoDB tables (with -dev suffix)
+3. Insert sample pregnancy, vital signs, emergency, ambulance, and hospital data
+
 **Expected Output:**
 ```
+✅ Loaded environment variables from /path/to/.env
+🔑 Using credentials from .env file
+📍 Region: ap-south-1
+
 ======================================================================
 🌱 MaatriSahayak - Seed Data Script
 ======================================================================
@@ -232,6 +192,23 @@ This will populate tables with sample data. Continue? (yes/no): yes
 
 ---
 
+### Step 3: Test APIs
+
+Test the deployed API endpoints:
+
+```bash
+# First, get a Cognito authentication token
+# See POSTMAN_TESTING_GUIDE.md for details
+
+# Set the token in .env
+echo "AUTH_TOKEN=your_cognito_id_token" >> .env
+
+# Run API tests
+python scripts/test_apis.py
+```
+
+---
+
 ### Step 4: Test Local Setup
 
 ```bash
@@ -239,16 +216,6 @@ python scripts/test_local.py
 ```
 
 This validates your environment and setup.
-
----
-
-### Step 5: Deploy to AWS (Optional)
-
-```bash
-bash scripts/deploy_all.sh
-```
-
-This deploys Lambda functions and API Gateway to AWS.
 
 ---
 
@@ -333,16 +300,16 @@ Add the `AmazonDynamoDBFullAccess` policy to your IAM user.
 
 ---
 
-## 📊 Verifying Tables in AWS Console
+## 📊 Verifying Data in AWS Console
 
 1. Go to AWS Console → DynamoDB
 2. Click "Tables" in the left sidebar
-3. You should see 5 tables:
-   - maatrisahayak-pregnancies
-   - maatrisahayak-vital-signs
-   - maatrisahayak-emergency-events
-   - maatrisahayak-ambulances
-   - maatrisahayak-hospitals
+3. You should see 5 tables with `-dev` suffix:
+   - maatrisahayak-pregnancies-dev
+   - maatrisahayak-vital-signs-dev
+   - maatrisahayak-emergency-events-dev
+   - maatrisahayak-ambulances-dev
+   - maatrisahayak-hospitals-dev
 
 4. Click on any table to view:
    - Items (data)
@@ -354,29 +321,31 @@ Add the `AmazonDynamoDBFullAccess` policy to your IAM user.
 
 ## 🧹 Cleaning Up
 
-### Delete All Tables
+### Delete Stack and All Resources
 
 ```bash
-python scripts/setup_dynamodb.py
-# Answer 'yes' when prompted to delete existing tables
-# Then press Ctrl+C to cancel creation
+aws cloudformation delete-stack --stack-name maatrisahayak
 ```
 
-Or manually delete from AWS Console:
-1. Go to DynamoDB → Tables
-2. Select each table
-3. Click "Delete"
+This will delete:
+- All DynamoDB tables
+- All Lambda functions
+- API Gateway
+- Cognito User Pool
+- IAM roles and policies
 
 ---
 
 ## 📝 Script Execution Order
 
-For first-time setup:
+For working with the deployed stack:
 
-1. ✅ `setup_dynamodb.py` - Create tables
-2. ✅ `seed_data.py` - Add sample data
-3. ✅ `test_local.py` - Verify setup
-4. ✅ `deploy_all.sh` - Deploy to AWS (optional)
+1. ✅ Configure `.env` file with AWS credentials
+2. ✅ `seed_data.py` - Add sample data to deployed tables
+3. ✅ `test_apis.py` - Test deployed API endpoints
+4. ✅ `test_local.py` - Verify local environment setup
+
+**Note:** The CloudFormation stack has already created all DynamoDB tables, Lambda functions, and API Gateway. You don't need to run `setup_dynamodb.py` or deploy scripts.
 
 ---
 

@@ -73,82 +73,92 @@ def convert_floats_to_decimal(obj):
 
 def seed_pregnancies(dynamodb):
     """Seed pregnancies table with sample data."""
-    table = dynamodb.Table('maatrisahayak-pregnancies')
+    env = os.getenv('ENVIRONMENT', 'dev')
+    table = dynamodb.Table(f'maatrisahayak-pregnancies-{env}')
     
     print("  📝 Seeding pregnancies...")
     
     pregnancies = [
         {
-            'pregnancy_id': 'PREG-001',
-            'patient_id': 'PAT-001',
+            'id': 'preg_001',
             'patient_name': 'Sunita Devi',
             'age': 28,
+            'phone': '+919876543210',
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Kalan',
+            'latitude': Decimal('27.5706'),
+            'longitude': Decimal('80.2792'),
+            'lmp_date': (datetime.now() - timedelta(days=224)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=56)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 32,
             'blood_type': 'O+',
+            'gravida': 2,
+            'parity': 1,
+            'previous_complications': ['gestational_diabetes'],
+            'chronic_conditions': ['high_blood_pressure'],
+            'risk_score': 75,
             'risk_level': 'HIGH',
-            'risk_score': Decimal('75'),
-            'gestational_age': 32,
-            'estimated_due_date': int((datetime.now() + timedelta(days=56)).timestamp()),
-            'asha_worker_id': 'ASHA-001',
-            'village': 'Rampur',
-            'district': 'Patna',
-            'assigned_hospital_id': 'HOSP-001',
-            'last_updated': int(datetime.now().timestamp()),
-            'created_at': int((datetime.now() - timedelta(days=224)).timestamp()),
-            'medical_history': ['gestational_diabetes'],
-            'current_conditions': ['high_blood_pressure'],
-            'emergency_contact': {
-                'name': 'Rajesh Kumar',
-                'phone': '+919876543210'
-            },
-            'status': 'ACTIVE'
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_001',
+            'asha_worker_name': 'Sunita Devi',
+            'asha_worker_phone': '+919876543211',
+            'created_at': (datetime.now() - timedelta(days=224)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
         },
         {
-            'pregnancy_id': 'PREG-002',
-            'patient_id': 'PAT-002',
+            'id': 'preg_002',
             'patient_name': 'Priya Sharma',
             'age': 24,
+            'phone': '+919876543220',
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Kalan',
+            'latitude': Decimal('27.5706'),
+            'longitude': Decimal('80.2792'),
+            'lmp_date': (datetime.now() - timedelta(days=140)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=140)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 20,
             'blood_type': 'A+',
+            'gravida': 1,
+            'parity': 0,
+            'previous_complications': [],
+            'chronic_conditions': [],
+            'risk_score': 25,
             'risk_level': 'LOW',
-            'risk_score': Decimal('25'),
-            'gestational_age': 20,
-            'estimated_due_date': int((datetime.now() + timedelta(days=140)).timestamp()),
-            'asha_worker_id': 'ASHA-001',
-            'village': 'Rampur',
-            'district': 'Patna',
-            'assigned_hospital_id': 'HOSP-001',
-            'last_updated': int(datetime.now().timestamp()),
-            'created_at': int((datetime.now() - timedelta(days=140)).timestamp()),
-            'medical_history': [],
-            'current_conditions': [],
-            'emergency_contact': {
-                'name': 'Amit Sharma',
-                'phone': '+919876543211'
-            },
-            'status': 'ACTIVE'
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_001',
+            'asha_worker_name': 'Sunita Devi',
+            'asha_worker_phone': '+919876543211',
+            'created_at': (datetime.now() - timedelta(days=140)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
         },
         {
-            'pregnancy_id': 'PREG-003',
-            'patient_id': 'PAT-003',
+            'id': 'preg_003',
             'patient_name': 'Anita Singh',
             'age': 35,
-            'blood_type': 'B+',
-            'risk_level': 'CRITICAL',
-            'risk_score': Decimal('92'),
-            'gestational_age': 36,
-            'estimated_due_date': int((datetime.now() + timedelta(days=28)).timestamp()),
-            'asha_worker_id': 'ASHA-002',
+            'phone': '+919876543230',
+            'district': 'Sitapur',
+            'block': 'Mahmudabad',
             'village': 'Madhubani',
-            'district': 'Patna',
-            'assigned_hospital_id': 'HOSP-001',
-            'last_updated': int(datetime.now().timestamp()),
-            'created_at': int((datetime.now() - timedelta(days=252)).timestamp()),
-            'medical_history': ['previous_c_section', 'anemia'],
-            'current_conditions': ['severe_preeclampsia'],
-            'emergency_contact': {
-                'name': 'Vijay Singh',
-                'phone': '+919876543212'
-            },
-            'status': 'ACTIVE'
+            'latitude': Decimal('27.5800'),
+            'longitude': Decimal('80.2900'),
+            'lmp_date': (datetime.now() - timedelta(days=252)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=28)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 36,
+            'blood_type': 'B+',
+            'gravida': 3,
+            'parity': 2,
+            'previous_complications': ['previous_c_section', 'anemia'],
+            'chronic_conditions': ['severe_preeclampsia'],
+            'risk_score': 92,
+            'risk_level': 'CRITICAL',
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_002',
+            'asha_worker_name': 'Rekha Devi',
+            'asha_worker_phone': '+919876543212',
+            'created_at': (datetime.now() - timedelta(days=252)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
         },
     ]
     
@@ -160,34 +170,32 @@ def seed_pregnancies(dynamodb):
 
 def seed_vital_signs(dynamodb):
     """Seed vital signs table with sample data."""
-    table = dynamodb.Table('maatrisahayak-vital-signs')
+    env = os.getenv('ENVIRONMENT', 'dev')
+    table = dynamodb.Table(f'maatrisahayak-vital-signs-{env}')
     
     print("  📝 Seeding vital signs...")
     
-    # Generate vital signs for PREG-001 (last 7 days)
+    # Generate vital signs for preg_001 (last 7 days)
     vital_signs = []
     base_time = datetime.now()
     
     for i in range(7):
-        timestamp = int((base_time - timedelta(days=i)).timestamp())
+        recorded_at = (base_time - timedelta(days=i)).isoformat() + 'Z'
         vital_signs.append({
-            'pregnancy_id': 'PREG-001',
-            'timestamp': timestamp,
-            'vital_sign_id': f'VS-001-{i}',
+            'id': f'vital_{i+1:03d}',
+            'pregnancy_id': 'preg_001',
+            'bp_systolic': 130 + random.randint(-10, 20),
+            'bp_diastolic': 85 + random.randint(-5, 10),
             'heart_rate': 80 + random.randint(-5, 10),
             'temperature': Decimal('37.2'),
             'oxygen_saturation': 98,
             'fetal_heart_rate': 145 + random.randint(-10, 10),
-            'contraction_frequency': 0,
-            'blood_pressure': {
-                'systolic': 130 + random.randint(-10, 20),
-                'diastolic': 85 + random.randint(-5, 10)
-            },
             'weight': Decimal('65.5'),
-            'alert_triggered': True if i < 2 else False,
-            'alert_type': 'HIGH_BP' if i < 2 else None,
-            'symptoms': 'Headache and dizziness' if i < 2 else 'Normal',
-            'recorded_by': 'ASHA-001'
+            'symptoms': ['headache', 'dizziness'] if i < 2 else [],
+            'notes': 'Patient complaining of headache' if i < 2 else 'Normal checkup',
+            'recorded_by': 'asha_001',
+            'recorded_at': recorded_at,
+            'alerts': ['High Blood Pressure'] if i < 2 else []
         })
     
     for vital in vital_signs:
@@ -198,32 +206,39 @@ def seed_vital_signs(dynamodb):
 
 def seed_emergency_events(dynamodb):
     """Seed emergency events table with sample data."""
-    table = dynamodb.Table('maatrisahayak-emergency-events')
+    env = os.getenv('ENVIRONMENT', 'dev')
+    table = dynamodb.Table(f'maatrisahayak-emergency-events-{env}')
     
     print("  📝 Seeding emergency events...")
     
     events = [
         {
-            'event_id': 'EVENT-001',
-            'pregnancy_id': 'PREG-001',
-            'timestamp': int((datetime.now() - timedelta(hours=2)).timestamp()),
+            'id': 'emerg_001',
+            'pregnancy_id': 'preg_001',
+            'patient_name': 'Sunita Devi',
+            'patient_phone': '+919876543210',
             'event_type': 'SEVERE_BLEEDING',
             'severity': 'CRITICAL',
+            'description': 'Patient experiencing severe bleeding, immediate transport required',
+            'latitude': Decimal('27.5706'),
+            'longitude': Decimal('80.2792'),
+            'location_address': 'Rampur Kalan, Biswan, Sitapur',
             'status': 'COMPLETED',
-            'location': {
-                'latitude': Decimal('25.5941'),
-                'longitude': Decimal('85.1376'),
-                'address': 'Rampur Village, Patna'
-            },
-            'assigned_ambulance_id': 'AMB-001',
-            'assigned_hospital_id': 'HOSP-001',
-            'estimated_arrival_time': int((datetime.now() - timedelta(hours=1, minutes=45)).timestamp()),
-            'actual_arrival_time': int((datetime.now() - timedelta(hours=1, minutes=40)).timestamp()),
+            'ambulance_id': 'amb_001',
+            'hospital_id': 'hosp_001',
+            'estimated_arrival_time': (datetime.now() - timedelta(hours=1, minutes=45)).isoformat() + 'Z',
+            'actual_arrival_time': (datetime.now() - timedelta(hours=1, minutes=40)).isoformat() + 'Z',
+            'completion_time': (datetime.now() - timedelta(hours=1)).isoformat() + 'Z',
             'response_time_seconds': 600,
-            'notes': 'Patient experiencing severe bleeding, immediate transport required',
-            'resolved_at': int((datetime.now() - timedelta(hours=1)).timestamp()),
-            'outcome': 'SUCCESSFUL',
-            'triggered_by': 'ASHA-001'
+            'triggered_by': 'asha_001',
+            'triggered_at': (datetime.now() - timedelta(hours=2)).isoformat() + 'Z',
+            'updated_at': (datetime.now() - timedelta(hours=1)).isoformat() + 'Z',
+            'timeline': [
+                {'status': 'INITIATED', 'timestamp': (datetime.now() - timedelta(hours=2)).isoformat() + 'Z'},
+                {'status': 'DISPATCHED', 'timestamp': (datetime.now() - timedelta(hours=1, minutes=50)).isoformat() + 'Z'},
+                {'status': 'ARRIVED', 'timestamp': (datetime.now() - timedelta(hours=1, minutes=40)).isoformat() + 'Z'},
+                {'status': 'COMPLETED', 'timestamp': (datetime.now() - timedelta(hours=1)).isoformat() + 'Z'}
+            ]
         },
     ]
     
@@ -235,55 +250,50 @@ def seed_emergency_events(dynamodb):
 
 def seed_ambulances(dynamodb):
     """Seed ambulances table with sample data."""
-    table = dynamodb.Table('maatrisahayak-ambulances')
+    env = os.getenv('ENVIRONMENT', 'dev')
+    table = dynamodb.Table(f'maatrisahayak-ambulances-{env}')
     
     print("  📝 Seeding ambulances...")
     
     ambulances = [
         {
-            'ambulance_id': 'AMB-001',
-            'vehicle_number': 'BR-01-AB-1234',
+            'id': 'amb_001',
+            'vehicle_number': 'UP80AB1234',
+            'district': 'Sitapur',
             'status': 'AVAILABLE',
-            'base_hospital_id': 'HOSP-001',
-            'district': 'Patna',
+            'latitude': Decimal('27.5706'),
+            'longitude': Decimal('80.2792'),
             'driver_name': 'Ramesh Kumar',
             'driver_phone': '+919876543220',
-            'last_updated': int(datetime.now().timestamp()),
             'equipment': ['OXYGEN', 'DEFIBRILLATOR', 'OBSTETRIC_KIT', 'STRETCHER'],
-            'current_location': {
-                'latitude': Decimal('25.5941'),
-                'longitude': Decimal('85.1376')
-            }
+            'current_emergency_id': None,
+            'last_updated': datetime.now().isoformat() + 'Z'
         },
         {
-            'ambulance_id': 'AMB-002',
-            'vehicle_number': 'BR-01-AB-5678',
+            'id': 'amb_002',
+            'vehicle_number': 'UP80AB5678',
+            'district': 'Sitapur',
             'status': 'AVAILABLE',
-            'base_hospital_id': 'HOSP-001',
-            'district': 'Patna',
+            'latitude': Decimal('27.5800'),
+            'longitude': Decimal('80.2900'),
             'driver_name': 'Suresh Singh',
             'driver_phone': '+919876543221',
-            'last_updated': int(datetime.now().timestamp()),
             'equipment': ['OXYGEN', 'DEFIBRILLATOR', 'OBSTETRIC_KIT', 'STRETCHER', 'VENTILATOR'],
-            'current_location': {
-                'latitude': Decimal('25.6093'),
-                'longitude': Decimal('85.1235')
-            }
+            'current_emergency_id': None,
+            'last_updated': datetime.now().isoformat() + 'Z'
         },
         {
-            'ambulance_id': 'AMB-003',
-            'vehicle_number': 'BR-01-AB-9012',
+            'id': 'amb_003',
+            'vehicle_number': 'UP80AB9012',
+            'district': 'Sitapur',
             'status': 'MAINTENANCE',
-            'base_hospital_id': 'HOSP-001',
-            'district': 'Patna',
+            'latitude': Decimal('27.5706'),
+            'longitude': Decimal('80.2792'),
             'driver_name': 'Dinesh Yadav',
             'driver_phone': '+919876543222',
-            'last_updated': int(datetime.now().timestamp()),
             'equipment': ['OXYGEN', 'STRETCHER'],
-            'current_location': {
-                'latitude': Decimal('25.5941'),
-                'longitude': Decimal('85.1376')
-            }
+            'current_emergency_id': None,
+            'last_updated': datetime.now().isoformat() + 'Z'
         },
     ]
     
@@ -295,60 +305,51 @@ def seed_ambulances(dynamodb):
 
 def seed_hospitals(dynamodb):
     """Seed hospitals table with sample data."""
-    table = dynamodb.Table('maatrisahayak-hospitals')
+    env = os.getenv('ENVIRONMENT', 'dev')
+    table = dynamodb.Table(f'maatrisahayak-hospitals-{env}')
     
     print("  📝 Seeding hospitals...")
     
     hospitals = [
         {
-            'hospital_id': 'HOSP-001',
-            'name': 'Patna Medical College and Hospital',
+            'id': 'hosp_001',
+            'name': 'District Hospital Sitapur',
             'type': 'DISTRICT',
-            'address': 'Ashok Rajpath, Patna',
-            'city': 'Patna',
-            'district': 'Patna',
-            'capacity': 50,
-            'current_occupancy': 35,
-            'contact_number': '+916122301080',
+            'district': 'Sitapur',
+            'address': 'Civil Lines, Sitapur, Uttar Pradesh',
+            'latitude': Decimal('27.5706'),
+            'longitude': Decimal('80.2792'),
+            'phone': '+915862221234',
+            'total_beds': 100,
+            'available_beds': 20,
+            'maternity_beds': 30,
+            'available_maternity_beds': 8,
+            'nicu_beds': 10,
+            'available_nicu_beds': 5,
+            'has_blood_bank': True,
+            'has_operation_theater': True,
             'specializations': ['MATERNITY', 'NICU', 'EMERGENCY', 'SURGERY'],
-            'emergency_department': {
-                'available': True,
-                'wait_time': 15
-            },
-            'maternity_ward': {
-                'beds_available': 8,
-                'nicu_available': True,
-                'nicu_beds': 5
-            },
-            'location': {
-                'latitude': Decimal('25.5941'),
-                'longitude': Decimal('85.1376')
-            }
+            'last_updated': datetime.now().isoformat() + 'Z'
         },
         {
-            'hospital_id': 'HOSP-002',
-            'name': 'Indira Gandhi Institute of Medical Sciences',
-            'type': 'DISTRICT',
-            'address': 'Sheikhpura, Patna',
-            'city': 'Patna',
-            'district': 'Patna',
-            'capacity': 40,
-            'current_occupancy': 28,
-            'contact_number': '+916122451070',
-            'specializations': ['MATERNITY', 'NICU', 'EMERGENCY'],
-            'emergency_department': {
-                'available': True,
-                'wait_time': 20
-            },
-            'maternity_ward': {
-                'beds_available': 6,
-                'nicu_available': True,
-                'nicu_beds': 3
-            },
-            'location': {
-                'latitude': Decimal('25.6093'),
-                'longitude': Decimal('85.1235')
-            }
+            'id': 'hosp_002',
+            'name': 'Community Health Center Biswan',
+            'type': 'CHC',
+            'district': 'Sitapur',
+            'address': 'Biswan, Sitapur, Uttar Pradesh',
+            'latitude': Decimal('27.5000'),
+            'longitude': Decimal('80.9900'),
+            'phone': '+915862245678',
+            'total_beds': 50,
+            'available_beds': 15,
+            'maternity_beds': 20,
+            'available_maternity_beds': 6,
+            'nicu_beds': 5,
+            'available_nicu_beds': 3,
+            'has_blood_bank': False,
+            'has_operation_theater': True,
+            'specializations': ['MATERNITY', 'EMERGENCY'],
+            'last_updated': datetime.now().isoformat() + 'Z'
         },
     ]
     

@@ -1,0 +1,9 @@
+# MaatriSahayak - Record Vitals Lambda Requirements
+
+# Shared layer provides these dependencies:
+# - boto3
+# - pydantic
+# - python-dotenv
+
+# No additional dependencies required
+# All functionality is provided by the shared layer

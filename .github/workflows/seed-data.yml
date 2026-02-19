@@ -1,0 +1,79 @@
+name: Seed Test Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to seed data into'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+
+env:
+  AWS_REGION: ap-south-1
+  PYTHON_VERSION: '3.13'
+
+jobs:
+  seed:
+    name: Seed DynamoDB Tables
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify tables exist
+        run: |
+          echo "Checking if tables exist..."
+          aws dynamodb describe-table --table-name maatrisahayak-pregnancies-${{ github.event.inputs.environment }} --region ${{ env.AWS_REGION }}
+
+      - name: Seed test data
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+        run: |
+          python scripts/seed_data.py <<< "yes"
+
+      - name: Display seeding info
+        run: |
+          echo "### Data Seeded Successfully 🌱" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Seeded Data:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 3 Pregnancies" >> $GITHUB_STEP_SUMMARY
+          echo "- 7 Vital Signs records" >> $GITHUB_STEP_SUMMARY
+          echo "- 1 Emergency Event" >> $GITHUB_STEP_SUMMARY
+          echo "- 3 Ambulances" >> $GITHUB_STEP_SUMMARY
+          echo "- 2 Hospitals" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "### Seeding Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for error details." >> $GITHUB_STEP_SUMMARY

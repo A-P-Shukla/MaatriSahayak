@@ -1,0 +1,286 @@
+{
+  "info": {
+    "name": "MaatriSahayak API",
+    "description": "API collection for MaatriSahayak - AI-Powered Maternal Emergency Response Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://your-api-id.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pregnancy_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Pregnancies",
+      "item": [
+        {
+          "name": "Register Pregnancy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('pregnancy_id', response.data.id);",
+                  "        console.log('Pregnancy ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_name\": \"Priya Sharma\",\n  \"age\": 26,\n  \"phone\": \"+919876543210\",\n  \"district\": \"Sitapur\",\n  \"block\": \"Biswan\",\n  \"village\": \"Rampur Kalan\",\n  \"latitude\": 27.5706,\n  \"longitude\": 80.2792,\n  \"lmp_date\": \"2024-01-15\",\n  \"edd\": \"2024-10-22\",\n  \"gestational_age_weeks\": 8,\n  \"blood_type\": \"O+\",\n  \"gravida\": 2,\n  \"parity\": 1,\n  \"previous_complications\": [],\n  \"chronic_conditions\": [],\n  \"asha_worker_id\": \"asha_001\",\n  \"asha_worker_name\": \"Sunita Devi\",\n  \"asha_worker_phone\": \"+919876543211\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pregnancies",
+              "host": ["{{base_url}}"],
+              "path": ["pregnancies"]
+            },
+            "description": "Register a new pregnancy in the system"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pregnancy Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pregnancies/{{pregnancy_id}}?include_vitals=true&vitals_limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["pregnancies", "{{pregnancy_id}}"],
+              "query": [
+                {
+                  "key": "include_vitals",
+                  "value": "true"
+                },
+                {
+                  "key": "vitals_limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get detailed information about a specific pregnancy"
+          },
+          "response": []
+        },
+        {
+          "name": "List All Pregnancies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pregnancies?page=1&page_size=20",
+              "host": ["{{base_url}}"],
+              "path": ["pregnancies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "List all pregnancies with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "List Pregnancies by ASHA Worker",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pregnancies?asha_worker_id=asha_001&status=ACTIVE&page=1&page_size=20",
+              "host": ["{{base_url}}"],
+              "path": ["pregnancies"],
+              "query": [
+                {
+                  "key": "asha_worker_id",
+                  "value": "asha_001"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "List pregnancies filtered by ASHA worker"
+          },
+          "response": []
+        },
+        {
+          "name": "List High Risk Pregnancies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pregnancies?risk_level=HIGH&district=Sitapur&page=1&page_size=20",
+              "host": ["{{base_url}}"],
+              "path": ["pregnancies"],
+              "query": [
+                {
+                  "key": "risk_level",
+                  "value": "HIGH"
+                },
+                {
+                  "key": "district",
+                  "value": "Sitapur"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "List high-risk pregnancies in a district"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vital Signs",
+      "item": [
+        {
+          "name": "Record Vital Signs - Normal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pregnancy_id\": \"{{pregnancy_id}}\",\n  \"bp_systolic\": 120,\n  \"bp_diastolic\": 80,\n  \"heart_rate\": 75,\n  \"temperature\": 37.0,\n  \"oxygen_saturation\": 98,\n  \"fetal_heart_rate\": 140,\n  \"weight\": 65.5,\n  \"symptoms\": [],\n  \"notes\": \"Patient feeling well, no complaints\",\n  \"recorded_by\": \"asha_001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/vitals",
+              "host": ["{{base_url}}"],
+              "path": ["vitals"]
+            },
+            "description": "Record normal vital signs"
+          },
+          "response": []
+        },
+        {
+          "name": "Record Vital Signs - High BP Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pregnancy_id\": \"{{pregnancy_id}}\",\n  \"bp_systolic\": 165,\n  \"bp_diastolic\": 105,\n  \"heart_rate\": 88,\n  \"temperature\": 37.2,\n  \"oxygen_saturation\": 97,\n  \"fetal_heart_rate\": 145,\n  \"symptoms\": [\"headache\", \"blurred vision\"],\n  \"notes\": \"Patient complaining of severe headache\",\n  \"recorded_by\": \"asha_001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/vitals",
+              "host": ["{{base_url}}"],
+              "path": ["vitals"]
+            },
+            "description": "Record vital signs with high blood pressure alert"
+          },
+          "response": []
+        },
+        {
+          "name": "Record Vital Signs - Multiple Alerts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pregnancy_id\": \"{{pregnancy_id}}\",\n  \"bp_systolic\": 170,\n  \"bp_diastolic\": 110,\n  \"heart_rate\": 105,\n  \"temperature\": 38.5,\n  \"oxygen_saturation\": 92,\n  \"fetal_heart_rate\": 105,\n  \"symptoms\": [\"severe headache\", \"chest pain\", \"shortness of breath\"],\n  \"notes\": \"URGENT: Multiple critical symptoms\",\n  \"recorded_by\": \"asha_001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/vitals",
+              "host": ["{{base_url}}"],
+              "path": ["vitals"]
+            },
+            "description": "Record vital signs with multiple critical alerts"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if API is running"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

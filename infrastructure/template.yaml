@@ -1,0 +1,427 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: MaatriSahayak - AI-Powered Maternal Emergency Response Platform
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.13
+    Environment:
+      Variables:
+        POWERTOOLS_SERVICE_NAME: maatrisahayak
+        LOG_LEVEL: INFO
+        ENVIRONMENT: !Ref Environment
+    Layers:
+      - !Ref SharedLayer
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+Resources:
+  # ==================== Lambda Layer ====================
+  SharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub maatrisahayak-shared-layer-${Environment}
+      Description: Shared utilities for MaatriSahayak Lambda functions
+      ContentUri: ../lambda_functions/shared/
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: python3.13
+
+  # ==================== API Gateway ====================
+  MaatriSahayakApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub maatrisahayak-api-${Environment}
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+        AddDefaultAuthorizerToCorsPreflight: false
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+
+  # ==================== Cognito User Pool ====================
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub maatrisahayak-users-${Environment}
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: "OFF"
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: email
+          AttributeDataType: String
+          Mutable: false
+          Required: true
+        - Name: phone_number
+          AttributeDataType: String
+          Mutable: true
+        - Name: role
+          AttributeDataType: String
+          Mutable: true
+        - Name: district
+          AttributeDataType: String
+          Mutable: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub maatrisahayak-client-${Environment}
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      PreventUserExistenceErrors: ENABLED
+
+  # ==================== DynamoDB Tables ====================
+  PregnanciesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub maatrisahayak-pregnancies-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: asha_worker_id
+          AttributeType: S
+        - AttributeName: district
+          AttributeType: S
+        - AttributeName: risk_level
+          AttributeType: S
+        - AttributeName: edd
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: asha-worker-index
+          KeySchema:
+            - AttributeName: asha_worker_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: district-risk-index
+          KeySchema:
+            - AttributeName: district
+              KeyType: HASH
+            - AttributeName: risk_level
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: delivery-date-index
+          KeySchema:
+            - AttributeName: district
+              KeyType: HASH
+            - AttributeName: edd
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  VitalSignsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub maatrisahayak-vital-signs-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: pregnancy_id
+          AttributeType: S
+        - AttributeName: recorded_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: pregnancy-events-index
+          KeySchema:
+            - AttributeName: pregnancy_id
+              KeyType: HASH
+            - AttributeName: recorded_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  EmergencyEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub maatrisahayak-emergency-events-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: pregnancy_id
+          AttributeType: S
+        - AttributeName: ambulance_id
+          AttributeType: S
+        - AttributeName: triggered_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: pregnancy-events-index
+          KeySchema:
+            - AttributeName: pregnancy_id
+              KeyType: HASH
+            - AttributeName: triggered_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ambulance-events-index
+          KeySchema:
+            - AttributeName: ambulance_id
+              KeyType: HASH
+            - AttributeName: triggered_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  AmbulancesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub maatrisahayak-ambulances-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: district
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: district-status-index
+          KeySchema:
+            - AttributeName: district
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  HospitalsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub maatrisahayak-hospitals-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: district
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: district-type-index
+          KeySchema:
+            - AttributeName: district
+              KeyType: HASH
+            - AttributeName: type
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  # ==================== Lambda Functions ====================
+  RegisterPregnancyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-register-pregnancy-${Environment}
+      CodeUri: ../lambda_functions/register_pregnancy/
+      Handler: handler.lambda_handler
+      Description: Register a new pregnancy in the system
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PregnanciesTable
+      Events:
+        RegisterPregnancy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /pregnancies
+            Method: POST
+
+  RecordVitalsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-record-vitals-${Environment}
+      CodeUri: ../lambda_functions/record_vitals/
+      Handler: handler.lambda_handler
+      Description: Record vital signs for a pregnancy
+      Environment:
+        Variables:
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VitalSignsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+      Events:
+        RecordVitals:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /vitals
+            Method: POST
+
+  GetPregnancyDetailsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-get-pregnancy-details-${Environment}
+      CodeUri: ../lambda_functions/get_pregnancy_details/
+      Handler: handler.lambda_handler
+      Description: Get detailed information about a pregnancy
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VitalSignsTable
+      Events:
+        GetPregnancyDetails:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /pregnancies/{id}
+            Method: GET
+
+  ListPregnanciesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-list-pregnancies-${Environment}
+      CodeUri: ../lambda_functions/list_pregnancies/
+      Handler: handler.lambda_handler
+      Description: List pregnancies with filtering and pagination
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+      Events:
+        ListPregnancies:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /pregnancies
+            Method: GET
+
+# ==================== Outputs ====================
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${MaatriSahayakApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+    Export:
+      Name: !Sub ${AWS::StackName}-ApiEndpoint
+
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub ${AWS::StackName}-UserPoolId
+
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub ${AWS::StackName}-UserPoolClientId
+
+  PregnanciesTableName:
+    Description: Pregnancies DynamoDB Table Name
+    Value: !Ref PregnanciesTable
+    Export:
+      Name: !Sub ${AWS::StackName}-PregnanciesTable
+
+  VitalSignsTableName:
+    Description: Vital Signs DynamoDB Table Name
+    Value: !Ref VitalSignsTable
+    Export:
+      Name: !Sub ${AWS::StackName}-VitalSignsTable
+
+  EmergencyEventsTableName:
+    Description: Emergency Events DynamoDB Table Name
+    Value: !Ref EmergencyEventsTable
+    Export:
+      Name: !Sub ${AWS::StackName}-EmergencyEventsTable
+
+  AmbulancesTableName:
+    Description: Ambulances DynamoDB Table Name
+    Value: !Ref AmbulancesTable
+    Export:
+      Name: !Sub ${AWS::StackName}-AmbulancesTable
+
+  HospitalsTableName:
+    Description: Hospitals DynamoDB Table Name
+    Value: !Ref HospitalsTable
+    Export:
+      Name: !Sub ${AWS::StackName}-HospitalsTable
