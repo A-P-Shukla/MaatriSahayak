@@ -27,6 +27,7 @@ EMERGENCY_STATUS = {
 AMBULANCE_STATUS = {
     'AVAILABLE': 'Available for dispatch',
     'DISPATCHED': 'Dispatched to emergency',
+    'IN_TRANSIT': 'In transit to patient or hospital',
     'BUSY': 'Currently occupied',
     'MAINTENANCE': 'Under maintenance',
     'OFFLINE': 'Offline'
