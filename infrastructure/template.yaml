@@ -6,14 +6,12 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 512
-    Runtime: python3.13
+    Runtime: python3.12
     Environment:
       Variables:
         POWERTOOLS_SERVICE_NAME: maatrisahayak
         LOG_LEVEL: INFO
         ENVIRONMENT: !Ref Environment
-    Layers:
-      - !Ref SharedLayer
 
 Parameters:
   Environment:
@@ -34,10 +32,11 @@ Resources:
       Description: Shared utilities for MaatriSahayak Lambda functions
       ContentUri: ../lambda_functions/shared/
       CompatibleRuntimes:
-        - python3.13
+        - python3.12
       RetentionPolicy: Retain
     Metadata:
-      BuildMethod: python3.13
+      BuildMethod: python3.12
+      BuildArchitecture: x86_64
 
   # ==================== API Gateway ====================
   MaatriSahayakApi:
@@ -49,12 +48,6 @@ Resources:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
         AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
-      Auth:
-        DefaultAuthorizer: CognitoAuthorizer
-        Authorizers:
-          CognitoAuthorizer:
-            UserPoolArn: !GetAtt UserPool.Arn
-        AddDefaultAuthorizerToCorsPreflight: false
       GatewayResponses:
         DEFAULT_4XX:
           ResponseParameters:

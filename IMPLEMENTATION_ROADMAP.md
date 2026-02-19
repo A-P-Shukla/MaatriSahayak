@@ -72,23 +72,23 @@ By March 13, we must have:
 **Time**: 8-10 hours
 
 **Morning (4-5 hours)**:
-- [ ] Set up API Gateway (REST API)
-- [ ] Create Lambda function: `RegisterPregnancy`
+- [ ✅] Set up API Gateway (REST API)
+- [✅ ] Create Lambda function: `RegisterPregnancy`
   - Input validation
   - DynamoDB write
   - Error handling
-- [ ] Create Lambda function: `RecordVitals`
+- [ ✅] Create Lambda function: `RecordVitals`
   - Store vital signs
   - Timestamp handling
 - [ ] Test APIs with Postman
 - [ ] Create Postman collection for all APIs
 
 **Afternoon (4-5 hours)**:
-- [ ] Create Lambda function: `GetPregnancyDetails`
-- [ ] Create Lambda function: `ListPregnancies`
+- [ ✅] Create Lambda function: `GetPregnancyDetails`
+- [ ✅] Create Lambda function: `ListPregnancies`
   - Pagination support
   - Filter by ASHA worker
-- [ ] Set up Amazon Cognito User Pool
+- [✅ ] Set up Amazon Cognito User Pool
   - ASHA worker authentication
   - API key generation
 - [ ] Test authentication flow
