@@ -101,6 +101,7 @@ def lambda_handler(event, context):
             'triggered_by': body['triggered_by'],
             'triggered_at': timestamp,
             'updated_at': timestamp,
+            'ambulance_id': 'PENDING',  # Placeholder for GSI requirement
             'timeline': [
                 {
                     'status': 'INITIATED',

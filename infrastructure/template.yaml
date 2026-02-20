@@ -376,6 +376,89 @@ Resources:
             Path: /pregnancies
             Method: GET
 
+  TriggerEmergencyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-trigger-emergency-${Environment}
+      CodeUri: ../lambda_functions/trigger_emergency/
+      Handler: handler.lambda_handler
+      Description: Trigger emergency response workflow
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+          HOSPITALS_TABLE: !Ref HospitalsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmergencyEventsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref HospitalsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:maatrisahayak-send-notifications-${Environment}
+      Events:
+        TriggerEmergency:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /emergency
+            Method: POST
+
+  FindNearestAmbulanceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-find-nearest-ambulance-${Environment}
+      CodeUri: ../lambda_functions/find_nearest_ambulance/
+      Handler: handler.lambda_handler
+      Description: Find nearest available ambulance
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        FindNearestAmbulance:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /ambulances/nearest
+            Method: POST
+
+  UpdateAmbulanceLocationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-update-ambulance-location-${Environment}
+      CodeUri: ../lambda_functions/update_ambulance_location/
+      Handler: handler.lambda_handler
+      Description: Update ambulance GPS location and status
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        UpdateAmbulanceLocation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /ambulances/{id}/location
+            Method: PUT
+
 # ==================== Outputs ====================
 Outputs:
   ApiEndpoint:

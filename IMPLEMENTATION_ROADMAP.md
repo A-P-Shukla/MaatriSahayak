@@ -46,23 +46,23 @@ By March 13, we must have:
 **Time**: 6-8 hours
 
 **Morning (3-4 hours)**:
-- [ ] Create AWS account (if not exists)
-- [ ] Enable AWS Free Tier services
-- [ ] Install AWS CLI and configure credentials
-- [ ] Set up IAM roles and policies
-- [ ] Create S3 buckets (data storage, backups)
-- [ ] Set up GitHub repository with proper structure
+- [✅] Create AWS account (if not exists)
+- [ ✅] Enable AWS Free Tier services
+- [✅] Install AWS CLI and configure credentials
+- [✅] Set up IAM roles and policies
+- [✅] Create S3 buckets (data storage, backups)
+- [✅] Set up GitHub repository with proper structure
 
 **Afternoon (3-4 hours)**:
-- [ ] Create DynamoDB tables:
+- [✅] Create DynamoDB tables:
   - Pregnancies table with GSIs
   - VitalSigns table
   - EmergencyEvents table
   - Ambulances table
   - Hospitals table
-- [ ] Test DynamoDB with sample data
-- [ ] Set up CloudWatch logging
-- [ ] Document AWS setup process
+- [✅] Test DynamoDB with sample data
+- [✅] Set up CloudWatch logging
+- [✅] Document AWS setup process
 
 **Deliverables**: AWS infrastructure ready, GitHub repo initialized
 
@@ -91,7 +91,7 @@ By March 13, we must have:
 - [✅ ] Set up Amazon Cognito User Pool
   - ASHA worker authentication
   - API key generation
-- [ ] Test authentication flow
+- [✅ ] Test authentication flow
 
 **Deliverables**: 4 Lambda functions, API Gateway configured, authentication working
 
@@ -101,14 +101,14 @@ By March 13, we must have:
 **Time**: 8-10 hours
 
 **Morning (4-5 hours)**:
-- [ ] Create Lambda function: `TriggerEmergency`
+- [ ✅] Create Lambda function: `TriggerEmergency`
   - Validate emergency request
   - Create emergency event
   - Initiate Step Functions workflow
-- [ ] Create Lambda function: `FindNearestAmbulance`
+- [ ✅] Create Lambda function: `FindNearestAmbulance`
   - Geospatial query (haversine distance)
   - Filter by availability
-- [ ] Create Lambda function: `UpdateAmbulanceLocation`
+- [✅] Create Lambda function: `UpdateAmbulanceLocation`
   - Update DynamoDB
   - Store in Timestream
 
