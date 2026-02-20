@@ -459,6 +459,62 @@ Resources:
             Path: /ambulances/{id}/location
             Method: PUT
 
+  SendNotificationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-send-notifications-${Environment}
+      CodeUri: ../lambda_functions/send_notifications/
+      Handler: handler.lambda_handler
+      Description: Send SMS and push notifications to stakeholders
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref EmergencyNotificationsTopic
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt EmergencyNotificationsTopic.TopicName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: "*"
+
+  # ==================== SNS Topics ====================
+  EmergencyNotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub maatrisahayak-emergency-notifications-${Environment}
+      DisplayName: MaatriSahayak Emergency Notifications
+
+  # ==================== Step Functions ====================
+  EmergencyWorkflowStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: !Sub maatrisahayak-emergency-workflow-${Environment}
+      DefinitionUri: ../step_functions/emergency_workflow.asl.json
+      DefinitionSubstitutions:
+        TriggerEmergencyFunctionArn: !GetAtt TriggerEmergencyFunction.Arn
+        FindNearestAmbulanceFunctionArn: !GetAtt FindNearestAmbulanceFunction.Arn
+        SendNotificationsFunctionArn: !GetAtt SendNotificationsFunction.Arn
+        UpdateAmbulanceLocationFunctionArn: !GetAtt UpdateAmbulanceLocationFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref TriggerEmergencyFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FindNearestAmbulanceFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SendNotificationsFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref UpdateAmbulanceLocationFunction
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /emergency/workflow
+            Method: POST
+
 # ==================== Outputs ====================
 Outputs:
   ApiEndpoint:
@@ -502,6 +558,18 @@ Outputs:
     Value: !Ref AmbulancesTable
     Export:
       Name: !Sub ${AWS::StackName}-AmbulancesTable
+
+  EmergencyWorkflowStateMachineArn:
+    Description: Emergency Workflow State Machine ARN
+    Value: !Ref EmergencyWorkflowStateMachine
+    Export:
+      Name: !Sub ${AWS::StackName}-EmergencyWorkflowStateMachine
+
+  EmergencyNotificationsTopicArn:
+    Description: Emergency Notifications SNS Topic ARN
+    Value: !Ref EmergencyNotificationsTopic
+    Export:
+      Name: !Sub ${AWS::StackName}-EmergencyNotificationsTopic
 
   HospitalsTableName:
     Description: Hospitals DynamoDB Table Name

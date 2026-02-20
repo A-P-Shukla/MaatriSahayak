@@ -1,0 +1,160 @@
+{
+    "Comment": "MaatriSahayak Emergency Response Workflow",
+    "StartAt": "TriggerEmergency",
+    "States": {
+        "TriggerEmergency": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+                "FunctionName": "${TriggerEmergencyFunctionArn}",
+                "Payload": {
+                    "body.$": "$"
+                }
+            },
+            "ResultPath": "$.emergencyResult",
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2.0
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.TaskFailed"
+                    ],
+                    "Next": "EmergencyFailed",
+                    "ResultPath": "$.error"
+                }
+            ],
+            "Next": "ParallelProcessing"
+        },
+        "ParallelProcessing": {
+            "Type": "Parallel",
+            "Branches": [
+                {
+                    "StartAt": "FindAmbulance",
+                    "States": {
+                        "FindAmbulance": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::lambda:invoke",
+                            "Parameters": {
+                                "FunctionName": "${FindNearestAmbulanceFunctionArn}",
+                                "Payload": {
+                                    "body": {
+                                        "latitude.$": "$.latitude",
+                                        "longitude.$": "$.longitude",
+                                        "district.$": "$.district",
+                                        "max_distance_km": 50
+                                    }
+                                }
+                            },
+                            "ResultPath": "$.ambulanceResult",
+                            "Retry": [
+                                {
+                                    "ErrorEquals": [
+                                        "Lambda.ServiceException",
+                                        "Lambda.AWSLambdaException"
+                                    ],
+                                    "IntervalSeconds": 1,
+                                    "MaxAttempts": 2,
+                                    "BackoffRate": 2.0
+                                }
+                            ],
+                            "End": true
+                        }
+                    }
+                },
+                {
+                    "StartAt": "SendEmergencyNotifications",
+                    "States": {
+                        "SendEmergencyNotifications": {
+                            "Type": "Task",
+                            "Resource": "arn:aws:states:::lambda:invoke",
+                            "Parameters": {
+                                "FunctionName": "${SendNotificationsFunctionArn}",
+                                "Payload": {
+                                    "body": {
+                                        "notification_type": "EMERGENCY_ALERT",
+                                        "data": {
+                                            "emergency_id": "test_emergency",
+                                            "patient_name.$": "$.pregnancy_id",
+                                            "event_type.$": "$.event_type",
+                                            "severity.$": "$.severity"
+                                        }
+                                    }
+                                }
+                            },
+                            "ResultPath": "$.notificationResult",
+                            "Retry": [
+                                {
+                                    "ErrorEquals": [
+                                        "Lambda.ServiceException",
+                                        "Lambda.AWSLambdaException"
+                                    ],
+                                    "IntervalSeconds": 1,
+                                    "MaxAttempts": 3,
+                                    "BackoffRate": 2.0
+                                }
+                            ],
+                            "Catch": [
+                                {
+                                    "ErrorEquals": [
+                                        "States.TaskFailed"
+                                    ],
+                                    "Next": "NotificationFailed",
+                                    "ResultPath": "$.notificationError"
+                                }
+                            ],
+                            "Next": "NotificationsSent"
+                        },
+                        "NotificationsSent": {
+                            "Type": "Pass",
+                            "Result": {
+                                "status": "NOTIFICATIONS_SENT",
+                                "message": "Emergency notifications sent successfully"
+                            },
+                            "ResultPath": "$.notificationStatus",
+                            "End": true
+                        },
+                        "NotificationFailed": {
+                            "Type": "Pass",
+                            "Result": {
+                                "status": "NOTIFICATION_FAILED",
+                                "message": "Failed to send emergency notifications"
+                            },
+                            "ResultPath": "$.notificationStatus",
+                            "End": true
+                        }
+                    }
+                }
+            ],
+            "ResultPath": "$.parallelResults",
+            "Next": "WorkflowComplete"
+        },
+        "WorkflowComplete": {
+            "Type": "Pass",
+            "Result": {
+                "status": "WORKFLOW_COMPLETE",
+                "message": "Emergency workflow completed successfully"
+            },
+            "ResultPath": "$.workflowStatus",
+            "End": true
+        },
+        "EmergencyFailed": {
+            "Type": "Pass",
+            "Result": {
+                "status": "EMERGENCY_FAILED",
+                "message": "Failed to trigger emergency response"
+            },
+            "ResultPath": "$.workflowStatus",
+            "End": true
+        }
+    }
+}

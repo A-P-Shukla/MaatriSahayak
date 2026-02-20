@@ -73,6 +73,14 @@ By March 13, we must have:
 
 **Morning (4-5 hours)**:
 - [ ✅] Set up API Gateway (REST API)
+- [ ] Create Lambda functions for User Management:
+  - [ ] RegisterASHA - Register ASHA worker account
+  - [ ] GetASHAProfile - Get ASHA worker details
+  - [ ] RegisterAmbulance - Register ambulance in system
+  - [ ] RegisterHospital - Register hospital in system
+- [ ] Create Lambda functions for Authentication:
+  - [ ] LoginASHA - Handle ASHA worker login with Cognito
+  - [ ] RefreshToken - Refresh authentication tokens
 - [✅ ] Create Lambda function: `RegisterPregnancy`
   - Input validation
   - DynamoDB write
@@ -88,12 +96,21 @@ By March 13, we must have:
 - [ ✅] Create Lambda function: `ListPregnancies`
   - Pagination support
   - Filter by ASHA worker
+- [ ] Create Lambda function: `UpdatePregnancy`
+  - Update pregnancy information
+- [ ] Create Lambda functions for ANC Management:
+  - [ ] RecordANCVisit - Record ANC visit details
+  - [ ] GetANCHistory - Get ANC visit history
+- [ ] Create Lambda function: `GetVitalsHistory`
+  - Get vitals timeline for a pregnancy
+- [ ] Create Lambda function: `ListHospitals`
+  - Get hospitals by district/type
 - [✅ ] Set up Amazon Cognito User Pool
   - ASHA worker authentication
   - API key generation
 - [✅ ] Test authentication flow
 
-**Deliverables**: 4 Lambda functions, API Gateway configured, authentication working
+**Deliverables**: 14 Lambda functions (6 user mgmt + 2 auth + 4 pregnancy + 2 ANC + 2 vitals/hospital), API Gateway configured, authentication working
 
 ---
 
@@ -111,19 +128,102 @@ By March 13, we must have:
 - [✅] Create Lambda function: `UpdateAmbulanceLocation`
   - Update DynamoDB
   - Store in Timestream
+- [ ] Create Lambda function: `CheckHospitalCapacity`
+  - Query hospital bed availability
+  - Filter by district and type
+- [ ] Create Lambda function: `GetAmbulanceStatus`
+  - Get ambulance availability and location
+- [ ] Create Lambda function: `GetEmergencyHistory`
+  - Get emergency event history for pregnancy/ambulance
 
-**Afternoon (4-5 hours)**:
+**Afternoon (4-5 hours)**:  
 - [ ] Set up AWS Step Functions
   - Emergency workflow state machine
   - Parallel execution branches
   - Error handling and retries
+- [ ] Create Lambda functions for Step Functions workflow:
+  - [ ] ValidateEmergency - Validate emergency request
+  - [ ] DispatchAmbulance - Assign ambulance to emergency
+  - [ ] AlertHospital - Notify hospital of incoming patient
+  - [ ] MonitorEmergency - Track emergency progress
+  - [ ] CompleteEmergency - Close emergency event
 - [ ] Create Lambda function: `SendNotifications`
   - Amazon SNS integration
   - SMS notifications
   - Push notifications (FCM)
 - [ ] Test emergency workflow end-to-end
 
-**Deliverables**: Emergency workflow functional, 7 Lambda functions total
+**Deliverables**: Emergency workflow functional, 12 more Lambda functions (26 total so far)
+
+**Complete Lambda Functions List (37 Total)**:
+
+**1. User Management (6 functions)**:
+- [ ] RegisterASHA - Register ASHA worker account
+- [ ] GetASHAProfile - Get ASHA worker details
+- [ ] UpdateASHAProfile - Update ASHA worker info
+- [ ] RegisterAmbulance - Register ambulance in system
+- [ ] RegisterHospital - Register hospital in system
+- [ ] UpdateHospitalCapacity - Update bed availability
+
+**2. Authentication & Authorization (2 functions)** ⭐ NEW:
+- [ ] LoginASHA - Handle ASHA worker login with Cognito
+- [ ] RefreshToken - Refresh authentication tokens
+
+**3. Pregnancy Management (4 functions)**:
+- ✅ RegisterPregnancy - Create new pregnancy record
+- ✅ GetPregnancyDetails - Get specific pregnancy info
+- ✅ ListPregnancies - List pregnancies with filters
+- [ ] UpdatePregnancy - Update pregnancy information
+
+**4. ANC Visit Management (2 functions)** ⭐ NEW:
+- [ ] RecordANCVisit - Record ANC visit details (FR1.3)
+- [ ] GetANCHistory - Get ANC visit history for pregnancy
+
+**5. Vitals & Monitoring (3 functions)**:
+- ✅ RecordVitals - Store vital signs and symptoms
+- [ ] GetVitalsHistory - Get vitals timeline
+- [ ] GetRiskTrends - Time-series risk analysis
+
+**6. AI/ML Services (3 functions)**:
+- [ ] AssessRisk - SageMaker risk prediction
+- [ ] AnalyzeSymptoms - Bedrock symptom analysis
+- [ ] ProcessANCCard - Textract OCR for ANC cards
+
+**7. Emergency Workflow (8 functions)**:
+- ✅ TriggerEmergency - Initiate emergency response
+- [ ] ValidateEmergency - Validate emergency request
+- ✅ FindNearestAmbulance - Geospatial ambulance search
+- [ ] DispatchAmbulance - Assign ambulance to emergency
+- [ ] CheckHospitalCapacity - Query bed availability
+- [ ] AlertHospital - Notify hospital of incoming patient
+- [ ] MonitorEmergency - Track emergency progress
+- [ ] CompleteEmergency - Close emergency event
+
+**8. Emergency History (1 function)** ⭐ NEW:
+- [ ] GetEmergencyHistory - Get emergency event history
+
+**9. Ambulance & Location (3 functions)**:
+- ✅ UpdateAmbulanceLocation - Process IoT GPS updates
+- [ ] GetAmbulanceRoute - Calculate route and ETA
+- [ ] GetAmbulanceStatus - Get ambulance availability
+
+**10. Hospital Management (1 function)** ⭐ NEW:
+- [ ] ListHospitals - Get list of hospitals by district/type
+
+**11. Data Sync (1 function)** ⭐ NEW:
+- [ ] SyncOfflineData - Handle bulk sync from mobile offline queue
+
+**12. Notifications (1 function)**:
+- [ ] SendNotifications - SMS/push/voice alerts
+
+**13. Analytics & Reports (2 functions)**:
+- [ ] GenerateAnalytics - Dashboard metrics and KPIs
+- [ ] ExportReports - Generate PDF/Excel reports
+
+**Summary by Status**:
+- ✅ Existing: 13 functions
+- [ ] New Required: 24 functions
+- **Total: 37 Lambda Functions**
 
 ---
 
@@ -149,9 +249,12 @@ By March 13, we must have:
   - Call SageMaker endpoint
   - Parse predictions
   - Store risk score in DynamoDB
+- [ ] Create Lambda function: `GetRiskTrends`
+  - Query time-series risk data
+  - Calculate trends and patterns
 - [ ] Test risk assessment API
 
-**Deliverables**: SageMaker model trained and deployed, risk assessment working
+**Deliverables**: SageMaker model trained and deployed, risk assessment working (28 Lambda functions total)
 
 ---
 
@@ -181,7 +284,7 @@ By March 13, we must have:
 - [ ] Create sample ANC card images for testing
 - [ ] Test OCR accuracy
 
-**Deliverables**: Bedrock symptom analysis working, Textract OCR functional
+**Deliverables**: Bedrock symptom analysis working, Textract OCR functional (30 Lambda functions total)
 
 ---
 
@@ -264,6 +367,10 @@ By March 13, we must have:
   - Sync queued operations (FIFO)
   - Conflict resolution (server wins)
   - Update local database
+- [ ] Create Lambda function: `SyncOfflineData`
+  - Handle bulk sync from mobile offline queue
+  - Process multiple operations in batch
+  - Return sync status and conflicts
 - [ ] Implement push notifications
   - Amazon SNS integration
   - FCM setup
@@ -281,7 +388,7 @@ By March 13, we must have:
   - Display AI insights
 - [ ] Test AI features in app
 
-**Deliverables**: Mobile app fully integrated with backend and AI
+**Deliverables**: Mobile app fully integrated with backend and AI (31 Lambda functions total)
 
 ---
 
@@ -342,9 +449,13 @@ By March 13, we must have:
 - [ ] Create Lambda: `GetAmbulanceRoute`
   - Return route coordinates
   - Calculate ETA
+- [ ] Create Lambda: `UpdateASHAProfile`
+  - Update ASHA worker information
+- [ ] Create Lambda: `UpdateHospitalCapacity`
+  - Real-time bed availability updates
 - [ ] Test ambulance tracking end-to-end
 
-**Deliverables**: IoT tracking working, Location Service integrated
+**Deliverables**: IoT tracking working, Location Service integrated (34 Lambda functions total)
 
 ---
 
@@ -402,6 +513,12 @@ By March 13, we must have:
   - Risk distribution (pie chart)
   - Emergencies by district (bar chart)
   - Outcome metrics
+- [ ] Create Lambda: `GenerateAnalytics`
+  - Calculate dashboard KPIs and metrics
+  - Aggregate data from DynamoDB
+- [ ] Create Lambda: `ExportReports`
+  - Generate PDF/Excel reports
+  - Export analytics data
 - [ ] Build Pregnancy Details page
   - Patient information
   - Vitals history (line chart)
@@ -409,7 +526,7 @@ By March 13, we must have:
   - Emergency history
 - [ ] Polish dashboard UI
 
-**Deliverables**: Web dashboard complete with maps and analytics
+**Deliverables**: Web dashboard complete with maps and analytics (37 Lambda functions total - COMPLETE! 🎉)
 
 ---
 
@@ -858,7 +975,20 @@ These MUST be completed for submission:
 
 **Week 1 (Must Have)**:
 - ✅ AWS infrastructure setup
-- ✅ Backend APIs (at least 5 core functions)
+- ✅ Backend APIs (37 Lambda functions total)
+  - User Management (6): RegisterASHA, GetASHAProfile, UpdateASHAProfile, RegisterAmbulance, RegisterHospital, UpdateHospitalCapacity
+  - Authentication (2): LoginASHA, RefreshToken
+  - Pregnancy Management (4): RegisterPregnancy, GetPregnancyDetails, ListPregnancies, UpdatePregnancy
+  - ANC Visit Management (2): RecordANCVisit, GetANCHistory
+  - Vitals & Monitoring (3): RecordVitals, GetVitalsHistory, GetRiskTrends
+  - AI/ML Services (3): AssessRisk, AnalyzeSymptoms, ProcessANCCard
+  - Emergency Workflow (8): TriggerEmergency, ValidateEmergency, FindNearestAmbulance, DispatchAmbulance, CheckHospitalCapacity, AlertHospital, MonitorEmergency, CompleteEmergency
+  - Emergency History (1): GetEmergencyHistory
+  - Ambulance & Location (3): UpdateAmbulanceLocation, GetAmbulanceRoute, GetAmbulanceStatus
+  - Hospital Management (1): ListHospitals
+  - Data Sync (1): SyncOfflineData
+  - Notifications (1): SendNotifications
+  - Analytics & Reports (2): GenerateAnalytics, ExportReports
 - ✅ DynamoDB tables
 - ✅ Basic authentication
 
