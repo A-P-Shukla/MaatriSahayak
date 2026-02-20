@@ -73,8 +73,7 @@ def convert_floats_to_decimal(obj):
 
 def seed_pregnancies(dynamodb):
     """Seed pregnancies table with sample data."""
-    env = os.getenv('ENVIRONMENT', 'dev')
-    table = dynamodb.Table(f'maatrisahayak-pregnancies-{env}')
+    table = dynamodb.Table('maatrisahayak-pregnancies-dev')
     
     print("  📝 Seeding pregnancies...")
     
@@ -170,8 +169,7 @@ def seed_pregnancies(dynamodb):
 
 def seed_vital_signs(dynamodb):
     """Seed vital signs table with sample data."""
-    env = os.getenv('ENVIRONMENT', 'dev')
-    table = dynamodb.Table(f'maatrisahayak-vital-signs-{env}')
+    table = dynamodb.Table('maatrisahayak-vital-signs-dev')
     
     print("  📝 Seeding vital signs...")
     
@@ -206,8 +204,7 @@ def seed_vital_signs(dynamodb):
 
 def seed_emergency_events(dynamodb):
     """Seed emergency events table with sample data."""
-    env = os.getenv('ENVIRONMENT', 'dev')
-    table = dynamodb.Table(f'maatrisahayak-emergency-events-{env}')
+    table = dynamodb.Table('maatrisahayak-emergency-events-dev')
     
     print("  📝 Seeding emergency events...")
     
@@ -250,8 +247,7 @@ def seed_emergency_events(dynamodb):
 
 def seed_ambulances(dynamodb):
     """Seed ambulances table with sample data."""
-    env = os.getenv('ENVIRONMENT', 'dev')
-    table = dynamodb.Table(f'maatrisahayak-ambulances-{env}')
+    table = dynamodb.Table('maatrisahayak-ambulances-dev')
     
     print("  📝 Seeding ambulances...")
     
@@ -305,8 +301,7 @@ def seed_ambulances(dynamodb):
 
 def seed_hospitals(dynamodb):
     """Seed hospitals table with sample data."""
-    env = os.getenv('ENVIRONMENT', 'dev')
-    table = dynamodb.Table(f'maatrisahayak-hospitals-{env}')
+    table = dynamodb.Table('maatrisahayak-hospitals-dev')
     
     print("  📝 Seeding hospitals...")
     
@@ -359,6 +354,75 @@ def seed_hospitals(dynamodb):
     print(f"  ✅ Seeded {len(hospitals)} hospitals")
 
 
+def seed_asha_workers(dynamodb):
+    """Seed ASHA workers table with sample data."""
+    table = dynamodb.Table('maatrisahayak-asha-workers-dev')
+    
+    print("  📝 Seeding ASHA workers...")
+    
+    asha_workers = [
+        {
+            'id': 'asha_001',
+            'name': 'Sunita Devi',
+            'phone': '+919876543211',
+            'email': 'sunita.devi@example.com',
+            'age': 32,
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Kalan',
+            'qualification': 'Class 12',
+            'experience_years': 5,
+            'languages': ['Hindi', 'Awadhi'],
+            'status': 'ACTIVE',
+            'pregnancies_managed': 45,
+            'emergencies_handled': 8,
+            'created_at': (datetime.now() - timedelta(days=365*5)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'asha_002',
+            'name': 'Rekha Devi',
+            'phone': '+919876543212',
+            'email': 'rekha.devi@example.com',
+            'age': 28,
+            'district': 'Sitapur',
+            'block': 'Mahmudabad',
+            'village': 'Madhubani',
+            'qualification': 'Class 10',
+            'experience_years': 3,
+            'languages': ['Hindi'],
+            'status': 'ACTIVE',
+            'pregnancies_managed': 32,
+            'emergencies_handled': 5,
+            'created_at': (datetime.now() - timedelta(days=365*3)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'asha_003',
+            'name': 'Meena Kumari',
+            'phone': '+919876543213',
+            'email': 'meena.kumari@example.com',
+            'age': 35,
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Khurd',
+            'qualification': 'Class 12',
+            'experience_years': 7,
+            'languages': ['Hindi', 'Awadhi', 'English'],
+            'status': 'ACTIVE',
+            'pregnancies_managed': 68,
+            'emergencies_handled': 12,
+            'created_at': (datetime.now() - timedelta(days=365*7)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+    ]
+    
+    for asha in asha_workers:
+        table.put_item(Item=convert_floats_to_decimal(asha))
+    
+    print(f"  ✅ Seeded {len(asha_workers)} ASHA workers")
+
+
 def main():
     """Main function to seed all tables."""
     print("=" * 70)
@@ -386,6 +450,7 @@ def main():
         seed_emergency_events(dynamodb)
         seed_ambulances(dynamodb)
         seed_hospitals(dynamodb)
+        seed_asha_workers(dynamodb)
         
         print()
         print("=" * 70)
@@ -398,6 +463,7 @@ def main():
         print("   ✓ 1 Emergency Event")
         print("   ✓ 3 Ambulances")
         print("   ✓ 2 Hospitals")
+        print("   ✓ 3 ASHA Workers")
         print()
         print("=" * 70)
         

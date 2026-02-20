@@ -72,7 +72,8 @@ TABLE_NAMES = {
     'VITAL_SIGNS': os.getenv('VITAL_SIGNS_TABLE', 'maatrisahayak-vital-signs-dev'),
     'EMERGENCY_EVENTS': os.getenv('EMERGENCY_EVENTS_TABLE', 'maatrisahayak-emergency-events-dev'),
     'AMBULANCES': os.getenv('AMBULANCES_TABLE', 'maatrisahayak-ambulances-dev'),
-    'HOSPITALS': os.getenv('HOSPITALS_TABLE', 'maatrisahayak-hospitals-dev')
+    'HOSPITALS': os.getenv('HOSPITALS_TABLE', 'maatrisahayak-hospitals-dev'),
+    'ASHA_WORKERS': os.getenv('ASHA_WORKERS_TABLE', 'maatrisahayak-asha-workers-dev')
 }
 
 # GSI Names

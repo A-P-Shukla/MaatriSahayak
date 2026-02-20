@@ -28,16 +28,16 @@ else:
 
 # Table configurations
 TABLES_CONFIG = {
-    'maatrisahayak-pregnancies': {
+    'maatrisahayak-pregnancies-dev': {
         'AttributeDefinitions': [
-            {'AttributeName': 'pregnancy_id', 'AttributeType': 'S'},
+            {'AttributeName': 'id', 'AttributeType': 'S'},
             {'AttributeName': 'asha_worker_id', 'AttributeType': 'S'},
             {'AttributeName': 'district', 'AttributeType': 'S'},
             {'AttributeName': 'risk_score', 'AttributeType': 'N'},
             {'AttributeName': 'expected_delivery_date', 'AttributeType': 'N'},
         ],
         'KeySchema': [
-            {'AttributeName': 'pregnancy_id', 'KeyType': 'HASH'},
+            {'AttributeName': 'id', 'KeyType': 'HASH'},
         ],
         'GlobalSecondaryIndexes': [
             {
@@ -65,7 +65,7 @@ TABLES_CONFIG = {
         ],
         'BillingMode': 'PAY_PER_REQUEST',
     },
-    'maatrisahayak-vital-signs': {
+    'maatrisahayak-vital-signs-dev': {
         'AttributeDefinitions': [
             {'AttributeName': 'pregnancy_id', 'AttributeType': 'S'},
             {'AttributeName': 'timestamp', 'AttributeType': 'N'},
@@ -80,16 +80,16 @@ TABLES_CONFIG = {
             'StreamViewType': 'NEW_AND_OLD_IMAGES'
         },
     },
-    'maatrisahayak-emergency-events': {
+    'maatrisahayak-emergency-events-dev': {
         'AttributeDefinitions': [
-            {'AttributeName': 'event_id', 'AttributeType': 'S'},
+            {'AttributeName': 'id', 'AttributeType': 'S'},
             {'AttributeName': 'pregnancy_id', 'AttributeType': 'S'},
             {'AttributeName': 'timestamp', 'AttributeType': 'N'},
             {'AttributeName': 'ambulance_id', 'AttributeType': 'S'},
             {'AttributeName': 'status', 'AttributeType': 'S'},
         ],
         'KeySchema': [
-            {'AttributeName': 'event_id', 'KeyType': 'HASH'},
+            {'AttributeName': 'id', 'KeyType': 'HASH'},
         ],
         'GlobalSecondaryIndexes': [
             {
@@ -123,14 +123,14 @@ TABLES_CONFIG = {
             'StreamViewType': 'NEW_AND_OLD_IMAGES'
         },
     },
-    'maatrisahayak-ambulances': {
+    'maatrisahayak-ambulances-dev': {
         'AttributeDefinitions': [
-            {'AttributeName': 'ambulance_id', 'AttributeType': 'S'},
+            {'AttributeName': 'id', 'AttributeType': 'S'},
             {'AttributeName': 'district', 'AttributeType': 'S'},
             {'AttributeName': 'status', 'AttributeType': 'S'},
         ],
         'KeySchema': [
-            {'AttributeName': 'ambulance_id', 'KeyType': 'HASH'},
+            {'AttributeName': 'id', 'KeyType': 'HASH'},
         ],
         'GlobalSecondaryIndexes': [
             {
@@ -144,14 +144,14 @@ TABLES_CONFIG = {
         ],
         'BillingMode': 'PAY_PER_REQUEST',
     },
-    'maatrisahayak-hospitals': {
+    'maatrisahayak-hospitals-dev': {
         'AttributeDefinitions': [
-            {'AttributeName': 'hospital_id', 'AttributeType': 'S'},
+            {'AttributeName': 'id', 'AttributeType': 'S'},
             {'AttributeName': 'district', 'AttributeType': 'S'},
             {'AttributeName': 'type', 'AttributeType': 'S'},
         ],
         'KeySchema': [
-            {'AttributeName': 'hospital_id', 'KeyType': 'HASH'},
+            {'AttributeName': 'id', 'KeyType': 'HASH'},
         ],
         'GlobalSecondaryIndexes': [
             {
@@ -159,6 +159,27 @@ TABLES_CONFIG = {
                 'KeySchema': [
                     {'AttributeName': 'district', 'KeyType': 'HASH'},
                     {'AttributeName': 'type', 'KeyType': 'RANGE'},
+                ],
+                'Projection': {'ProjectionType': 'ALL'},
+            },
+        ],
+        'BillingMode': 'PAY_PER_REQUEST',
+    },
+    'maatrisahayak-asha-workers-dev': {
+        'AttributeDefinitions': [
+            {'AttributeName': 'id', 'AttributeType': 'S'},
+            {'AttributeName': 'district', 'AttributeType': 'S'},
+            {'AttributeName': 'status', 'AttributeType': 'S'},
+        ],
+        'KeySchema': [
+            {'AttributeName': 'id', 'KeyType': 'HASH'},
+        ],
+        'GlobalSecondaryIndexes': [
+            {
+                'IndexName': 'district-status-index',
+                'KeySchema': [
+                    {'AttributeName': 'district', 'KeyType': 'HASH'},
+                    {'AttributeName': 'status', 'KeyType': 'RANGE'},
                 ],
                 'Projection': {'ProjectionType': 'ALL'},
             },
@@ -275,36 +296,47 @@ def main():
     
     # Check which tables exist
     existing_tables = []
+    new_tables = []
+    
     for table_name in TABLES_CONFIG.keys():
         if table_exists(client, table_name):
             existing_tables.append(table_name)
+        else:
+            new_tables.append(table_name)
     
-    # Prompt user if tables exist
+    # Show status
     if existing_tables:
-        print("⚠️  The following tables already exist:")
+        print("ℹ️  The following tables already exist (will be skipped):")
         for table_name in existing_tables:
-            print(f"   - {table_name}")
-        print()
-        
-        response = input("Do you want to delete and recreate them? (yes/no): ").strip().lower()
-        
-        if response not in ['yes', 'y']:
-            print("\n❌ Setup cancelled by user.")
-            sys.exit(0)
-        
-        print("\n🗑️  Deleting existing tables...")
-        for table_name in existing_tables:
-            delete_table(client, table_name)
+            print(f"   ✓ {table_name}")
         print()
     
-    # Create all tables
-    print("📝 Creating DynamoDB tables...")
+    if not new_tables:
+        print("✅ All tables already exist. Nothing to create.")
+        print()
+        print("=" * 70)
+        return
+    
+    print("📝 The following tables will be created:")
+    for table_name in new_tables:
+        print(f"   • {table_name}")
+    print()
+    
+    response = input("Do you want to proceed? (yes/no): ").strip().lower()
+    
+    if response not in ['yes', 'y']:
+        print("\n❌ Setup cancelled by user.")
+        sys.exit(0)
+    
+    # Create new tables only
+    print("\n📝 Creating DynamoDB tables...")
     print()
     
     success_count = 0
     failed_count = 0
     
-    for table_name, config in TABLES_CONFIG.items():
+    for table_name in new_tables:
+        config = TABLES_CONFIG[table_name]
         if create_table(client, table_name, config):
             success_count += 1
         else:
@@ -316,16 +348,18 @@ def main():
     print("📊 Setup Summary")
     print("=" * 70)
     print(f"✅ Successfully created: {success_count} tables")
+    print(f"⏭️  Skipped (already exist): {len(existing_tables)} tables")
     if failed_count > 0:
         print(f"❌ Failed to create: {failed_count} tables")
     print()
     
     if failed_count == 0:
-        print("🎉 All tables created successfully!")
+        print("🎉 Setup completed successfully!")
         print()
-        print("📋 Created Tables:")
+        print("📋 All Tables:")
         for table_name in TABLES_CONFIG.keys():
-            print(f"   ✓ {table_name}")
+            status = "✓ (existing)" if table_name in existing_tables else "✓ (new)"
+            print(f"   {status} {table_name}")
     else:
         print("⚠️  Some tables failed to create. Please check the errors above.")
     
