@@ -270,7 +270,7 @@ Resources:
     Properties:
       LayerName: !Sub maatrisahayak-shared-dependencies-${Environment}
       Description: Shared dependencies and utilities for MaatriSahayak Lambda functions
-      ContentUri: ../lambda_functions/
+      ContentUri: ../lambda_functions/shared/
       CompatibleRuntimes:
         - python3.12
       RetentionPolicy: Retain
@@ -480,14 +480,305 @@ Resources:
                 - sns:Publish
               Resource: "*"
 
-  # ==================== SNS Topics ====================
+  # ==================== User Management Functions ====================
+  RegisterASHAFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-register-asha-${Environment}
+      CodeUri: ../lambda_functions/register_asha/
+      Handler: handler.lambda_handler
+      Description: Register ASHA worker account
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminCreateUser
+                - cognito-idp:AdminSetUserPassword
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        RegisterASHA:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /asha/register
+            Method: POST
+
+  GetASHAProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-get-asha-profile-${Environment}
+      CodeUri: ../lambda_functions/get_asha_profile/
+      Handler: handler.lambda_handler
+      Description: Get ASHA worker profile details
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        GetASHAProfile:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /asha/{id}
+            Method: GET
+
+  UpdateASHAProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-update-asha-profile-${Environment}
+      CodeUri: ../lambda_functions/update_asha_profile/
+      Handler: handler.lambda_handler
+      Description: Update ASHA worker profile
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminUpdateUserAttributes
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        UpdateASHAProfile:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /asha/{id}
+            Method: PUT
+
+  RegisterAmbulanceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-register-ambulance-${Environment}
+      CodeUri: ../lambda_functions/register_ambulance/
+      Handler: handler.lambda_handler
+      Description: Register ambulance in system
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        RegisterAmbulance:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /ambulances
+            Method: POST
+
+  RegisterHospitalFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-register-hospital-${Environment}
+      CodeUri: ../lambda_functions/register_hospital/
+      Handler: handler.lambda_handler
+      Description: Register hospital in system
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          HOSPITALS_TABLE: !Ref HospitalsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HospitalsTable
+      Events:
+        RegisterHospital:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /hospitals
+            Method: POST
+
+  UpdateHospitalCapacityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-update-hospital-capacity-${Environment}
+      CodeUri: ../lambda_functions/update_hospital_capacity/
+      Handler: handler.lambda_handler
+      Description: Update hospital bed availability
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          HOSPITALS_TABLE: !Ref HospitalsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HospitalsTable
+      Events:
+        UpdateHospitalCapacity:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /hospitals/{id}/capacity
+            Method: PUT
+
+  # ==================== AI/ML Functions ====================
+  AssessRiskFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-assess-risk-${Environment}
+      CodeUri: ../lambda_functions/assess_risk/
+      Handler: handler.lambda_handler
+      Description: AI-powered risk assessment using SageMaker
+      Timeout: 60
+      MemorySize: 1024
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VitalSignsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - sagemaker:InvokeEndpoint
+              Resource: "*"
+      Events:
+        AssessRisk:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /risk/assess/{pregnancy_id}
+            Method: POST
+
+  AnalyzeSymptomsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-analyze-symptoms-${Environment}
+      CodeUri: ../lambda_functions/analyze_symptoms/
+      Handler: handler.lambda_handler
+      Description: AI symptom analysis using Amazon Bedrock
+      Timeout: 60
+      MemorySize: 1024
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+      Events:
+        AnalyzeSymptoms:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /symptoms/analyze
+            Method: POST
+
+  ProcessANCCardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-process-anc-card-${Environment}
+      CodeUri: ../lambda_functions/process_anc_card/
+      Handler: handler.lambda_handler
+      Description: OCR processing for ANC cards using Textract
+      Timeout: 60
+      MemorySize: 1024
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PregnanciesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - textract:AnalyzeDocument
+                - textract:DetectDocumentText
+                - s3:GetObject
+                - s3:PutObject
+              Resource: "*"
+      Events:
+        ProcessANCCard:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /anc-card/process
+            Method: POST
+
+  # ==================== Ambulance & Location Functions ====================
+  CheckHospitalCapacityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-check-hospital-capacity-${Environment}
+      CodeUri: ../lambda_functions/check_hospital_capacity/
+      Handler: handler.lambda_handler
+      Description: Check hospital bed availability
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          HOSPITALS_TABLE: !Ref HospitalsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref HospitalsTable
+      Events:
+        CheckHospitalCapacity:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /hospitals/capacity
+            Method: GET
+
+  GetAmbulanceRouteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-get-ambulance-route-${Environment}
+      CodeUri: ../lambda_functions/get_ambulance_route/
+      Handler: handler.lambda_handler
+      Description: Calculate ambulance route and ETA
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref AmbulancesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - geo:CalculateRoute
+              Resource: "*"
+      Events:
+        GetAmbulanceRoute:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /ambulances/{id}/route
+            Method: POST
+
   EmergencyNotificationsTopic:
     Type: AWS::SNS::Topic
     Properties:
       TopicName: !Sub maatrisahayak-emergency-notifications-${Environment}
       DisplayName: MaatriSahayak Emergency Notifications
 
-  # ==================== Step Functions ====================
   EmergencyWorkflowStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
@@ -515,7 +806,6 @@ Resources:
             Path: /emergency/workflow
             Method: POST
 
-# ==================== Outputs ====================
 Outputs:
   ApiEndpoint:
     Description: API Gateway endpoint URL
