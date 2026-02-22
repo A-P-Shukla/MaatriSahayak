@@ -1,7 +1,7 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { Box, CircularProgress } from '@mui/material';
-import { useAuth } from '@hooks/useAuth';
+// import { Navigate, useLocation } from 'react-router-dom';
+// import { Box, CircularProgress } from '@mui/material';
+// import { useAuth } from '@hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,49 +11,24 @@ interface ProtectedRouteProps {
 
 /**
  * ProtectedRoute component for authentication guards
- * 
- * @param children - Child components to protect
- * @param requireAuth - Whether authentication is required (default: true)
- * @param redirectTo - Where to redirect if not authenticated (default: '/login')
+ *
+ * ⚠️  BYPASS_AUTH = true  →  auth is DISABLED for testing.
+ *     Flip to false (or remove this block) to re-enable auth guards.
  */
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requireAuth = true,
-  redirectTo = '/login'
-}) => {
-  const { user, isLoading } = useAuth();
-  const location = useLocation();
+const BYPASS_AUTH = true;
 
-  // Show loading spinner while checking authentication
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '300px',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  // --- Auth bypass for local testing ---
+  if (BYPASS_AUTH) {
+    return <>{children}</>;
   }
 
-  // If authentication is required and user is not authenticated, redirect to login
-  if (requireAuth && !user) {
-    // Save the current location so we can redirect back after login
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
-  }
-
-  // If authentication is NOT required and user IS authenticated, redirect away from login page
-  if (!requireAuth && user) {
-    // Redirect to dashboard or the page they were trying to access before login
-    const from = location.state?.from?.pathname || '/';
-    return <Navigate to={from} replace />;
-  }
-
-  // User is authenticated (or auth not required), render children
+  // --- Normal auth logic (restore when BYPASS_AUTH = false) ---
+  // const { user, isLoading } = useAuth();
+  // const location = useLocation();
+  // if (isLoading) { ... }
+  // if (requireAuth && !user) { return <Navigate to={redirectTo} ... />; }
+  // if (!requireAuth && user) { return <Navigate to="/" replace />; }
   return <>{children}</>;
 };
 
