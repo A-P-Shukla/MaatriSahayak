@@ -241,7 +241,7 @@ SUCCESS_MESSAGES = {
 LAMBDA_FUNCTIONS = {
     'REGISTER_PREGNANCY': 'maatrisahayak-register-pregnancy',
     'RECORD_VITALS': 'maatrisahayak-record-vitals',
-    'ASSESS_RISK': 'maatrisahayak-assess-risk',
+    'ASSESS_RISK': 'maatrisahayak-assess-risk-v2',
     'ANALYZE_SYMPTOMS': 'maatrisahayak-analyze-symptoms',
     'TRIGGER_EMERGENCY': 'maatrisahayak-trigger-emergency',
     'FIND_AMBULANCE': 'maatrisahayak-find-nearest-ambulance',
