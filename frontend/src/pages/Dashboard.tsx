@@ -1,17 +1,21 @@
 import React from 'react';
-import { Box, Typography, Grid, Paper, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, Grid, Paper, CircularProgress, Alert, Button } from '@mui/material';
 import {
   PregnantWoman as PregnancyIcon,
   Warning as WarningIcon,
   LocalTaxi as AmbulanceIcon,
   LocalHospital as EmergencyIcon,
+  ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 
 /**
  * Dashboard page - Overview of key metrics
  */
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  
   // Fetch dashboard statistics with auto-refresh
   const { data: stats, isLoading, isError, error } = useDashboardStats();
 
@@ -138,12 +142,24 @@ const Dashboard: React.FC = () => {
                   borderRadius: 2,
                 }}
               >
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                  Recent Emergencies
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Last 10 emergency events
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Box>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      Recent Emergencies
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Last 10 emergency events
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    endIcon={<ArrowForwardIcon />}
+                    onClick={() => navigate('/emergencies')}
+                  >
+                    View All
+                  </Button>
+                </Box>
                 {stats.recent_emergencies.length > 0 ? (
                   <Box>
                     {stats.recent_emergencies.slice(0, 10).map((emergency) => (
@@ -155,10 +171,12 @@ const Dashboard: React.FC = () => {
                           border: '1px solid',
                           borderColor: 'divider',
                           borderRadius: 1,
+                          cursor: 'pointer',
                           '&:hover': {
                             backgroundColor: 'action.hover',
                           },
                         }}
+                        onClick={() => navigate('/emergencies')}
                       >
                         <Typography variant="body2" fontWeight={600}>
                           {emergency.patient_name}
@@ -193,12 +211,24 @@ const Dashboard: React.FC = () => {
                   borderRadius: 2,
                 }}
               >
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                  High-Risk Pregnancies
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Top 10 by risk score
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Box>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      High-Risk Pregnancies
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Top 10 by risk score
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    endIcon={<ArrowForwardIcon />}
+                    onClick={() => navigate('/pregnancies')}
+                  >
+                    View All
+                  </Button>
+                </Box>
                 {stats.high_risk_pregnancies.length > 0 ? (
                   <Box>
                     {stats.high_risk_pregnancies.slice(0, 10).map((pregnancy) => (
@@ -210,10 +240,12 @@ const Dashboard: React.FC = () => {
                           border: '1px solid',
                           borderColor: 'divider',
                           borderRadius: 1,
+                          cursor: 'pointer',
                           '&:hover': {
                             backgroundColor: 'action.hover',
                           },
                         }}
+                        onClick={() => navigate(`/pregnancies/${pregnancy.pregnancy_id}`)}
                       >
                         <Typography variant="body2" fontWeight={600}>
                           {pregnancy.patient_name}
@@ -257,7 +289,7 @@ const Dashboard: React.FC = () => {
                       backgroundColor: 'action.hover',
                     },
                   }}
-                  onClick={() => window.location.href = '/pregnancies'}
+                  onClick={() => navigate('/pregnancies')}
                 >
                   <Typography variant="body1" fontWeight={500}>
                     View All Pregnancies
@@ -277,7 +309,7 @@ const Dashboard: React.FC = () => {
                       backgroundColor: 'action.hover',
                     },
                   }}
-                  onClick={() => window.location.href = '/emergencies'}
+                  onClick={() => navigate('/emergencies')}
                 >
                   <Typography variant="body1" fontWeight={500}>
                     View All Emergencies
@@ -297,7 +329,7 @@ const Dashboard: React.FC = () => {
                       backgroundColor: 'action.hover',
                     },
                   }}
-                  onClick={() => window.location.href = '/tracking'}
+                  onClick={() => navigate('/tracking')}
                 >
                   <Typography variant="body1" fontWeight={500}>
                     Live Ambulance Tracking
@@ -317,7 +349,7 @@ const Dashboard: React.FC = () => {
                       backgroundColor: 'action.hover',
                     },
                   }}
-                  onClick={() => window.location.href = '/analytics'}
+                  onClick={() => navigate('/analytics')}
                 >
                   <Typography variant="body1" fontWeight={500}>
                     View Analytics
