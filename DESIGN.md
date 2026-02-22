@@ -39,7 +39,7 @@ MaatriSahayak is a cloud-native, AI-powered maternal emergency response platform
 ┌─────────────────────────────────────────────────────────────────┐
 │                      AI/ML SERVICES LAYER                        │
 ├──────────────────────┬──────────────────────┬───────────────────┤
-│   Amazon Bedrock     │   SageMaker          │   Textract        │
+│   Amazon Bedrock     │   Lambda Container   │   Textract        │
 │   (LLM Analysis)     │   (Risk Prediction)  │   (OCR)           │
 └──────────────────────┴──────────────────────┴───────────────────┘
                               ↓
@@ -138,7 +138,8 @@ MaatriSahayak is a cloud-native, AI-powered maternal emergency response platform
 **Lambda Configuration**:
 - Runtime: Python 3.11 or Node.js 18
 - Memory: 512MB - 2GB based on function
-- Timeout: 30 seconds (900s for ML inference)
+- Timeout: 30 seconds (60s for ML inference)
+- PackageType: Zip (Standard) or Image (For ML functions)
 - VPC: Enabled for DynamoDB access
 - Environment variables for configuration
 - AWS X-Ray tracing enabled
@@ -173,22 +174,21 @@ Immediate Actions: 1) Trigger emergency, 2) Administer antihypertensive if avail
 - Action groups for ambulance dispatch, hospital coordination
 - Knowledge bases with maternal health protocols
 
-#### Amazon SageMaker
+#### Machine Learning Risk Prediction
 
-**Risk Prediction Model**:
-- Algorithm: XGBoost or Random Forest ensemble
-- Features: 25+ clinical and demographic variables
-- Training: Historical data from 100K+ pregnancies
-- Output: Risk score (0-100), top risk factors, confidence level
-- Deployment: Real-time endpoint with auto-scaling
-- Monitoring: Model drift detection, retraining triggers
+**Architecture**:
+- Engine: FastAPI + Random Forest ensemble
+- Deployment: AWS Lambda Container Image (supporting heavy ML libraries)
+- Features: 11 physiological variables
+- Output: Risk score (0/1), risk level (LOW/HIGH)
+- Verification: End-to-end integration via API Gateway
 
-**Model Pipeline**:
-1. Data preprocessing in Lambda
-2. Feature engineering (age groups, BMI categories, gestational week)
-3. SageMaker endpoint invocation
-4. Post-processing and threshold application
-5. Store prediction in DynamoDB with timestamp
+**Model Workflow**:
+1. Request received via FastAPI endpoint
+2. Feature validation using Pydantic
+3. Real-time inference using locally embedded `.pkl` model
+4. Conditional update of DynamoDB patient record
+5. Structured JSON response return
 
 #### Amazon Textract
 

@@ -185,7 +185,7 @@ By March 13, we must have:
 - [ ] GetRiskTrends - Time-series risk analysis
 
 **6. AI/ML Services (3 functions)**:
-- [ ] AssessRisk - SageMaker risk prediction
+- [✅] AssessRisk - Dockerized Random Forest risk prediction
 - [ ] AnalyzeSymptoms - Bedrock symptom analysis
 - [✅] ProcessANCCard - Textract OCR for ANC cards
 
@@ -221,10 +221,10 @@ By March 13, we must have:
 - [ ] ExportReports - Generate PDF/Excel reports
 
 **Summary by Status**:
-- ✅ Implemented: 17 functions
-- [ ] Remaining: 20 functions
+- ✅ Implemented: 18 functions
+- [ ] Remaining: 19 functions
 - **Total: 37 Lambda Functions**
-- **Progress: 46% Complete** 🎯
+- **Progress: 49% Complete** 🎯
 
 ---
 

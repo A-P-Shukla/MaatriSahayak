@@ -127,7 +127,7 @@ MaatriSahayak is an AI-powered maternal emergency response platform designed to 
 
 **2. AI/ML Services**
 - Amazon Bedrock: LLM for symptom analysis
-- SageMaker: Custom risk prediction models
+- Lambda Image Container: Scalable risk prediction models
 - Textract: OCR for handwritten documents
 - No need to build AI from scratch
 
@@ -163,7 +163,7 @@ MaatriSahayak is an AI-powered maternal emergency response platform designed to 
 
 **AI/ML Pipeline**:
 - Bedrock: Symptom analysis, clinical advice
-- SageMaker: Risk prediction model (XGBoost)
+- Risk Assessment: Dockerized FastAPI backend (Random Forest)
 - Textract: ANC card digitization
 - Bedrock Agents: Workflow orchestration
 
@@ -258,7 +258,7 @@ MaatriSahayak is an AI-powered maternal emergency response platform designed to 
 - Precision: 87% (few false positives)
 - Recall: 92% (catches most high-risk cases)
 - F1 Score: 89%
-- Inference time: < 5 seconds
+- Inference time: < 1 second (Production verified)
 
 ### Bedrock Integration
 
