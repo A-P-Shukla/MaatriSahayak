@@ -10,6 +10,23 @@ vi.mock('@hooks/useAuth', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+// Mock the useDashboardStats hook
+vi.mock('@hooks/useDashboardStats', () => ({
+  useDashboardStats: vi.fn(() => ({
+    data: {
+      total_pregnancies: 100,
+      high_risk_count: 10,
+      active_emergencies: 2,
+      available_ambulances: 15,
+      recent_emergencies: [],
+      high_risk_pregnancies: [],
+    },
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
+}));
+
 import { useAuth } from '@hooks/useAuth';
 
 // Mock page components
@@ -54,9 +71,39 @@ vi.mock('@components/Footer', () => ({
   default: () => <div>Footer Component</div>,
 }));
 
-vi.mock('@components/ProtectedRoute', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <div>ProtectedRoute: {children}</div>,
+vi.mock('@components/ErrorBoundary', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
+
+vi.mock('@components/ProtectedRoute', () => ({
+  default: ({ children, requireAuth = true }: { children: React.ReactNode; requireAuth?: boolean }) => {
+    const { useAuth } = require('@hooks/useAuth');
+    const { user, isLoading } = useAuth();
+    
+    if (isLoading) {
+      return <div role="progressbar">Loading...</div>;
+    }
+    
+    if (requireAuth && !user) {
+      return <div>Redirecting to login...</div>;
+    }
+    
+    if (!requireAuth && user) {
+      return <div>Redirecting to dashboard...</div>;
+    }
+    
+    return <>{children}</>;
+  },
+}));
+
+// Mock the App component's Router to use MemoryRouter instead
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
 
 describe('App Routing', () => {
   const mockUseAuth = (overrides = {}) => {
@@ -164,13 +211,13 @@ describe('App Routing', () => {
   });
 
   it('should redirect to login when accessing protected route without auth', async () => {
-    mockUseAuth({ user: null });
+    mockUseAuth({ user: null, isLoading: false });
     
     renderApp('/dashboard');
     
-    // Since we're mocking ProtectedRoute, it should show the component
-    // In a real test, it would redirect to login
-    expect(screen.getByText(/ProtectedRoute:/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Redirecting to login...')).toBeInTheDocument();
+    });
   });
 
   it('should match snapshot for dashboard route', () => {

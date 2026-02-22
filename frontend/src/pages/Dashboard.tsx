@@ -1,46 +1,52 @@
 import React from 'react';
-import { Box, Typography, Grid, Paper } from '@mui/material';
+import { Box, Typography, Grid, Paper, CircularProgress, Alert } from '@mui/material';
 import {
   PregnantWoman as PregnancyIcon,
   Warning as WarningIcon,
   LocalTaxi as AmbulanceIcon,
+  LocalHospital as EmergencyIcon,
 } from '@mui/icons-material';
+import { useDashboardStats } from '../hooks/useDashboardStats';
 
 /**
  * Dashboard page - Overview of key metrics
  */
 const Dashboard: React.FC = () => {
-  // Mock data - in real app, this would come from API
-  const metrics = [
+  // Fetch dashboard statistics with auto-refresh
+  const { data: stats, isLoading, isError, error } = useDashboardStats();
+
+  // Format number with commas
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString();
+  };
+
+  // Prepare metrics data from API response
+  const metrics = stats ? [
     {
       title: 'Total Pregnancies',
-      value: '1,247',
+      value: formatNumber(stats.total_pregnancies),
       icon: <PregnancyIcon fontSize="large" />,
       color: 'primary.main',
-      change: '+12%',
     },
     {
       title: 'High-Risk',
-      value: '89',
+      value: formatNumber(stats.high_risk_count),
       icon: <WarningIcon fontSize="large" />,
       color: 'warning.main',
-      change: '+3%',
     },
     {
       title: 'Active Emergencies',
-      value: '5',
-      icon: <WarningIcon fontSize="large" />,
+      value: formatNumber(stats.active_emergencies),
+      icon: <EmergencyIcon fontSize="large" />,
       color: 'error.main',
-      change: '-2%',
     },
     {
       title: 'Available Ambulances',
-      value: '18',
+      value: formatNumber(stats.available_ambulances),
       icon: <AmbulanceIcon fontSize="large" />,
       color: 'success.main',
-      change: '+1%',
     },
-  ];
+  ] : [];
 
   return (
     <Box>
@@ -54,210 +60,274 @@ const Dashboard: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* Metrics cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {metrics.map((metric, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Paper
-              sx={{
-                p: 3,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                height: '100%',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                },
-              }}
-            >
-              <Box
+      {/* Loading state */}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress size={60} />
+        </Box>
+      )}
+
+      {/* Error state */}
+      {isError && (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          {error?.message || 'Failed to load dashboard statistics. Please try again.'}
+        </Alert>
+      )}
+
+      {/* Dashboard content - only show when data is loaded */}
+      {!isLoading && !isError && stats && (
+        <>
+          {/* Metrics cards */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            {metrics.map((metric, index) => (
+              <Grid item xs={12} sm={6} md={3} key={index}>
+                <Paper
+                  sx={{
+                    p: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    height: '100%',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 2,
+                      backgroundColor: `${metric.color}15`, // 15% opacity
+                      color: metric.color,
+                    }}
+                  >
+                    {metric.icon}
+                  </Box>
+                  <Typography variant="h3" fontWeight={700} gutterBottom>
+                    {metric.value}
+                  </Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {metric.title}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Recent activity sections */}
+          <Grid container spacing={3}>
+            {/* Recent Emergencies */}
+            <Grid item xs={12} md={6}>
+              <Paper
                 sx={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 2,
-                  backgroundColor: `${metric.color}15`, // 15% opacity
-                  color: metric.color,
+                  p: 3,
+                  height: '100%',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
                 }}
               >
-                {metric.icon}
-              </Box>
-              <Typography variant="h3" fontWeight={700} gutterBottom>
-                {metric.value}
-              </Typography>
-              <Typography variant="body1" fontWeight={500} gutterBottom>
-                {metric.title}
-              </Typography>
-              <Typography
-                variant="caption"
+                <Typography variant="h6" fontWeight={600} gutterBottom>
+                  Recent Emergencies
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Last 10 emergency events
+                </Typography>
+                {stats.recent_emergencies.length > 0 ? (
+                  <Box>
+                    {stats.recent_emergencies.slice(0, 10).map((emergency) => (
+                      <Box
+                        key={emergency.event_id}
+                        sx={{
+                          p: 2,
+                          mb: 1,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: 'action.hover',
+                          },
+                        }}
+                      >
+                        <Typography variant="body2" fontWeight={600}>
+                          {emergency.patient_name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Status: {emergency.status} | {new Date(emergency.trigger_timestamp).toLocaleString()}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      No recent emergencies
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      All systems are operating normally
+                    </Typography>
+                  </Box>
+                )}
+              </Paper>
+            </Grid>
+
+            {/* High-Risk Pregnancies */}
+            <Grid item xs={12} md={6}>
+              <Paper
                 sx={{
-                  color: metric.change.startsWith('+') ? 'success.main' : 'error.main',
-                  fontWeight: 600,
+                  p: 3,
+                  height: '100%',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
                 }}
               >
-                {metric.change} from last week
-              </Typography>
-            </Paper>
+                <Typography variant="h6" fontWeight={600} gutterBottom>
+                  High-Risk Pregnancies
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Top 10 by risk score
+                </Typography>
+                {stats.high_risk_pregnancies.length > 0 ? (
+                  <Box>
+                    {stats.high_risk_pregnancies.slice(0, 10).map((pregnancy) => (
+                      <Box
+                        key={pregnancy.pregnancy_id}
+                        sx={{
+                          p: 2,
+                          mb: 1,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: 'action.hover',
+                          },
+                        }}
+                      >
+                        <Typography variant="body2" fontWeight={600}>
+                          {pregnancy.patient_name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Risk Score: {pregnancy.risk_score} | {pregnancy.village}, {pregnancy.district}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      No high-risk pregnancies
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      All pregnancies are within normal risk levels
+                    </Typography>
+                  </Box>
+                )}
+              </Paper>
+            </Grid>
           </Grid>
-        ))}
-      </Grid>
 
-      {/* Recent activity sections */}
-      <Grid container spacing={3}>
-        {/* Recent Emergencies */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 3,
-              height: '100%',
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 2,
-            }}
-          >
+          {/* Quick actions */}
+          <Box sx={{ mt: 4 }}>
             <Typography variant="h6" fontWeight={600} gutterBottom>
-              Recent Emergencies
+              Quick Actions
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Last 10 emergency events
-            </Typography>
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="text.secondary">
-                No recent emergencies
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                All systems are operating normally
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* High-Risk Pregnancies */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 3,
-              height: '100%',
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 2,
-            }}
-          >
-            <Typography variant="h6" fontWeight={600} gutterBottom>
-              High-Risk Pregnancies
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Top 10 by risk score
-            </Typography>
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="text.secondary">
-                Loading pregnancy data...
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Please wait while we fetch the latest information
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Quick actions */}
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h6" fontWeight={600} gutterBottom>
-          Quick Actions
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                cursor: 'pointer',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-              onClick={() => window.location.href = '/pregnancies'}
-            >
-              <Typography variant="body1" fontWeight={500}>
-                View All Pregnancies
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                cursor: 'pointer',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-              onClick={() => window.location.href = '/emergencies'}
-            >
-              <Typography variant="body1" fontWeight={500}>
-                View All Emergencies
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                cursor: 'pointer',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-              onClick={() => window.location.href = '/tracking'}
-            >
-              <Typography variant="body1" fontWeight={500}>
-                Live Ambulance Tracking
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                cursor: 'pointer',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-              onClick={() => window.location.href = '/analytics'}
-            >
-              <Typography variant="body1" fontWeight={500}>
-                View Analytics
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Paper
+                  sx={{
+                    p: 2,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                  onClick={() => window.location.href = '/pregnancies'}
+                >
+                  <Typography variant="body1" fontWeight={500}>
+                    View All Pregnancies
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Paper
+                  sx={{
+                    p: 2,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                  onClick={() => window.location.href = '/emergencies'}
+                >
+                  <Typography variant="body1" fontWeight={500}>
+                    View All Emergencies
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Paper
+                  sx={{
+                    p: 2,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                  onClick={() => window.location.href = '/tracking'}
+                >
+                  <Typography variant="body1" fontWeight={500}>
+                    Live Ambulance Tracking
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Paper
+                  sx={{
+                    p: 2,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                  onClick={() => window.location.href = '/analytics'}
+                >
+                  <Typography variant="body1" fontWeight={500}>
+                    View Analytics
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+        </>
+      )}
     </Box>
   );
 };
