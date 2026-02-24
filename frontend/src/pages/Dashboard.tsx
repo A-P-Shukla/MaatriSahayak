@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Typography, Grid, Paper, CircularProgress, Alert, Button } from '@mui/material';
 import {
   PregnantWoman as PregnancyIcon,
@@ -9,12 +9,30 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useDashboardStats';
+import EmergencyDetailsModal from '../components/EmergencyDetailsModal';
 
 /**
  * Dashboard page - Overview of key metrics
  */
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  
+  // Modal state
+  const [selectedEmergencyId, setSelectedEmergencyId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Handle opening modal
+  const handleOpenModal = (emergencyId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedEmergencyId(emergencyId);
+    setModalOpen(true);
+  };
+
+  // Handle closing modal
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedEmergencyId(null);
+  };
   
   // Fetch dashboard statistics with auto-refresh
   const { data: stats, isLoading, isError, error } = useDashboardStats();
@@ -176,7 +194,7 @@ const Dashboard: React.FC = () => {
                             backgroundColor: 'action.hover',
                           },
                         }}
-                        onClick={() => navigate('/emergencies')}
+                        onClick={(e) => handleOpenModal(emergency.event_id, e)}
                       >
                         <Typography variant="body2" fontWeight={600}>
                           {emergency.patient_name}
@@ -360,6 +378,13 @@ const Dashboard: React.FC = () => {
           </Box>
         </>
       )}
+
+      {/* Emergency Details Modal */}
+      <EmergencyDetailsModal
+        emergencyId={selectedEmergencyId}
+        open={modalOpen}
+        onClose={handleCloseModal}
+      />
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
@@ -31,6 +31,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,   // bind to 0.0.0.0 → accessible from phone on same Wi-Fi
     port: 3000,
     open: true,
   },
