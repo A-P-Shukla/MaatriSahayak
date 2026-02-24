@@ -616,6 +616,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-login-asha-${Environment}
       CodeUri: ../lambda_functions/login_asha/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: ASHA worker login with Cognito
       Layers:
         - !Ref SharedDependenciesLayer
@@ -644,6 +645,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-refresh-token-${Environment}
       CodeUri: ../lambda_functions/refresh_token/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Refresh authentication tokens
       Layers:
         - !Ref SharedDependenciesLayer
@@ -670,6 +672,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-update-pregnancy-${Environment}
       CodeUri: ../lambda_functions/update_pregnancy/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Update pregnancy information
       Layers:
         - !Ref SharedDependenciesLayer
@@ -693,6 +696,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-record-anc-visit-${Environment}
       CodeUri: ../lambda_functions/record_anc_visit/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Record ANC visit details
       Layers:
         - !Ref SharedDependenciesLayer
@@ -719,6 +723,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-get-anc-history-${Environment}
       CodeUri: ../lambda_functions/get_anc_history/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Get ANC visit history for pregnancy
       Layers:
         - !Ref SharedDependenciesLayer
@@ -745,6 +750,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-get-vitals-history-${Environment}
       CodeUri: ../lambda_functions/get_vitals_history/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Get vitals timeline for pregnancy
       Layers:
         - !Ref SharedDependenciesLayer
@@ -843,6 +849,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-get-risk-trends-${Environment}
       CodeUri: ../lambda_functions/get_risk_trends/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Time-series risk analysis
       Layers:
         - !Ref SharedDependenciesLayer
@@ -869,6 +876,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-validate-emergency-${Environment}
       CodeUri: ../lambda_functions/validate_emergency/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Validate emergency request
       Layers:
         - !Ref SharedDependenciesLayer
@@ -888,6 +896,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-dispatch-ambulance-${Environment}
       CodeUri: ../lambda_functions/dispatch_ambulance/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Assign ambulance to emergency
       Layers:
         - !Ref SharedDependenciesLayer
@@ -907,6 +916,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-alert-hospital-${Environment}
       CodeUri: ../lambda_functions/alert_hospital/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Notify hospital of incoming patient
       Layers:
         - !Ref SharedDependenciesLayer
@@ -929,6 +939,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-monitor-emergency-${Environment}
       CodeUri: ../lambda_functions/monitor_emergency/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Track emergency progress
       Layers:
         - !Ref SharedDependenciesLayer
@@ -955,6 +966,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-complete-emergency-${Environment}
       CodeUri: ../lambda_functions/complete_emergency/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Close emergency event
       Layers:
         - !Ref SharedDependenciesLayer
@@ -981,6 +993,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-get-emergency-history-${Environment}
       CodeUri: ../lambda_functions/get_emergency_history/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Get emergency event history
       Layers:
         - !Ref SharedDependenciesLayer
@@ -1010,6 +1023,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-get-ambulance-status-${Environment}
       CodeUri: ../lambda_functions/get_ambulance_status/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Get ambulance availability and status
       Layers:
         - !Ref SharedDependenciesLayer
@@ -1033,6 +1047,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-list-hospitals-${Environment}
       CodeUri: ../lambda_functions/list_hospitals/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Get list of hospitals by district/type
       Layers:
         - !Ref SharedDependenciesLayer
@@ -1056,6 +1071,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-sync-offline-data-${Environment}
       CodeUri: ../lambda_functions/sync_offline_data/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Handle bulk sync from mobile offline queue
       Timeout: 60
       Layers:
@@ -1086,6 +1102,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-generate-analytics-${Environment}
       CodeUri: ../lambda_functions/generate_analytics/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Dashboard metrics and KPIs
       Timeout: 60
       Layers:
@@ -1122,6 +1139,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-export-reports-${Environment}
       CodeUri: ../lambda_functions/export_reports/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Generate PDF/Excel reports
       Timeout: 60
       MemorySize: 1024
@@ -1158,6 +1176,8 @@ Resources:
     Properties:
       FunctionName: !Sub maatrisahayak-assess-risk-v2-${Environment}
       PackageType: Image
+      ImageConfig:
+        Command: ["handler.lambda_handler"]
       Description: AI-powered risk assessment using FastAPI and Random Forest
       Timeout: 60
       MemorySize: 1024
