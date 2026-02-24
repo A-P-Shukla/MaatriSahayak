@@ -6,7 +6,6 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 512
-    Runtime: python3.12
     Environment:
       Variables:
         POWERTOOLS_SERVICE_NAME: maatrisahayak
@@ -315,6 +314,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-register-pregnancy-${Environment}
       CodeUri: ../lambda_functions/register_pregnancy/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Register a new pregnancy in the system
       Layers:
         - !Ref SharedDependenciesLayer
@@ -338,6 +338,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-record-vitals-${Environment}
       CodeUri: ../lambda_functions/record_vitals/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Record vital signs for a pregnancy
       Layers:
         - !Ref SharedDependenciesLayer
@@ -364,6 +365,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-get-pregnancy-details-${Environment}
       CodeUri: ../lambda_functions/get_pregnancy_details/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Get detailed information about a pregnancy
       Layers:
         - !Ref SharedDependenciesLayer
@@ -390,6 +392,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-list-pregnancies-${Environment}
       CodeUri: ../lambda_functions/list_pregnancies/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: List pregnancies with filtering and pagination
       Layers:
         - !Ref SharedDependenciesLayer
@@ -413,6 +416,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-trigger-emergency-${Environment}
       CodeUri: ../lambda_functions/trigger_emergency/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Trigger emergency response workflow
       Layers:
         - !Ref SharedDependenciesLayer
@@ -450,6 +454,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-find-nearest-ambulance-${Environment}
       CodeUri: ../lambda_functions/find_nearest_ambulance/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Find nearest available ambulance
       Layers:
         - !Ref SharedDependenciesLayer
@@ -473,6 +478,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-update-ambulance-location-${Environment}
       CodeUri: ../lambda_functions/update_ambulance_location/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Update ambulance GPS location and status
       Layers:
         - !Ref SharedDependenciesLayer
@@ -496,6 +502,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-send-notifications-${Environment}
       CodeUri: ../lambda_functions/send_notifications/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Send SMS and push notifications to stakeholders
       Layers:
         - !Ref SharedDependenciesLayer
@@ -518,6 +525,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-register-asha-${Environment}
       CodeUri: ../lambda_functions/register_asha/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Register ASHA worker account
       Layers:
         - !Ref SharedDependenciesLayer
@@ -548,6 +556,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-get-asha-profile-${Environment}
       CodeUri: ../lambda_functions/get_asha_profile/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Get ASHA worker profile details
       Layers:
         - !Ref SharedDependenciesLayer
@@ -577,6 +586,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-update-asha-profile-${Environment}
       CodeUri: ../lambda_functions/update_asha_profile/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Update ASHA worker profile
       Layers:
         - !Ref SharedDependenciesLayer
@@ -761,6 +771,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-register-ambulance-${Environment}
       CodeUri: ../lambda_functions/register_ambulance/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Register ambulance in system
       Layers:
         - !Ref SharedDependenciesLayer
@@ -784,6 +795,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-register-hospital-${Environment}
       CodeUri: ../lambda_functions/register_hospital/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Register hospital in system
       Layers:
         - !Ref SharedDependenciesLayer
@@ -807,6 +819,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-update-hospital-capacity-${Environment}
       CodeUri: ../lambda_functions/update_hospital_capacity/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Update hospital bed availability
       Layers:
         - !Ref SharedDependenciesLayer
@@ -1143,14 +1156,11 @@ Resources:
   AssessRiskFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-assess-risk-${Environment}
-      CodeUri: ../lambda_functions/assess_risk/
-      Handler: handler.lambda_handler
-      Description: AI-powered risk assessment using SageMaker
+      FunctionName: !Sub maatrisahayak-assess-risk-v2-${Environment}
+      PackageType: Image
+      Description: AI-powered risk assessment using FastAPI and Random Forest
       Timeout: 60
       MemorySize: 1024
-      Layers:
-        - !Ref SharedDependenciesLayer
       Environment:
         Variables:
           PREGNANCIES_TABLE: !Ref PregnanciesTable
@@ -1172,6 +1182,10 @@ Resources:
             RestApiId: !Ref MaatriSahayakApi
             Path: /risk/assess/{pregnancy_id}
             Method: POST
+    Metadata:
+      Dockerfile: assess_risk/Dockerfile
+      DockerContext: ../lambda_functions
+      DockerTag: python3.12-v1
 
   AnalyzeSymptomsFunction:
     Type: AWS::Serverless::Function
@@ -1179,6 +1193,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-analyze-symptoms-${Environment}
       CodeUri: ../lambda_functions/analyze_symptoms/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: AI symptom analysis using Amazon Bedrock
       Timeout: 60
       MemorySize: 1024
@@ -1204,6 +1219,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-process-anc-card-${Environment}
       CodeUri: ../lambda_functions/process_anc_card/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: OCR processing for ANC cards using Textract
       Timeout: 60
       MemorySize: 1024
@@ -1238,6 +1254,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-check-hospital-capacity-${Environment}
       CodeUri: ../lambda_functions/check_hospital_capacity/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Check hospital bed availability
       Layers:
         - !Ref SharedDependenciesLayer
@@ -1261,6 +1278,7 @@ Resources:
       FunctionName: !Sub maatrisahayak-get-ambulance-route-${Environment}
       CodeUri: ../lambda_functions/get_ambulance_route/
       Handler: handler.lambda_handler
+      Runtime: python3.12
       Description: Calculate ambulance route and ETA
       Layers:
         - !Ref SharedDependenciesLayer
