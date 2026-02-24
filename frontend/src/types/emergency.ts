@@ -20,7 +20,11 @@ export interface Emergency {
   event_id: string;
   pregnancy_id: string;
   patient_name: string;
+  patient_phone?: string;
   trigger_timestamp: string; // ISO 8601 date string
+  dispatch_timestamp?: string; // ISO 8601 date string
+  arrival_timestamp?: string; // ISO 8601 date string
+  completion_timestamp?: string; // ISO 8601 date string
   event_type: string;
   severity_level: SeverityLevel;
   ambulance_id?: string;
