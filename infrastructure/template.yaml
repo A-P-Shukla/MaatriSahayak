@@ -264,6 +264,37 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
 
+  ASHAWorkersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub maatrisahayak-asha-workers-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: district
+          AttributeType: S
+        - AttributeName: phone
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: district-index
+          KeySchema:
+            - AttributeName: district
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: phone-index
+          KeySchema:
+            - AttributeName: phone
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
   # ==================== Lambda Layers ====================
   SharedDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -493,7 +524,10 @@ Resources:
       Environment:
         Variables:
           USER_POOL_ID: !Ref UserPool
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
       Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ASHAWorkersTable
         - Statement:
             - Effect: Allow
               Action:
@@ -520,7 +554,10 @@ Resources:
       Environment:
         Variables:
           USER_POOL_ID: !Ref UserPool
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
       Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ASHAWorkersTable
         - Statement:
             - Effect: Allow
               Action:
@@ -546,7 +583,10 @@ Resources:
       Environment:
         Variables:
           USER_POOL_ID: !Ref UserPool
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
       Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ASHAWorkersTable
         - Statement:
             - Effect: Allow
               Action:
@@ -559,6 +599,161 @@ Resources:
             RestApiId: !Ref MaatriSahayakApi
             Path: /asha/{id}
             Method: PUT
+
+  LoginASHAFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-login-asha-${Environment}
+      CodeUri: ../lambda_functions/login_asha/
+      Handler: handler.lambda_handler
+      Description: ASHA worker login with Cognito
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+          CLIENT_ID: !Ref UserPoolClient
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:InitiateAuth
+                - cognito-idp:GetUser
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        LoginASHA:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /asha/login
+            Method: POST
+
+  RefreshTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-refresh-token-${Environment}
+      CodeUri: ../lambda_functions/refresh_token/
+      Handler: handler.lambda_handler
+      Description: Refresh authentication tokens
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          CLIENT_ID: !Ref UserPoolClient
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:InitiateAuth
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        RefreshToken:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /auth/refresh
+            Method: POST
+
+  UpdatePregnancyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-update-pregnancy-${Environment}
+      CodeUri: ../lambda_functions/update_pregnancy/
+      Handler: handler.lambda_handler
+      Description: Update pregnancy information
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PregnanciesTable
+      Events:
+        UpdatePregnancy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /pregnancies/{id}
+            Method: PUT
+
+  RecordANCVisitFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-record-anc-visit-${Environment}
+      CodeUri: ../lambda_functions/record_anc_visit/
+      Handler: handler.lambda_handler
+      Description: Record ANC visit details
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VitalSignsTable
+      Events:
+        RecordANCVisit:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /anc/visits
+            Method: POST
+
+  GetANCHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-get-anc-history-${Environment}
+      CodeUri: ../lambda_functions/get_anc_history/
+      Handler: handler.lambda_handler
+      Description: Get ANC visit history for pregnancy
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VitalSignsTable
+      Events:
+        GetANCHistory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /pregnancies/{pregnancy_id}/anc-history
+            Method: GET
+
+  GetVitalsHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-get-vitals-history-${Environment}
+      CodeUri: ../lambda_functions/get_vitals_history/
+      Handler: handler.lambda_handler
+      Description: Get vitals timeline for pregnancy
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VitalSignsTable
+      Events:
+        GetVitalsHistory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /pregnancies/{pregnancy_id}/vitals-history
+            Method: GET
 
   RegisterAmbulanceFunction:
     Type: AWS::Serverless::Function
@@ -628,6 +823,321 @@ Resources:
             RestApiId: !Ref MaatriSahayakApi
             Path: /hospitals/{id}/capacity
             Method: PUT
+
+  GetRiskTrendsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-get-risk-trends-${Environment}
+      CodeUri: ../lambda_functions/get_risk_trends/
+      Handler: handler.lambda_handler
+      Description: Time-series risk analysis
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VitalSignsTable
+      Events:
+        GetRiskTrends:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /pregnancies/{pregnancy_id}/risk-trends
+            Method: GET
+
+  ValidateEmergencyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-validate-emergency-${Environment}
+      CodeUri: ../lambda_functions/validate_emergency/
+      Handler: handler.lambda_handler
+      Description: Validate emergency request
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmergencyEventsTable
+
+  DispatchAmbulanceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-dispatch-ambulance-${Environment}
+      CodeUri: ../lambda_functions/dispatch_ambulance/
+      Handler: handler.lambda_handler
+      Description: Assign ambulance to emergency
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmergencyEventsTable
+
+  AlertHospitalFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-alert-hospital-${Environment}
+      CodeUri: ../lambda_functions/alert_hospital/
+      Handler: handler.lambda_handler
+      Description: Notify hospital of incoming patient
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          HOSPITALS_TABLE: !Ref HospitalsTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+          SNS_TOPIC_ARN: !Ref EmergencyNotificationsTopic
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref HospitalsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmergencyEventsTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt EmergencyNotificationsTopic.TopicName
+
+  MonitorEmergencyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-monitor-emergency-${Environment}
+      CodeUri: ../lambda_functions/monitor_emergency/
+      Handler: handler.lambda_handler
+      Description: Track emergency progress
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmergencyEventsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        MonitorEmergency:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /emergency/{emergency_id}/status
+            Method: GET
+
+  CompleteEmergencyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-complete-emergency-${Environment}
+      CodeUri: ../lambda_functions/complete_emergency/
+      Handler: handler.lambda_handler
+      Description: Close emergency event
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmergencyEventsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        CompleteEmergency:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /emergency/{emergency_id}/complete
+            Method: POST
+
+  GetEmergencyHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-get-emergency-history-${Environment}
+      CodeUri: ../lambda_functions/get_emergency_history/
+      Handler: handler.lambda_handler
+      Description: Get emergency event history
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmergencyEventsTable
+      Events:
+        GetEmergencyHistoryByPregnancy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /pregnancies/{pregnancy_id}/emergencies
+            Method: GET
+        GetEmergencyHistoryByAmbulance:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /ambulances/{ambulance_id}/emergencies
+            Method: GET
+
+  GetAmbulanceStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-get-ambulance-status-${Environment}
+      CodeUri: ../lambda_functions/get_ambulance_status/
+      Handler: handler.lambda_handler
+      Description: Get ambulance availability and status
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        GetAmbulanceStatus:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /ambulances/{id}/status
+            Method: GET
+
+  ListHospitalsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-list-hospitals-${Environment}
+      CodeUri: ../lambda_functions/list_hospitals/
+      Handler: handler.lambda_handler
+      Description: Get list of hospitals by district/type
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          HOSPITALS_TABLE: !Ref HospitalsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref HospitalsTable
+      Events:
+        ListHospitals:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /hospitals
+            Method: GET
+
+  SyncOfflineDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-sync-offline-data-${Environment}
+      CodeUri: ../lambda_functions/sync_offline_data/
+      Handler: handler.lambda_handler
+      Description: Handle bulk sync from mobile offline queue
+      Timeout: 60
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VitalSignsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmergencyEventsTable
+      Events:
+        SyncOfflineData:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /sync
+            Method: POST
+
+  GenerateAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-generate-analytics-${Environment}
+      CodeUri: ../lambda_functions/generate_analytics/
+      Handler: handler.lambda_handler
+      Description: Dashboard metrics and KPIs
+      Timeout: 60
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+          HOSPITALS_TABLE: !Ref HospitalsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VitalSignsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmergencyEventsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref AmbulancesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref HospitalsTable
+      Events:
+        GenerateAnalytics:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /analytics
+            Method: GET
+
+  ExportReportsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub maatrisahayak-export-reports-${Environment}
+      CodeUri: ../lambda_functions/export_reports/
+      Handler: handler.lambda_handler
+      Description: Generate PDF/Excel reports
+      Timeout: 60
+      MemorySize: 1024
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          PREGNANCIES_TABLE: !Ref PregnanciesTable
+          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PregnanciesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VitalSignsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmergencyEventsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: "*"
+      Events:
+        ExportReports:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /reports/export
+            Method: POST
 
   # ==================== AI/ML Functions ====================
   AssessRiskFunction:
@@ -866,3 +1376,9 @@ Outputs:
     Value: !Ref HospitalsTable
     Export:
       Name: !Sub ${AWS::StackName}-HospitalsTable
+
+  ASHAWorkersTableName:
+    Description: ASHA Workers DynamoDB Table Name
+    Value: !Ref ASHAWorkersTable
+    Export:
+      Name: !Sub ${AWS::StackName}-ASHAWorkersTable
