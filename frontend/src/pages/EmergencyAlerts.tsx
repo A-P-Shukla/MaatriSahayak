@@ -4,7 +4,6 @@ import {
   Typography,
   Paper,
   Chip,
-  TextField,
   MenuItem,
   Select,
   FormControl,
@@ -19,14 +18,16 @@ import {
   TableRow,
   IconButton,
   Tooltip,
-  InputAdornment,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
   Refresh as RefreshIcon,
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { useEmergencies } from '../hooks/useEmergencies';
+import EmergencyDetailsModal from '../components/EmergencyDetailsModal';
+import FilterBar from '../components/FilterBar';
+import SearchInput from '../components/SearchInput';
+import StatusFilter from '../components/StatusFilter';
 import type { EmergencyStatus, SeverityLevel, EmergencyFilters } from '../types';
 
 /**
@@ -37,6 +38,22 @@ const EmergencyAlerts: React.FC = () => {
   // Filter state
   const [filters, setFilters] = useState<EmergencyFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Modal state
+  const [selectedEmergencyId, setSelectedEmergencyId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Handle opening modal
+  const handleOpenModal = (emergencyId: string) => {
+    setSelectedEmergencyId(emergencyId);
+    setModalOpen(true);
+  };
+
+  // Handle closing modal
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedEmergencyId(null);
+  };
 
   // Fetch emergencies with auto-refresh
   const { data: emergencies = [], isLoading, isError, error, refetch } = useEmergencies(filters);
@@ -147,65 +164,52 @@ const EmergencyAlerts: React.FC = () => {
       </Paper>
 
       {/* Filters section */}
-      <Paper sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-        <Typography variant="h6" fontWeight={600} gutterBottom>
-          Filters
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
-          {/* Search */}
-          <TextField
-            placeholder="Search by patient name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            size="small"
-            sx={{ minWidth: 250 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
+      <FilterBar
+        onClear={() => {
+          setFilters({});
+          setSearchQuery('');
+        }}
+      >
+        {/* Search */}
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search by patient name..."
+          fullWidth={false}
+        />
 
-          {/* Status filter */}
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={filters.status || ''}
-              label="Status"
-              onChange={(e) =>
-                setFilters({ ...filters, status: e.target.value as EmergencyStatus || undefined })
-              }
-            >
-              <MenuItem value="">All</MenuItem>
-              <MenuItem value="initiated">Initiated</MenuItem>
-              <MenuItem value="dispatched">Dispatched</MenuItem>
-              <MenuItem value="in_transit">In Transit</MenuItem>
-              <MenuItem value="arrived">Arrived</MenuItem>
-              <MenuItem value="completed">Completed</MenuItem>
-            </Select>
-          </FormControl>
+        {/* Status filter using chips */}
+        <StatusFilter
+          label="Status"
+          options={[
+            { value: 'initiated', label: 'Initiated', color: 'primary' },
+            { value: 'dispatched', label: 'Dispatched', color: 'warning' },
+            { value: 'in_transit', label: 'In Transit', color: 'warning' },
+            { value: 'arrived', label: 'Arrived', color: 'success' },
+            { value: 'completed', label: 'Completed', color: 'default' },
+          ]}
+          selectedValue={filters.status || ''}
+          onChange={(value) => setFilters({ ...filters, status: value as EmergencyStatus || undefined })}
+        />
 
-          {/* Severity filter */}
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Severity</InputLabel>
-            <Select
-              value={filters.severity_level || ''}
-              label="Severity"
-              onChange={(e) =>
-                setFilters({ ...filters, severity_level: e.target.value as SeverityLevel || undefined })
-              }
-            >
-              <MenuItem value="">All</MenuItem>
-              <MenuItem value="low">Low</MenuItem>
-              <MenuItem value="medium">Medium</MenuItem>
-              <MenuItem value="high">High</MenuItem>
-              <MenuItem value="critical">Critical</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </Paper>
+        {/* Severity filter */}
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Severity</InputLabel>
+          <Select
+            value={filters.severity_level || ''}
+            label="Severity"
+            onChange={(e) =>
+              setFilters({ ...filters, severity_level: e.target.value as SeverityLevel || undefined })
+            }
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="low">Low</MenuItem>
+            <MenuItem value="medium">Medium</MenuItem>
+            <MenuItem value="high">High</MenuItem>
+            <MenuItem value="critical">Critical</MenuItem>
+          </Select>
+        </FormControl>
+      </FilterBar>
 
       {/* Emergency list */}
       <Paper sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
@@ -311,7 +315,7 @@ const EmergencyAlerts: React.FC = () => {
                       <Tooltip title="View details">
                         <IconButton
                           size="small"
-                          onClick={() => alert(`Emergency details for ${emergency.event_id} - Full modal coming soon`)}
+                          onClick={() => handleOpenModal(emergency.event_id)}
                         >
                           <VisibilityIcon fontSize="small" />
                         </IconButton>
@@ -324,6 +328,13 @@ const EmergencyAlerts: React.FC = () => {
           </TableContainer>
         )}
       </Paper>
+
+      {/* Emergency Details Modal */}
+      <EmergencyDetailsModal
+        emergencyId={selectedEmergencyId}
+        open={modalOpen}
+        onClose={handleCloseModal}
+      />
     </Box>
   );
 };
