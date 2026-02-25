@@ -32,7 +32,7 @@ describe('StatusFilter', () => {
   });
 
   it('highlights selected option', () => {
-    const { container } = render(
+    render(
       <StatusFilter options={mockOptions} selectedValue="active" onChange={vi.fn()} />
     );
     
