@@ -183,8 +183,8 @@ describe('App Routing', () => {
     renderApp('/unknown-route');
     
     await waitFor(() => {
-      // Use queryByText which is more flexible
-      const notFoundElement = screen.queryByText(/404 Not Found/i);
+      // The NotFound component renders "Page Not Found" as the heading
+      const notFoundElement = screen.queryByText(/Page Not Found/i);
       expect(notFoundElement).toBeTruthy();
     }, { timeout: 3000 });
   });
