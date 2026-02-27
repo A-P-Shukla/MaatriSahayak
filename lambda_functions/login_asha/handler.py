@@ -32,7 +32,7 @@ def lambda_handler(event, context):
     
     Expected Input:
     {
-        "phone": "string",
+        "email": "string",
         "password": "string"
     }
     
@@ -47,6 +47,7 @@ def lambda_handler(event, context):
             "token_type": "Bearer",
             "user": {
                 "id": "...",
+                "email": "...",
                 "phone": "...",
                 "name": "...",
                 "district": "..."
@@ -62,14 +63,11 @@ def lambda_handler(event, context):
         body = parse_event_body(event)
         
         # Validate required fields
-        required_fields = ['phone', 'password']
+        required_fields = ['email', 'password']
         validate_required_fields(body, required_fields)
         
-        phone = body['phone']
+        email = body['email']
         password = body['password']
-        
-        # Validate phone format
-        validate_phone_number(phone)
         
         # Authenticate with Cognito
         try:
@@ -77,7 +75,7 @@ def lambda_handler(event, context):
                 ClientId=CLIENT_ID,
                 AuthFlow='USER_PASSWORD_AUTH',
                 AuthParameters={
-                    'USERNAME': phone,
+                    'USERNAME': email,
                     'PASSWORD': password
                 }
             )
@@ -101,9 +99,9 @@ def lambda_handler(event, context):
                 'token_type': response['AuthenticationResult']['TokenType'],
                 'user': {
                     'id': user_attributes.get('sub'),
-                    'phone': user_attributes.get('phone_number', phone),
+                    'phone': user_attributes.get('phone_number'),
                     'name': user_attributes.get('name'),
-                    'email': user_attributes.get('email'),
+                    'email': user_attributes.get('email', email),
                     'district': user_attributes.get('custom:district'),
                     'role': user_attributes.get('custom:role', 'ASHA')
                 }
@@ -112,7 +110,7 @@ def lambda_handler(event, context):
             log_info(
                 "ASHA login successful",
                 user_id=auth_data['user']['id'],
-                phone=phone
+                email=email
             )
             
             return create_success_response(
@@ -122,20 +120,20 @@ def lambda_handler(event, context):
         
         except cognito_client.exceptions.NotAuthorizedException:
             raise ValidationError(
-                "Invalid phone number or password",
+                "Invalid email or password",
                 field='credentials'
             )
         
         except cognito_client.exceptions.UserNotFoundException:
             raise ValidationError(
                 "User not found. Please register first.",
-                field='phone'
+                field='email'
             )
         
         except cognito_client.exceptions.UserNotConfirmedException:
             raise ValidationError(
                 "User account not confirmed. Please verify your account.",
-                field='phone'
+                field='email'
             )
     
     except ValidationError as e:

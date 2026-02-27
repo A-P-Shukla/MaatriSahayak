@@ -27,7 +27,6 @@ Resources:
   MaatriSahayakApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: !Sub maatrisahayak-api-${Environment}
       StageName: !Ref Environment
       Cors:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
@@ -47,7 +46,6 @@ Resources:
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: !Sub maatrisahayak-users-${Environment}
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
@@ -82,7 +80,6 @@ Resources:
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: !Sub maatrisahayak-client-${Environment}
       UserPoolId: !Ref UserPool
       GenerateSecret: false
       ExplicitAuthFlows:
@@ -95,7 +92,6 @@ Resources:
   PregnanciesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub maatrisahayak-pregnancies-${Environment}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
@@ -142,7 +138,6 @@ Resources:
   VitalSignsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub maatrisahayak-vital-signs-${Environment}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
@@ -171,7 +166,6 @@ Resources:
   EmergencyEventsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub maatrisahayak-emergency-events-${Environment}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
@@ -210,7 +204,6 @@ Resources:
   AmbulancesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub maatrisahayak-ambulances-${Environment}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
@@ -239,7 +232,6 @@ Resources:
   HospitalsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub maatrisahayak-hospitals-${Environment}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
@@ -266,7 +258,6 @@ Resources:
   ASHAWorkersTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub maatrisahayak-asha-workers-${Environment}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
@@ -298,7 +289,6 @@ Resources:
   SharedDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: !Sub maatrisahayak-shared-dependencies-${Environment}
       Description: Shared dependencies and utilities for MaatriSahayak Lambda functions
       ContentUri: ../lambda_functions/shared/
       CompatibleRuntimes:
@@ -311,7 +301,6 @@ Resources:
   RegisterPregnancyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-register-pregnancy-${Environment}
       CodeUri: ../lambda_functions/register_pregnancy/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -335,7 +324,6 @@ Resources:
   RecordVitalsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-record-vitals-${Environment}
       CodeUri: ../lambda_functions/record_vitals/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -362,7 +350,6 @@ Resources:
   GetPregnancyDetailsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-get-pregnancy-details-${Environment}
       CodeUri: ../lambda_functions/get_pregnancy_details/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -389,7 +376,6 @@ Resources:
   ListPregnanciesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-list-pregnancies-${Environment}
       CodeUri: ../lambda_functions/list_pregnancies/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -413,7 +399,6 @@ Resources:
   TriggerEmergencyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-trigger-emergency-${Environment}
       CodeUri: ../lambda_functions/trigger_emergency/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -439,7 +424,7 @@ Resources:
             - Effect: Allow
               Action:
                 - lambda:InvokeFunction
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:maatrisahayak-send-notifications-${Environment}
+              Resource: !GetAtt SendNotificationsFunction.Arn
       Events:
         TriggerEmergency:
           Type: Api
@@ -451,7 +436,6 @@ Resources:
   FindNearestAmbulanceFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-find-nearest-ambulance-${Environment}
       CodeUri: ../lambda_functions/find_nearest_ambulance/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -475,7 +459,6 @@ Resources:
   UpdateAmbulanceLocationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-update-ambulance-location-${Environment}
       CodeUri: ../lambda_functions/update_ambulance_location/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -499,7 +482,6 @@ Resources:
   SendNotificationsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-send-notifications-${Environment}
       CodeUri: ../lambda_functions/send_notifications/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -522,7 +504,6 @@ Resources:
   RegisterASHAFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-register-asha-${Environment}
       CodeUri: ../lambda_functions/register_asha/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -553,7 +534,6 @@ Resources:
   GetASHAProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-get-asha-profile-${Environment}
       CodeUri: ../lambda_functions/get_asha_profile/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -583,7 +563,6 @@ Resources:
   UpdateASHAProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-update-asha-profile-${Environment}
       CodeUri: ../lambda_functions/update_asha_profile/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -613,7 +592,6 @@ Resources:
   LoginASHAFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-login-asha-${Environment}
       CodeUri: ../lambda_functions/login_asha/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -642,7 +620,6 @@ Resources:
   RefreshTokenFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-refresh-token-${Environment}
       CodeUri: ../lambda_functions/refresh_token/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -669,7 +646,6 @@ Resources:
   UpdatePregnancyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-update-pregnancy-${Environment}
       CodeUri: ../lambda_functions/update_pregnancy/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -693,7 +669,6 @@ Resources:
   RecordANCVisitFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-record-anc-visit-${Environment}
       CodeUri: ../lambda_functions/record_anc_visit/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -720,7 +695,6 @@ Resources:
   GetANCHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-get-anc-history-${Environment}
       CodeUri: ../lambda_functions/get_anc_history/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -741,13 +715,12 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MaatriSahayakApi
-            Path: /pregnancies/{pregnancy_id}/anc-history
+            Path: /pregnancies/{id}/anc-history
             Method: GET
 
   GetVitalsHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-get-vitals-history-${Environment}
       CodeUri: ../lambda_functions/get_vitals_history/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -768,13 +741,12 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MaatriSahayakApi
-            Path: /pregnancies/{pregnancy_id}/vitals-history
+            Path: /pregnancies/{id}/vitals-history
             Method: GET
 
   RegisterAmbulanceFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-register-ambulance-${Environment}
       CodeUri: ../lambda_functions/register_ambulance/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -798,7 +770,6 @@ Resources:
   RegisterHospitalFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-register-hospital-${Environment}
       CodeUri: ../lambda_functions/register_hospital/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -822,7 +793,6 @@ Resources:
   UpdateHospitalCapacityFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-update-hospital-capacity-${Environment}
       CodeUri: ../lambda_functions/update_hospital_capacity/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -846,7 +816,6 @@ Resources:
   GetRiskTrendsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-get-risk-trends-${Environment}
       CodeUri: ../lambda_functions/get_risk_trends/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -867,13 +836,12 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MaatriSahayakApi
-            Path: /pregnancies/{pregnancy_id}/risk-trends
+            Path: /pregnancies/{id}/risk-trends
             Method: GET
 
   ValidateEmergencyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-validate-emergency-${Environment}
       CodeUri: ../lambda_functions/validate_emergency/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -893,7 +861,6 @@ Resources:
   DispatchAmbulanceFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-dispatch-ambulance-${Environment}
       CodeUri: ../lambda_functions/dispatch_ambulance/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -913,7 +880,6 @@ Resources:
   AlertHospitalFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-alert-hospital-${Environment}
       CodeUri: ../lambda_functions/alert_hospital/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -936,7 +902,6 @@ Resources:
   MonitorEmergencyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-monitor-emergency-${Environment}
       CodeUri: ../lambda_functions/monitor_emergency/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -963,7 +928,6 @@ Resources:
   CompleteEmergencyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-complete-emergency-${Environment}
       CodeUri: ../lambda_functions/complete_emergency/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -990,7 +954,6 @@ Resources:
   GetEmergencyHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-get-emergency-history-${Environment}
       CodeUri: ../lambda_functions/get_emergency_history/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1008,19 +971,18 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref MaatriSahayakApi
-            Path: /pregnancies/{pregnancy_id}/emergencies
+            Path: /pregnancies/{id}/emergencies
             Method: GET
         GetEmergencyHistoryByAmbulance:
           Type: Api
           Properties:
             RestApiId: !Ref MaatriSahayakApi
-            Path: /ambulances/{ambulance_id}/emergencies
+            Path: /ambulances/{id}/emergencies
             Method: GET
 
   GetAmbulanceStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-get-ambulance-status-${Environment}
       CodeUri: ../lambda_functions/get_ambulance_status/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1044,7 +1006,6 @@ Resources:
   ListHospitalsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-list-hospitals-${Environment}
       CodeUri: ../lambda_functions/list_hospitals/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1068,7 +1029,6 @@ Resources:
   SyncOfflineDataFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-sync-offline-data-${Environment}
       CodeUri: ../lambda_functions/sync_offline_data/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1099,7 +1059,6 @@ Resources:
   GenerateAnalyticsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-generate-analytics-${Environment}
       CodeUri: ../lambda_functions/generate_analytics/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1136,7 +1095,6 @@ Resources:
   ExportReportsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-export-reports-${Environment}
       CodeUri: ../lambda_functions/export_reports/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1171,46 +1129,10 @@ Resources:
             Method: POST
 
   # ==================== AI/ML Functions ====================
-  AssessRiskFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub maatrisahayak-assess-risk-v2-${Environment}
-      PackageType: Image
-      ImageConfig:
-        Command: ["handler.lambda_handler"]
-      Description: AI-powered risk assessment using FastAPI and Random Forest
-      Timeout: 60
-      MemorySize: 1024
-      Environment:
-        Variables:
-          PREGNANCIES_TABLE: !Ref PregnanciesTable
-          VITAL_SIGNS_TABLE: !Ref VitalSignsTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref PregnanciesTable
-        - DynamoDBReadPolicy:
-            TableName: !Ref VitalSignsTable
-        - Statement:
-            - Effect: Allow
-              Action:
-                - sagemaker:InvokeEndpoint
-              Resource: "*"
-      Events:
-        AssessRisk:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MaatriSahayakApi
-            Path: /risk/assess/{pregnancy_id}
-            Method: POST
-    Metadata:
-      Dockerfile: assess_risk/Dockerfile
-      DockerContext: ../lambda_functions
-      DockerTag: python3.12-v1
-
+  # 
   AnalyzeSymptomsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-analyze-symptoms-${Environment}
       CodeUri: ../lambda_functions/analyze_symptoms/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1236,7 +1158,6 @@ Resources:
   ProcessANCCardFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-process-anc-card-${Environment}
       CodeUri: ../lambda_functions/process_anc_card/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1271,7 +1192,6 @@ Resources:
   CheckHospitalCapacityFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-check-hospital-capacity-${Environment}
       CodeUri: ../lambda_functions/check_hospital_capacity/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1295,7 +1215,6 @@ Resources:
   GetAmbulanceRouteFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub maatrisahayak-get-ambulance-route-${Environment}
       CodeUri: ../lambda_functions/get_ambulance_route/
       Handler: handler.lambda_handler
       Runtime: python3.12
@@ -1324,35 +1243,34 @@ Resources:
   EmergencyNotificationsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: !Sub maatrisahayak-emergency-notifications-${Environment}
       DisplayName: MaatriSahayak Emergency Notifications
 
-  EmergencyWorkflowStateMachine:
-    Type: AWS::Serverless::StateMachine
-    Properties:
-      Name: !Sub maatrisahayak-emergency-workflow-${Environment}
-      DefinitionUri: ../step_functions/emergency_workflow.asl.json
-      DefinitionSubstitutions:
-        TriggerEmergencyFunctionArn: !GetAtt TriggerEmergencyFunction.Arn
-        FindNearestAmbulanceFunctionArn: !GetAtt FindNearestAmbulanceFunction.Arn
-        SendNotificationsFunctionArn: !GetAtt SendNotificationsFunction.Arn
-        UpdateAmbulanceLocationFunctionArn: !GetAtt UpdateAmbulanceLocationFunction.Arn
-      Policies:
-        - LambdaInvokePolicy:
-            FunctionName: !Ref TriggerEmergencyFunction
-        - LambdaInvokePolicy:
-            FunctionName: !Ref FindNearestAmbulanceFunction
-        - LambdaInvokePolicy:
-            FunctionName: !Ref SendNotificationsFunction
-        - LambdaInvokePolicy:
-            FunctionName: !Ref UpdateAmbulanceLocationFunction
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MaatriSahayakApi
-            Path: /emergency/workflow
-            Method: POST
+  # EmergencyWorkflowStateMachine:
+  #   Type: AWS::Serverless::StateMachine
+  #   Properties:
+  #     
+  #     DefinitionUri: ../step_functions/emergency_workflow.asl.json
+  #     DefinitionSubstitutions:
+  #       TriggerEmergencyFunctionArn: !GetAtt TriggerEmergencyFunction.Arn
+  #       FindNearestAmbulanceFunctionArn: !GetAtt FindNearestAmbulanceFunction.Arn
+  #       SendNotificationsFunctionArn: !GetAtt SendNotificationsFunction.Arn
+  #       UpdateAmbulanceLocationFunctionArn: !GetAtt UpdateAmbulanceLocationFunction.Arn
+  #     Policies:
+  #       - LambdaInvokePolicy:
+  #           FunctionName: !Ref TriggerEmergencyFunction
+  #       - LambdaInvokePolicy:
+  #           FunctionName: !Ref FindNearestAmbulanceFunction
+  #       - LambdaInvokePolicy:
+  #           FunctionName: !Ref SendNotificationsFunction
+  #       - LambdaInvokePolicy:
+  #           FunctionName: !Ref UpdateAmbulanceLocationFunction
+  #     Events:
+  #       ApiEvent:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref MaatriSahayakApi
+  #           Path: /emergency/workflow
+  #           Method: POST
 
 Outputs:
   ApiEndpoint:
@@ -1397,11 +1315,11 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-AmbulancesTable
 
-  EmergencyWorkflowStateMachineArn:
-    Description: Emergency Workflow State Machine ARN
-    Value: !Ref EmergencyWorkflowStateMachine
-    Export:
-      Name: !Sub ${AWS::StackName}-EmergencyWorkflowStateMachine
+  # EmergencyWorkflowStateMachineArn:
+  #   Description: Emergency Workflow State Machine ARN
+  #   Value: !Ref EmergencyWorkflowStateMachine
+  #   Export:
+  #     Name: !Sub ${AWS::StackName}-EmergencyWorkflowStateMachine
 
   EmergencyNotificationsTopicArn:
     Description: Emergency Notifications SNS Topic ARN

@@ -15,8 +15,15 @@ const USER_KEY = import.meta.env.VITE_USER_DATA_KEY || 'user_data';
 // Login with email and password
 export const login = async (credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens }> => {
   try {
-    const response = await apiClient.post<ApiResponse<{ user: User; tokens: AuthTokens }>>(
-      '/auth/login',
+    const response = await apiClient.post<ApiResponse<{
+      access_token: string;
+      id_token: string;
+      refresh_token: string;
+      expires_in: number;
+      token_type: string;
+      user: User;
+    }>>(
+      '/asha/login',
       {
         email: credentials.email,
         password: credentials.password,
@@ -27,7 +34,16 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
       throw new Error('Login failed');
     }
 
-    const { user, tokens } = response.data.data;
+    const { access_token, id_token, refresh_token, expires_in, token_type, user } = response.data.data;
+
+    // Convert to expected format
+    const tokens: AuthTokens = {
+      access_token,
+      id_token,
+      refresh_token,
+      expires_in,
+      token_type,
+    };
 
     // Store tokens securely
     storeTokens(tokens);
@@ -42,8 +58,8 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
 // Logout user
 export const logout = async (): Promise<void> => {
   try {
-    // Call backend logout endpoint if available
-    await apiClient.post('/auth/logout');
+    // Note: Backend doesn't have a logout endpoint, just clear local data
+    // Cognito tokens will expire naturally
   } catch (error) {
     // Continue with local logout even if backend call fails
     console.error('Logout error:', error);
@@ -57,7 +73,7 @@ export const logout = async (): Promise<void> => {
 export const refreshToken = async (): Promise<AuthTokens> => {
   try {
     const refreshToken = getRefreshToken();
-    
+
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -84,16 +100,29 @@ export const refreshToken = async (): Promise<AuthTokens> => {
 // Get current user profile
 export const getCurrentUser = async (): Promise<User> => {
   try {
-    const response = await apiClient.get<ApiResponse<User>>('/auth/me');
+    // Get user from stored data (populated during login)
+    const storedUser = getStoredUser();
 
-    if (!response.data.data) {
-      throw new Error('Failed to get user profile');
+    if (!storedUser) {
+      throw new Error('No user data available');
     }
 
-    const user = response.data.data;
-    storeUser(user);
+    // Optionally fetch fresh data from backend if user ID is available
+    if (storedUser.id) {
+      try {
+        const response = await apiClient.get<ApiResponse<User>>(`/asha/${storedUser.id}`);
+        if (response.data.data) {
+          const user = response.data.data;
+          storeUser(user);
+          return user;
+        }
+      } catch (error) {
+        // If fetch fails, return stored user
+        console.warn('Failed to fetch fresh user data, using stored data:', error);
+      }
+    }
 
-    return user;
+    return storedUser;
   } catch (error) {
     throw new Error(handleApiError(error));
   }
@@ -134,7 +163,7 @@ export const storeUser = (user: User): void => {
 export const getStoredUser = (): User | null => {
   const userData = localStorage.getItem(USER_KEY);
   if (!userData) return null;
-  
+
   try {
     return JSON.parse(userData) as User;
   } catch {
@@ -164,7 +193,7 @@ export const isTokenExpired = (token: string): boolean => {
 // Auto-refresh token if needed
 export const ensureValidToken = async (): Promise<string> => {
   const token = getAuthToken();
-  
+
   if (!token) {
     throw new Error('No authentication token');
   }

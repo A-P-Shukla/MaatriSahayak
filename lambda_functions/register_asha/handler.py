@@ -5,6 +5,8 @@ Registers a new ASHA worker account in the system.
 """
 
 import json
+import os
+import boto3
 from shared import (
     ValidationError,
     DatabaseError,
@@ -25,6 +27,12 @@ from shared import (
 from shared.constants import TABLE_NAMES, HTTP_STATUS
 
 
+# Initialize Cognito client
+cognito_client = boto3.client('cognito-idp')
+USER_POOL_ID = os.environ.get('USER_POOL_ID')
+CLIENT_ID = os.environ.get('CLIENT_ID')
+
+
 def lambda_handler(event, context):
     """
     Register a new ASHA worker account.
@@ -34,6 +42,7 @@ def lambda_handler(event, context):
         "name": "string",
         "phone": "string",
         "email": "string" (optional),
+        "password": "string",
         "age": int,
         "district": "string",
         "block": "string" (optional),
@@ -63,12 +72,20 @@ def lambda_handler(event, context):
         body = parse_event_body(event)
         
         # Validate required fields
-        required_fields = ['name', 'phone', 'age', 'district', 'village']
+        required_fields = ['name', 'phone', 'email', 'password', 'age', 'district', 'village']
         validate_required_fields(body, required_fields)
         
         # Validate specific fields
         validate_phone_number(body['phone'])
         validate_age(body['age'])
+        
+        # Validate password strength
+        password = body['password']
+        if len(password) < 8:
+            raise ValidationError(
+                "Password must be at least 8 characters long",
+                field='password'
+            )
         
         # Check for duplicate phone number
         existing_asha = check_existing_asha(body['phone'])
@@ -102,8 +119,47 @@ def lambda_handler(event, context):
             'updated_at': timestamp
         }
         
-        # Save to DynamoDB (using a dedicated ASHA workers table)
-        # For now, we'll store in a generic users table or create ASHA table
+        # Create Cognito user
+        try:
+            user_attributes = [
+                {'Name': 'name', 'Value': body['name']},
+                {'Name': 'phone_number', 'Value': body['phone']},
+                {'Name': 'custom:district', 'Value': body['district']},
+                {'Name': 'custom:role', 'Value': 'ASHA'}
+            ]
+            
+            # Use email as username (Cognito User Pool is configured for email)
+            cognito_client.admin_create_user(
+                UserPoolId=USER_POOL_ID,
+                Username=body['email'],
+                UserAttributes=user_attributes,
+                MessageAction='SUPPRESS',
+                TemporaryPassword=password
+            )
+            
+            # Set permanent password
+            cognito_client.admin_set_user_password(
+                UserPoolId=USER_POOL_ID,
+                Username=body['email'],
+                Password=password,
+                Permanent=True
+            )
+            
+            log_info("Cognito user created successfully", email=body['email'])
+            
+        except cognito_client.exceptions.UsernameExistsException:
+            raise ConflictError(
+                f"User with email {body['email']} already exists in Cognito",
+                details={'email': body['email']}
+            )
+        except Exception as cognito_error:
+            log_error("Error creating Cognito user", cognito_error)
+            raise ValidationError(
+                f"Failed to create user account: {str(cognito_error)}",
+                field='cognito'
+            )
+        
+        # Save to DynamoDB
         table_name = TABLE_NAMES.get('ASHA_WORKERS', 'maatrisahayak-asha-workers-dev')
         put_item(table_name, asha_data)
         

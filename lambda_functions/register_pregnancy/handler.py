@@ -21,9 +21,6 @@ from shared import (
     validate_pregnancy_data
 )
 from shared.constants import TABLE_NAMES, HTTP_STATUS
-from shared.models import PregnancyModel
-
-
 def lambda_handler(event, context):
     """
     Register a new pregnancy in the system.
@@ -114,11 +111,8 @@ def lambda_handler(event, context):
             'updated_at': timestamp
         }
         
-        # Validate with Pydantic model
-        pregnancy_model = PregnancyModel(**pregnancy_data)
-        
         # Save to DynamoDB
-        put_item(TABLE_NAMES['PREGNANCIES'], pregnancy_model.model_dump())
+        put_item(TABLE_NAMES['PREGNANCIES'], pregnancy_data)
         
         log_info(
             "Pregnancy registered successfully",
@@ -128,7 +122,7 @@ def lambda_handler(event, context):
         )
         
         return create_success_response(
-            pregnancy_model.model_dump(),
+            pregnancy_data,
             "Pregnancy registered successfully"
         )
     
