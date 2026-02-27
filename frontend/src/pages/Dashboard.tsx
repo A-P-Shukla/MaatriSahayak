@@ -38,8 +38,8 @@ const Dashboard: React.FC = () => {
   const { data: stats, isLoading, isError, error } = useDashboardStats();
 
   // Format number with commas
-  const formatNumber = (num: number): string => {
-    return num.toLocaleString();
+  const formatNumber = (num: number | undefined): string => {
+    return (num || 0).toLocaleString();
   };
 
   // Prepare metrics data from API response

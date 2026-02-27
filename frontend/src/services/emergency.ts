@@ -21,7 +21,7 @@ export const getEmergencies = async (
     if (filters.limit) params.append('limit', filters.limit.toString());
 
     const response = await apiClient.get<ApiResponse<Emergency[]>>(
-      `/emergencies?${params.toString()}`
+      `/dev/emergencies?${params.toString()}`
     );
 
     return response.data.data || [];
@@ -34,7 +34,7 @@ export const getEmergencies = async (
 export const getEmergencyById = async (emergencyId: string): Promise<Emergency> => {
   try {
     const response = await apiClient.get<ApiResponse<Emergency>>(
-      `/emergencies/${emergencyId}`
+      `/dev/emergency/${emergencyId}/status`
     );
 
     if (!response.data.data) {
@@ -53,7 +53,7 @@ export const getEmergenciesByPregnancyId = async (
 ): Promise<Emergency[]> => {
   try {
     const response = await apiClient.get<ApiResponse<Emergency[]>>(
-      `/emergencies?pregnancy_id=${pregnancyId}`
+      `/dev/pregnancies/${pregnancyId}/emergencies`
     );
 
     return response.data.data || [];
@@ -75,7 +75,7 @@ export const triggerEmergency = async (emergencyData: {
 }): Promise<Emergency> => {
   try {
     const response = await apiClient.post<ApiResponse<Emergency>>(
-      '/emergency',
+      '/dev/emergency',
       emergencyData
     );
 
@@ -89,14 +89,37 @@ export const triggerEmergency = async (emergencyData: {
   }
 };
 
-// Update emergency status
+// Complete/close emergency
+export const completeEmergency = async (emergencyId: string): Promise<Emergency> => {
+  try {
+    const response = await apiClient.post<ApiResponse<Emergency>>(
+      `/dev/emergency/${emergencyId}/complete`,
+      {}
+    );
+
+    if (!response.data.data) {
+      throw new Error('Failed to complete emergency');
+    }
+
+    return response.data.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Update emergency status (keeping for backward compatibility)
 export const updateEmergencyStatus = async (
   emergencyId: string,
   status: string
 ): Promise<Emergency> => {
   try {
+    // If status is 'completed', use the complete endpoint
+    if (status === 'COMPLETED') {
+      return completeEmergency(emergencyId);
+    }
+
     const response = await apiClient.put<ApiResponse<Emergency>>(
-      `/emergencies/${emergencyId}/status`,
+      `/dev/emergency/${emergencyId}/status`,
       { status }
     );
 
@@ -114,7 +137,7 @@ export const updateEmergencyStatus = async (
 export const getEmergencyStats = async (): Promise<EmergencyStats> => {
   try {
     const response = await apiClient.get<ApiResponse<EmergencyStats>>(
-      '/emergencies/stats'
+      '/dev/analytics'
     );
 
     return response.data.data || {

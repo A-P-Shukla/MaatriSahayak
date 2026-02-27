@@ -24,7 +24,7 @@ export const getPregnancies = async (
     }
 
     const response = await apiClient.get<ApiResponse<PaginatedResponse<Pregnancy>>>(
-      `/pregnancies?${params.toString()}`
+      `/dev/pregnancies?${params.toString()}`
     );
 
     return response.data.data || {
@@ -43,7 +43,7 @@ export const getPregnancies = async (
 export const getPregnancyById = async (pregnancyId: string): Promise<Pregnancy> => {
   try {
     const response = await apiClient.get<ApiResponse<Pregnancy>>(
-      `/pregnancies/${pregnancyId}`
+      `/dev/pregnancies/${pregnancyId}`
     );
 
     if (!response.data.data) {
@@ -62,7 +62,7 @@ export const registerPregnancy = async (
 ): Promise<Pregnancy> => {
   try {
     const response = await apiClient.post<ApiResponse<Pregnancy>>(
-      '/pregnancies',
+      '/dev/pregnancies',
       pregnancyData
     );
 
@@ -80,7 +80,7 @@ export const registerPregnancy = async (
 export const getVitalsByPregnancyId = async (pregnancyId: string): Promise<VitalSigns[]> => {
   try {
     const response = await apiClient.get<ApiResponse<VitalSigns[]>>(
-      `/vitals?pregnancy_id=${pregnancyId}`
+      `/dev/pregnancies/${pregnancyId}/vitals-history`
     );
 
     return response.data.data || [];
@@ -95,7 +95,7 @@ export const recordVitals = async (
 ): Promise<VitalSigns> => {
   try {
     const response = await apiClient.post<ApiResponse<VitalSigns>>(
-      '/vitals',
+      '/dev/vitals',
       vitalsData
     );
 
@@ -113,7 +113,7 @@ export const recordVitals = async (
 export const getPregnancyStats = async (): Promise<PregnancyStats> => {
   try {
     const response = await apiClient.get<ApiResponse<PregnancyStats>>(
-      '/pregnancies/stats'
+      '/dev/analytics'
     );
 
     return response.data.data || {
@@ -122,6 +122,71 @@ export const getPregnancyStats = async (): Promise<PregnancyStats> => {
       by_risk_category: { low: 0, medium: 0, high: 0, critical: 0 },
       by_status: { active: 0, delivered: 0, terminated: 0 },
     };
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Get ANC visit history for a pregnancy
+export const getANCHistory = async (pregnancyId: string): Promise<any[]> => {
+  try {
+    const response = await apiClient.get<ApiResponse<any[]>>(
+      `/dev/pregnancies/${pregnancyId}/anc-history`
+    );
+
+    return response.data.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Get risk trends for a pregnancy
+export const getRiskTrends = async (pregnancyId: string): Promise<any> => {
+  try {
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/dev/pregnancies/${pregnancyId}/risk-trends`
+    );
+
+    return response.data.data || null;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Record ANC visit
+export const recordANCVisit = async (visitData: any): Promise<any> => {
+  try {
+    const response = await apiClient.post<ApiResponse<any>>(
+      '/dev/anc/visits',
+      visitData
+    );
+
+    if (!response.data.data) {
+      throw new Error('Failed to record ANC visit');
+    }
+
+    return response.data.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Update pregnancy information
+export const updatePregnancy = async (
+  pregnancyId: string,
+  updateData: Partial<Pregnancy>
+): Promise<Pregnancy> => {
+  try {
+    const response = await apiClient.put<ApiResponse<Pregnancy>>(
+      `/dev/pregnancies/${pregnancyId}`,
+      updateData
+    );
+
+    if (!response.data.data) {
+      throw new Error('Failed to update pregnancy');
+    }
+
+    return response.data.data;
   } catch (error) {
     throw new Error(handleApiError(error));
   }

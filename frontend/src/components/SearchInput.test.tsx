@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SearchInput from './SearchInput';
 
@@ -23,24 +23,26 @@ describe('SearchInput', () => {
   });
 
   it('debounces onChange callback', async () => {
-    const user = userEvent.setup({ delay: null });
+    vi.useRealTimers(); // Use real timers for this test
     const onChange = vi.fn();
     
-    render(<SearchInput value="" onChange={onChange} debounceMs={300} />);
+    render(<SearchInput value="" onChange={onChange} debounceMs={100} />);
     
     const input = screen.getByRole('textbox');
+    
+    // Simulate typing
+    const user = userEvent.setup();
     await user.type(input, 'test');
     
     // Should not call onChange immediately
     expect(onChange).not.toHaveBeenCalled();
     
-    // Fast-forward time
-    vi.advanceTimersByTime(300);
-    
-    // Should call onChange after debounce
+    // Wait for debounce
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith('test');
-    });
+    }, { timeout: 500 });
+    
+    vi.useFakeTimers(); // Restore fake timers for other tests
   });
 
   it('shows clear button when value is present', () => {
@@ -49,14 +51,18 @@ describe('SearchInput', () => {
   });
 
   it('clears value when clear button is clicked', async () => {
-    const user = userEvent.setup();
     const onChange = vi.fn();
     
     render(<SearchInput value="test" onChange={onChange} />);
     
     const clearButton = screen.getByRole('button');
-    await user.click(clearButton);
     
+    // Click the button
+    act(() => {
+      clearButton.click();
+    });
+    
+    // Should call onChange immediately with empty string
     expect(onChange).toHaveBeenCalledWith('');
   });
 
