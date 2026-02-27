@@ -23,7 +23,7 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
       token_type: string;
       user: User;
     }>>(
-      '/asha/login',
+      '/dev/asha/login',
       {
         email: credentials.email,
         password: credentials.password,
@@ -34,9 +34,8 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
       throw new Error('Login failed');
     }
 
-    const { access_token, id_token, refresh_token, expires_in, token_type, user } = response.data.data;
+    const { user, access_token, id_token, refresh_token, expires_in, token_type } = response.data.data;
 
-    // Convert to expected format
     const tokens: AuthTokens = {
       access_token,
       id_token,
@@ -79,7 +78,7 @@ export const refreshToken = async (): Promise<AuthTokens> => {
     }
 
     const response = await apiClient.post<ApiResponse<AuthTokens>>(
-      '/auth/refresh',
+      '/dev/auth/refresh',
       { refresh_token: refreshToken }
     );
 
@@ -97,32 +96,73 @@ export const refreshToken = async (): Promise<AuthTokens> => {
   }
 };
 
-// Get current user profile
+// Get current user profile (ASHA worker)
 export const getCurrentUser = async (): Promise<User> => {
   try {
-    // Get user from stored data (populated during login)
     const storedUser = getStoredUser();
-
-    if (!storedUser) {
-      throw new Error('No user data available');
+    if (!storedUser?.user_id) {
+      throw new Error('No user ID found');
     }
 
-    // Optionally fetch fresh data from backend if user ID is available
-    if (storedUser.id) {
-      try {
-        const response = await apiClient.get<ApiResponse<User>>(`/asha/${storedUser.id}`);
-        if (response.data.data) {
-          const user = response.data.data;
-          storeUser(user);
-          return user;
-        }
-      } catch (error) {
-        // If fetch fails, return stored user
-        console.warn('Failed to fetch fresh user data, using stored data:', error);
-      }
+    const response = await apiClient.get<ApiResponse<User>>(`/dev/asha/${storedUser.user_id}`);
+
+    if (!response.data.data) {
+      throw new Error('Failed to fetch user data');
     }
 
-    return storedUser;
+    const user = response.data.data;
+    storeUser(user);
+    return user;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Update ASHA worker profile
+export const updateProfile = async (profileData: Partial<User>): Promise<User> => {
+  try {
+    const storedUser = getStoredUser();
+    if (!storedUser?.user_id) {
+      throw new Error('No user ID found');
+    }
+
+    const response = await apiClient.put<ApiResponse<User>>(
+      `/dev/asha/${storedUser.user_id}`,
+      profileData
+    );
+
+    if (!response.data.data) {
+      throw new Error('Failed to update profile');
+    }
+
+    const user = response.data.data;
+    storeUser(user);
+
+    return user;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Register new ASHA worker
+export const registerASHA = async (registrationData: {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+  district: string;
+}): Promise<User> => {
+  try {
+    const response = await apiClient.post<ApiResponse<User>>(
+      '/dev/asha/register',
+      registrationData
+    );
+
+    if (!response.data.data) {
+      throw new Error('Failed to register ASHA worker');
+    }
+
+    return response.data.data;
   } catch (error) {
     throw new Error(handleApiError(error));
   }

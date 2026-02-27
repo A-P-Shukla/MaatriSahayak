@@ -14,6 +14,7 @@ export default defineConfig({
       '@hooks': path.resolve(__dirname, './src/hooks'),
       '@types': path.resolve(__dirname, './src/types'),
       '@utils': path.resolve(__dirname, './src/utils'),
+      '@test': path.resolve(__dirname, './src/test'),
     },
   },
   build: {
@@ -34,6 +35,13 @@ export default defineConfig({
     host: true,   // bind to 0.0.0.0 → accessible from phone on same Wi-Fi
     port: 3000,
     open: true,
+    proxy: {
+      '/dev': {
+        target: 'https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   test: {
     globals: true,
