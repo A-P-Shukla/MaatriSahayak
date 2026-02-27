@@ -1,14 +1,15 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import {  } from 'react-router-dom';
+import { TestMemoryRouter } from '@test/testUtils';
 import NotFound from './NotFound';
 import { describe, it, expect } from 'vitest';
 
 describe('NotFound Component', () => {
   it('should render 404 page with correct elements', () => {
     render(
-      <MemoryRouter>
+      <TestMemoryRouter>
         <NotFound />
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
     expect(screen.getByText('404')).toBeInTheDocument();
@@ -21,9 +22,9 @@ describe('NotFound Component', () => {
 
   it('should have accessible buttons', () => {
     render(
-      <MemoryRouter>
+      <TestMemoryRouter>
         <NotFound />
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
     const homeButton = screen.getByRole('button', { name: 'Go to Dashboard' });
@@ -35,9 +36,9 @@ describe('NotFound Component', () => {
 
   it('should display support information', () => {
     render(
-      <MemoryRouter>
+      <TestMemoryRouter>
         <NotFound />
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
     expect(screen.getByText(/If you believe this is an error/)).toBeInTheDocument();
@@ -46,9 +47,9 @@ describe('NotFound Component', () => {
 
   it('should match snapshot', () => {
     const { container } = render(
-      <MemoryRouter>
+      <TestMemoryRouter>
         <NotFound />
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
     expect(container).toMatchSnapshot();

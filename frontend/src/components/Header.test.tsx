@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import {  } from 'react-router-dom';
+import { TestMemoryRouter } from '@test/testUtils';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import Header from './Header';
 import { useAuth } from '@hooks/useAuth';
@@ -19,14 +20,6 @@ describe('Header Component', () => {
     role: 'district_officer' as const,
   };
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockUseAuth({
-      user: mockUser,
-      logout: mockLogout,
-    });
-  });
-
   const mockUseAuth = (overrides = {}) => {
     const defaultAuth = {
       user: mockUser,
@@ -37,11 +30,19 @@ describe('Header Component', () => {
     (useAuth as any).mockReturnValue({ ...defaultAuth, ...overrides });
   };
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseAuth({
+      user: mockUser,
+      logout: mockLogout,
+    });
+  });
+
   const renderHeader = (props = {}) => {
     return render(
-      <MemoryRouter>
+      <TestMemoryRouter>
         <Header {...props} />
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
   };
 

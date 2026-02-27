@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { BrowserRouter } from 'react-router-dom';
+import {  } from 'react-router-dom';
+import { TestBrowserRouter, TestMemoryRouter } from '@test/testUtils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Dashboard from './Dashboard';
 import * as useDashboardStatsModule from '../hooks/useDashboardStats';
@@ -22,9 +23,9 @@ const renderDashboard = () => {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <TestBrowserRouter>
         <Dashboard />
-      </BrowserRouter>
+      </TestBrowserRouter>
     </QueryClientProvider>
   );
 };
@@ -308,3 +309,4 @@ describe('Dashboard Component', () => {
     });
   });
 });
+
