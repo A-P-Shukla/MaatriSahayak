@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import {  } from 'react-router-dom';
-import { TestBrowserRouter, TestMemoryRouter } from '@test/testUtils';
+import { TestBrowserRouter } from '@test/testUtils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Dashboard from './Dashboard';
 import * as useDashboardStatsModule from '../hooks/useDashboardStats';
