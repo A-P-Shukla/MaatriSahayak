@@ -980,6 +980,29 @@ Resources:
             Path: /ambulances/{id}/emergencies
             Method: GET
 
+  ListEmergenciesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/list_emergencies/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: List all emergency events with filtering and pagination
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmergencyEventsTable
+      Events:
+        ListEmergencies:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /emergencies
+            Method: GET
+
   GetAmbulanceStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
