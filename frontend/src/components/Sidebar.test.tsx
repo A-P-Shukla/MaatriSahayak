@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import {  } from 'react-router-dom';
+import { TestMemoryRouter } from '@test/testUtils';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import Sidebar from './Sidebar';
 
@@ -23,9 +24,9 @@ describe('Sidebar Component', () => {
 
   const renderSidebar = (props = {}) => {
     return render(
-      <MemoryRouter>
+      <TestMemoryRouter>
         <Sidebar open={true} onClose={mockOnClose} emergencyCount={5} {...props} />
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
   };
 

@@ -1,0 +1,231 @@
+import type { Ambulance } from '../types';
+
+/**
+ * Mock ambulance data for development
+ * Covers multiple districts across Uttar Pradesh
+ */
+export const mockAmbulances: Ambulance[] = [
+  // Lucknow District
+  {
+    ambulance_id: 'amb_001',
+    vehicle_number: 'UP32AB1234',
+    driver_name: 'Rajesh Kumar',
+    driver_phone: '9876543210',
+    current_location: {
+      latitude: 26.8467,
+      longitude: 80.9462,
+    },
+    status: 'available',
+    last_updated: new Date().toISOString(),
+    district: 'Lucknow',
+    battery_level: 85,
+    speed: 0,
+    heading: 0,
+  },
+  {
+    ambulance_id: 'amb_002',
+    vehicle_number: 'UP32CD5678',
+    driver_name: 'Amit Singh',
+    driver_phone: '9876543211',
+    current_location: {
+      latitude: 26.8567,
+      longitude: 80.9562,
+    },
+    status: 'dispatched',
+    last_updated: new Date().toISOString(),
+    district: 'Lucknow',
+    assigned_emergency_id: 'emerg_001',
+    battery_level: 72,
+    speed: 45,
+    heading: 90,
+  },
+  {
+    ambulance_id: 'amb_003',
+    vehicle_number: 'UP32EF9012',
+    driver_name: 'Priya Sharma',
+    driver_phone: '9876543212',
+    current_location: {
+      latitude: 26.8367,
+      longitude: 80.9362,
+    },
+    status: 'busy',
+    last_updated: new Date().toISOString(),
+    district: 'Lucknow',
+    assigned_emergency_id: 'emerg_002',
+    battery_level: 90,
+    speed: 60,
+    heading: 180,
+  },
+  
+  // Kanpur District
+  {
+    ambulance_id: 'amb_004',
+    vehicle_number: 'UP78GH3456',
+    driver_name: 'Suresh Yadav',
+    driver_phone: '9876543213',
+    current_location: {
+      latitude: 26.4499,
+      longitude: 80.3319,
+    },
+    status: 'available',
+    last_updated: new Date().toISOString(),
+    district: 'Kanpur',
+    battery_level: 95,
+    speed: 0,
+    heading: 0,
+  },
+  {
+    ambulance_id: 'amb_005',
+    vehicle_number: 'UP78IJ7890',
+    driver_name: 'Deepak Verma',
+    driver_phone: '9876543214',
+    current_location: {
+      latitude: 26.4699,
+      longitude: 80.3519,
+    },
+    status: 'available',
+    last_updated: new Date().toISOString(),
+    district: 'Kanpur',
+    battery_level: 88,
+    speed: 0,
+    heading: 0,
+  },
+  
+  // Agra District
+  {
+    ambulance_id: 'amb_006',
+    vehicle_number: 'UP80KL2345',
+    driver_name: 'Anita Gupta',
+    driver_phone: '9876543215',
+    current_location: {
+      latitude: 27.1767,
+      longitude: 78.0081,
+    },
+    status: 'available',
+    last_updated: new Date().toISOString(),
+    district: 'Agra',
+    battery_level: 82,
+    speed: 0,
+    heading: 0,
+  },
+  {
+    ambulance_id: 'amb_007',
+    vehicle_number: 'UP80MN6789',
+    driver_name: 'Vikram Patel',
+    driver_phone: '9876543216',
+    current_location: {
+      latitude: 27.1967,
+      longitude: 78.0281,
+    },
+    status: 'dispatched',
+    last_updated: new Date().toISOString(),
+    district: 'Agra',
+    assigned_emergency_id: 'emerg_003',
+    battery_level: 78,
+    speed: 55,
+    heading: 270,
+  },
+  
+  // Varanasi District
+  {
+    ambulance_id: 'amb_008',
+    vehicle_number: 'UP65OP0123',
+    driver_name: 'Sunita Devi',
+    driver_phone: '9876543217',
+    current_location: {
+      latitude: 25.3176,
+      longitude: 82.9739,
+    },
+    status: 'available',
+    last_updated: new Date().toISOString(),
+    district: 'Varanasi',
+    battery_level: 92,
+    speed: 0,
+    heading: 0,
+  },
+  {
+    ambulance_id: 'amb_009',
+    vehicle_number: 'UP65QR4567',
+    driver_name: 'Ramesh Tiwari',
+    driver_phone: '9876543218',
+    current_location: {
+      latitude: 25.3376,
+      longitude: 82.9939,
+    },
+    status: 'busy',
+    last_updated: new Date().toISOString(),
+    district: 'Varanasi',
+    assigned_emergency_id: 'emerg_004',
+    battery_level: 67,
+    speed: 40,
+    heading: 45,
+  },
+  
+  // Prayagraj District
+  {
+    ambulance_id: 'amb_010',
+    vehicle_number: 'UP70ST8901',
+    driver_name: 'Kavita Singh',
+    driver_phone: '9876543219',
+    current_location: {
+      latitude: 25.4358,
+      longitude: 81.8463,
+    },
+    status: 'available',
+    last_updated: new Date().toISOString(),
+    district: 'Prayagraj',
+    battery_level: 91,
+    speed: 0,
+    heading: 0,
+  },
+  {
+    ambulance_id: 'amb_011',
+    vehicle_number: 'UP70UV2345',
+    driver_name: 'Manoj Kumar',
+    driver_phone: '9876543220',
+    current_location: {
+      latitude: 25.4558,
+      longitude: 81.8663,
+    },
+    status: 'maintenance',
+    last_updated: new Date().toISOString(),
+    district: 'Prayagraj',
+    battery_level: 45,
+    speed: 0,
+    heading: 0,
+  },
+  
+  // Gorakhpur District
+  {
+    ambulance_id: 'amb_012',
+    vehicle_number: 'UP72WX6789',
+    driver_name: 'Sanjay Mishra',
+    driver_phone: '9876543221',
+    current_location: {
+      latitude: 26.7606,
+      longitude: 83.3732,
+    },
+    status: 'available',
+    last_updated: new Date().toISOString(),
+    district: 'Gorakhpur',
+    battery_level: 87,
+    speed: 0,
+    heading: 0,
+  },
+  {
+    ambulance_id: 'amb_013',
+    vehicle_number: 'UP72YZ0123',
+    driver_name: 'Rekha Pandey',
+    driver_phone: '9876543222',
+    current_location: {
+      latitude: 26.7806,
+      longitude: 83.3932,
+    },
+    status: 'available',
+    last_updated: new Date().toISOString(),
+    district: 'Gorakhpur',
+    battery_level: 94,
+    speed: 0,
+    heading: 0,
+  },
+];

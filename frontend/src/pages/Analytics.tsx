@@ -436,7 +436,10 @@ const Analytics: React.FC = () => {
                 `High-risk pregnancy detection rate increased to 89%`,
                 `Ambulance utilization is optimal at 78% capacity`,
                 `Emergency success rate remains consistently above ${displayData.outcomes.success_rate.toFixed(0)}%`,
-                `${displayData.by_district[0].district} district shows the best performance with ${displayData.by_district[0].success_rate.toFixed(1)}% success rate`,
+                ...(displayData.by_district.length > 0 
+                  ? [`${displayData.by_district[0].district} district shows the best performance with ${displayData.by_district[0].success_rate.toFixed(1)}% success rate`]
+                  : []
+                ),
               ].map((insight, index) => (
                 <Box
                   key={index}

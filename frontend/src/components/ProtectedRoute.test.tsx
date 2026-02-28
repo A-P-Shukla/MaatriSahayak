@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import { TestMemoryRouter } from '@test/testUtils';
 import ProtectedRoute from './ProtectedRoute';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -19,9 +20,6 @@ describe('ProtectedRoute Component', () => {
     vi.clearAllMocks();
   });
 
-  // Note: ProtectedRoute currently has BYPASS_AUTH = true for local testing
-  // These tests verify the component renders children when auth is bypassed
-
   it('should render children when user is authenticated', () => {
     // Mock authenticated user
     (useAuth as any).mockReturnValue({
@@ -30,7 +28,7 @@ describe('ProtectedRoute Component', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <TestMemoryRouter initialEntries={['/dashboard']}>
         <Routes>
           <Route
             path="/dashboard"
@@ -41,21 +39,21 @@ describe('ProtectedRoute Component', () => {
             }
           />
         </Routes>
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
     expect(screen.getByText('Dashboard Content')).toBeInTheDocument();
   });
 
-  it('should render children when auth is bypassed (BYPASS_AUTH = true)', () => {
-    // When BYPASS_AUTH is true, component always renders children
+  it('should redirect to login when user is not authenticated', () => {
+    // Mock unauthenticated user
     (useAuth as any).mockReturnValue({
       user: null,
       isLoading: false,
     });
 
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <TestMemoryRouter initialEntries={['/dashboard']}>
         <Routes>
           <Route
             path="/dashboard"
@@ -67,22 +65,22 @@ describe('ProtectedRoute Component', () => {
           />
           <Route path="/login" element={<Login />} />
         </Routes>
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
-    // With BYPASS_AUTH = true, dashboard renders even without auth
-    expect(screen.getByText('Dashboard Content')).toBeInTheDocument();
+    // Should redirect to login page
+    expect(screen.getByText('Login Page')).toBeInTheDocument();
   });
 
-  it('should render children during loading when auth is bypassed', () => {
-    // When BYPASS_AUTH is true, loading state is ignored
+  it('should show loading spinner during authentication check', () => {
+    // Mock loading state
     (useAuth as any).mockReturnValue({
       user: null,
       isLoading: true,
     });
 
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <TestMemoryRouter initialEntries={['/dashboard']}>
         <Routes>
           <Route
             path="/dashboard"
@@ -93,21 +91,21 @@ describe('ProtectedRoute Component', () => {
             }
           />
         </Routes>
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
-    // With BYPASS_AUTH = true, dashboard renders immediately
-    expect(screen.getByText('Dashboard Content')).toBeInTheDocument();
+    // Should show loading spinner
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
-  it('should render children with custom redirect when auth is bypassed', () => {
+  it('should redirect to custom login page when specified', () => {
     (useAuth as any).mockReturnValue({
       user: null,
       isLoading: false,
     });
 
     render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <TestMemoryRouter initialEntries={['/dashboard']}>
         <Routes>
           <Route
             path="/dashboard"
@@ -119,21 +117,21 @@ describe('ProtectedRoute Component', () => {
           />
           <Route path="/custom-login" element={<div>Custom Login Page</div>} />
         </Routes>
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
-    // With BYPASS_AUTH = true, dashboard renders regardless of redirectTo
-    expect(screen.getByText('Dashboard Content')).toBeInTheDocument();
+    // Should redirect to custom login page
+    expect(screen.getByText('Custom Login Page')).toBeInTheDocument();
   });
 
-  it('should render children when requireAuth is false and auth is bypassed', () => {
+  it('should redirect authenticated user away from login page', () => {
     (useAuth as any).mockReturnValue({
       user: { id: '1', name: 'Test User' },
       isLoading: false,
     });
 
     render(
-      <MemoryRouter initialEntries={['/login']}>
+      <TestMemoryRouter initialEntries={['/login']}>
         <Routes>
           <Route
             path="/login"
@@ -145,21 +143,21 @@ describe('ProtectedRoute Component', () => {
           />
           <Route path="/" element={<Dashboard />} />
         </Routes>
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
-    // With BYPASS_AUTH = true, login page renders regardless of user state
-    expect(screen.getByText('Login Page')).toBeInTheDocument();
+    // Should redirect to dashboard
+    expect(screen.getByText('Dashboard Content')).toBeInTheDocument();
   });
 
-  it('should preserve location state when auth is bypassed', () => {
+  it('should preserve location state when redirecting to login', () => {
     (useAuth as any).mockReturnValue({
       user: null,
       isLoading: false,
     });
 
     render(
-      <MemoryRouter
+      <TestMemoryRouter
         initialEntries={[
           {
             pathname: '/dashboard',
@@ -178,11 +176,11 @@ describe('ProtectedRoute Component', () => {
           />
           <Route path="/login" element={<div>Login Page with state</div>} />
         </Routes>
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
-    // With BYPASS_AUTH = true, dashboard renders
-    expect(screen.getByText('Dashboard Content')).toBeInTheDocument();
+    // Should redirect to login page
+    expect(screen.getByText('Login Page with state')).toBeInTheDocument();
   });
 
   it('should match snapshot with authenticated user', () => {
@@ -193,7 +191,7 @@ describe('ProtectedRoute Component', () => {
     });
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <TestMemoryRouter initialEntries={['/dashboard']}>
         <Routes>
           <Route
             path="/dashboard"
@@ -204,7 +202,7 @@ describe('ProtectedRoute Component', () => {
             }
           />
         </Routes>
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
 
     expect(container).toMatchSnapshot();
@@ -218,7 +216,7 @@ describe('ProtectedRoute Component', () => {
     });
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/dashboard']}>
+      <TestMemoryRouter initialEntries={['/dashboard']}>
         <Routes>
           <Route
             path="/dashboard"
@@ -229,9 +227,36 @@ describe('ProtectedRoute Component', () => {
             }
           />
         </Routes>
-      </MemoryRouter>
+      </TestMemoryRouter>
+    );
+
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should match snapshot when redirecting to login', () => {
+    // Mock unauthenticated user
+    (useAuth as any).mockReturnValue({
+      user: null,
+      isLoading: false,
+    });
+
+    const { container } = render(
+      <TestMemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </TestMemoryRouter>
     );
 
     expect(container).toMatchSnapshot();
   });
 });
+

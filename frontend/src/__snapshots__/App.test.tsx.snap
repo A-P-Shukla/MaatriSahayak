@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`App Routing > should match snapshot for dashboard route 1`] = `
+<div>
+  <div
+    class="MuiBox-root css-ogmp5q"
+  >
+    <div>
+      Header Component
+    </div>
+    <div>
+      Sidebar Component
+    </div>
+    <main
+      class="MuiBox-root css-h01qxj"
+    >
+      <div
+        class="MuiBox-root css-1waermd"
+      >
+        <div>
+          Dashboard Page
+        </div>
+      </div>
+      <div>
+        Footer Component
+      </div>
+    </main>
+  </div>
+</div>
+`;
+
+exports[`App Routing > should match snapshot for login route 1`] = `
+<div>
+  <div>
+    Login Page
+  </div>
+</div>
+`;

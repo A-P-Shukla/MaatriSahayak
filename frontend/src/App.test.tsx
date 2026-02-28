@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import {  } from 'react-router-dom';
+import { TestMemoryRouter } from '@test/testUtils';
 import { vi, describe, it, expect, beforeEach, Mock } from 'vitest';
 
 // Mock the useAuth hook BEFORE importing App
@@ -111,9 +112,9 @@ describe('App Routing', () => {
 
   const renderApp = (initialRoute = '/') => {
     return render(
-      <MemoryRouter initialEntries={[initialRoute]}>
+      <TestMemoryRouter initialEntries={[initialRoute]}>
         <App />
-      </MemoryRouter>
+      </TestMemoryRouter>
     );
   };
 

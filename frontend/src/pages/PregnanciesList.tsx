@@ -29,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePregnancies } from '../hooks/usePregnancies';
 import FilterBar from '../components/FilterBar';
 import SearchInput from '../components/SearchInput';
+import RegisterPregnancyModal from '../components/RegisterPregnancyModal';
 import type { RiskCategory, PregnancyFilters, Pregnancy } from '../types';
 
 /**
@@ -45,6 +46,9 @@ const PregnanciesList: React.FC = () => {
   // Pagination state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
+
+  // Modal state
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
   // Fetch pregnancies with filters
   const { data: pregnanciesData, isLoading, isError, error } = usePregnancies(filters);
@@ -121,7 +125,7 @@ const PregnanciesList: React.FC = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => alert('Register new pregnancy coming soon')}
+          onClick={() => setRegisterModalOpen(true)}
         >
           Register New Pregnancy
         </Button>
@@ -311,6 +315,12 @@ const PregnanciesList: React.FC = () => {
           </>
         )}
       </Paper>
+
+      {/* Register Pregnancy Modal */}
+      <RegisterPregnancyModal
+        open={registerModalOpen}
+        onClose={() => setRegisterModalOpen(false)}
+      />
     </Box>
   );
 };
