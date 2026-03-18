@@ -12,10 +12,13 @@ import { AppDispatch, RootState } from '../store';
 const BG = '#0A1F1A';
 const CARD = '#112920';
 const GREEN = '#00E5A0';
-const RED = '#FF5252';
-const DIM = '#7A9E90';
+const RED = '#FF6B6B';
+const ORANGE = '#FFA040';
+const YELLOW = '#FFD700';
+const DIM = '#B8D4CC';
 const WHITE = '#FFFFFF';
-const BORDER = '#1E3D33';
+const BORDER = '#3A6B58';
+const PLACEHOLDER = '#7AADA0';
 
 const STRINGS = {
     EN: {
@@ -24,8 +27,10 @@ const STRINGS = {
         sub: 'Register as an ASHA worker to get started',
         fullName: 'Full Name', fullNamePH: 'As per official records',
         phone: 'Phone Number', phonePH: '10-digit mobile number',
+        email: 'Email', emailPH: 'Your email address',
+        village: 'Village', villagePH: 'Your village name',
+        age: 'Age', agePH: 'Your age in years',
         district: 'District', districtPH: 'Your assigned district',
-        ashaId: 'ASHA Worker ID (Optional)', ashaIdPH: 'Leave blank if not assigned yet',
         password: 'Create Password', passwordPH: 'Minimum 8 characters',
         confirm: 'Repeat Password', confirmPH: 'Type your password again',
         note: 'Your registration will be reviewed by your district supervisor. ASHA Worker ID will be assigned after verification.',
@@ -35,9 +40,14 @@ const STRINGS = {
         show: 'Show', hide: 'Hide',
         errName: 'Full name is required',
         errPhone: 'Enter a valid 10-digit phone number',
+        errEmail: 'Enter a valid email address',
+        errVillage: 'Village is required',
+        errAge: 'Enter a valid age',
         errDistrict: 'District is required',
         errPassword: 'Password must be at least 8 characters',
+        errPasswordWeak: 'Password must have uppercase, lowercase, number & special character',
         errConfirm: 'Passwords do not match',
+        pwStrength: ['', 'Weak', 'Fair', 'Good', 'Strong'],
         failTitle: 'Registration Failed',
         successMsg: 'Your request has been sent for approval. You will be notified once verified.',
         ok: 'OK',
@@ -48,8 +58,10 @@ const STRINGS = {
         sub: 'ASHA कार्यकर्ता के रूप में पंजीकरण करें',
         fullName: 'पूरा नाम', fullNamePH: 'आधिकारिक रिकॉर्ड के अनुसार',
         phone: 'फ़ोन नंबर', phonePH: '10 अंकों का मोबाइल नंबर',
+        email: 'ईमेल', emailPH: 'आपका ईमेल पता',
+        village: 'गाँव', villagePH: 'आपके गाँव का नाम',
+        age: 'आयु', agePH: 'आपकी आयु वर्षों में',
         district: 'जिला', districtPH: 'आपका नियुक्त जिला',
-        ashaId: 'ASHA ID (वैकल्पिक)', ashaIdPH: 'अभी नहीं है तो खाली छोड़ें',
         password: 'पासवर्ड बनाएं', passwordPH: 'न्यूनतम 8 अक्षर',
         confirm: 'पासवर्ड दोहराएं', confirmPH: 'पासवर्ड फिर से टाइप करें',
         note: 'आपका पंजीकरण जिला पर्यवेक्षक द्वारा समीक्षा किया जाएगा। सत्यापन के बाद ASHA ID दी जाएगी।',
@@ -59,9 +71,14 @@ const STRINGS = {
         show: 'दिखाएं', hide: 'छुपाएं',
         errName: 'पूरा नाम आवश्यक है',
         errPhone: 'वैध 10 अंकों का नंबर दर्ज करें',
+        errEmail: 'वैध ईमेल पता दर्ज करें',
+        errVillage: 'गाँव आवश्यक है',
+        errAge: 'वैध आयु दर्ज करें',
         errDistrict: 'जिला आवश्यक है',
         errPassword: 'पासवर्ड कम से कम 8 अक्षर का होना चाहिए',
+        errPasswordWeak: 'पासवर्ड में बड़े, छोटे अक्षर, संख्या और विशेष चिह्न होना चाहिए',
         errConfirm: 'पासवर्ड मेल नहीं खाते',
+        pwStrength: ['', 'कमज़ोर', 'ठीक', 'अच्छा', 'मज़बूत'],
         failTitle: 'पंजीकरण विफल',
         successMsg: 'आपका अनुरोध अनुमोदन के लिए भेज दिया गया है। सत्यापन के बाद सूचित किया जाएगा।',
         ok: 'ठीक है',
@@ -71,12 +88,12 @@ const STRINGS = {
 type Lang = 'EN' | 'HI';
 
 interface FormData {
-    fullName: string; phone: string; district: string;
-    ashaId: string; password: string; confirmPassword: string;
+    fullName: string; phone: string; email: string; village: string;
+    age: string; district: string; password: string; confirmPassword: string;
 }
 interface FormErrors {
-    fullName?: string; phone?: string; district?: string;
-    password?: string; confirmPassword?: string;
+    fullName?: string; phone?: string; email?: string; village?: string;
+    age?: string; district?: string; password?: string; confirmPassword?: string;
 }
 interface FieldProps {
     label: string; placeholder: string; value: string;
@@ -86,6 +103,20 @@ interface FieldProps {
     showToggle?: boolean; toggleLabel?: string; onToggle?: () => void;
     returnKeyType?: any; autoCapitalize?: any;
 }
+
+// Returns 0-4 strength score
+const getPasswordStrength = (pw: string): number => {
+    if (!pw) return 0;
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[a-z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    return Math.min(4, Math.floor(score * 4 / 5) + (score === 5 ? 1 : 0));
+};
+
+const strengthColor = (s: number) => [RED, RED, ORANGE, YELLOW, GREEN][s];
 
 const Field = ({
     label, placeholder, value, onChangeText, error,
@@ -100,7 +131,7 @@ const Field = ({
                 ref={inputRef}
                 style={styles.inputText}
                 placeholder={placeholder}
-                placeholderTextColor={DIM}
+                placeholderTextColor={PLACEHOLDER}
                 value={value}
                 onChangeText={onChangeText}
                 keyboardType={keyboardType}
@@ -127,7 +158,7 @@ const AshaRegisterScreen = ({ navigation }: any) => {
     const S = STRINGS[lang];
 
     const [form, setForm] = useState<FormData>({
-        fullName: '', phone: '', district: '', ashaId: '', password: '', confirmPassword: '',
+        fullName: '', phone: '', email: '', village: '', age: '', district: '', password: '', confirmPassword: '',
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [showPassword, setShowPassword] = useState(false);
@@ -162,8 +193,10 @@ const AshaRegisterScreen = ({ navigation }: any) => {
     };
 
     const phoneRef = useRef<RNTextInput>(null);
+    const emailRef = useRef<RNTextInput>(null);
+    const villageRef = useRef<RNTextInput>(null);
+    const ageRef = useRef<RNTextInput>(null);
     const districtRef = useRef<RNTextInput>(null);
-    const ashaIdRef = useRef<RNTextInput>(null);
     const passwordRef = useRef<RNTextInput>(null);
     const confirmRef = useRef<RNTextInput>(null);
 
@@ -180,8 +213,13 @@ const AshaRegisterScreen = ({ navigation }: any) => {
         const e: FormErrors = {};
         if (!form.fullName.trim()) e.fullName = S.errName;
         if (!form.phone.trim() || form.phone.length !== 10) e.phone = S.errPhone;
+        if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = S.errEmail;
+        if (!form.village.trim()) e.village = S.errVillage;
+        const ageNum = parseInt(form.age, 10);
+        if (!form.age.trim() || isNaN(ageNum) || ageNum < 18 || ageNum > 80) e.age = S.errAge;
         if (!form.district.trim()) e.district = S.errDistrict;
         if (form.password.length < 8) e.password = S.errPassword;
+        else if (getPasswordStrength(form.password) < 3) e.password = S.errPasswordWeak;
         if (form.password !== form.confirmPassword) e.confirmPassword = S.errConfirm;
         setErrors(e);
         return Object.keys(e).length === 0;
@@ -190,16 +228,16 @@ const AshaRegisterScreen = ({ navigation }: any) => {
     const handleRegister = async () => {
         if (!validate()) return;
         const result = await dispatch(registerThunk({
-            fullName: form.fullName, phone: form.phone,
-            district: form.district, ashaId: form.ashaId || undefined,
-            password: form.password,
+            name: form.fullName, phone: `+91${form.phone}`, email: form.email,
+            village: form.village, age: parseInt(form.age, 10),
+            district: form.district, password: form.password,
         }));
         if (registerThunk.fulfilled.match(result)) {
             navigation.navigate('AshaIdCard', {
                 fullName: form.fullName,
                 phone: form.phone,
                 district: form.district,
-                ashaId: form.ashaId || undefined,
+                email: form.email,
                 photo: photo || undefined,
             });
         }
@@ -209,7 +247,6 @@ const AshaRegisterScreen = ({ navigation }: any) => {
         <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <StatusBar barStyle="light-content" backgroundColor={BG} />
 
-            {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Text style={styles.back}>←</Text>
@@ -236,7 +273,6 @@ const AshaRegisterScreen = ({ navigation }: any) => {
                     <Text style={styles.heading}>{S.heading}</Text>
                     <Text style={styles.sub}>{S.sub}</Text>
 
-                    {/* Photo picker */}
                     <TouchableOpacity style={styles.photoPicker} onPress={showPhotoOptions} activeOpacity={0.8}>
                         {photo
                             ? <Image source={{ uri: photo }} style={styles.photoImg} />
@@ -256,14 +292,23 @@ const AshaRegisterScreen = ({ navigation }: any) => {
 
                     <Field label={S.phone} placeholder={S.phonePH} value={form.phone}
                         onChangeText={set('phone')} error={errors.phone}
-                        keyboardType="phone-pad" inputRef={phoneRef} nextRef={districtRef} />
+                        keyboardType="phone-pad" inputRef={phoneRef} nextRef={emailRef} />
+
+                    <Field label={S.email} placeholder={S.emailPH} value={form.email}
+                        onChangeText={set('email')} error={errors.email}
+                        keyboardType="email-address" inputRef={emailRef} nextRef={villageRef} />
+
+                    <Field label={S.village} placeholder={S.villagePH} value={form.village}
+                        onChangeText={set('village')} error={errors.village}
+                        inputRef={villageRef} nextRef={ageRef} autoCapitalize="words" />
+
+                    <Field label={S.age} placeholder={S.agePH} value={form.age}
+                        onChangeText={set('age')} error={errors.age}
+                        keyboardType="numeric" inputRef={ageRef} nextRef={districtRef} />
 
                     <Field label={S.district} placeholder={S.districtPH} value={form.district}
                         onChangeText={set('district')} error={errors.district}
-                        inputRef={districtRef} nextRef={ashaIdRef} autoCapitalize="words" />
-
-                    <Field label={S.ashaId} placeholder={S.ashaIdPH} value={form.ashaId}
-                        onChangeText={set('ashaId')} inputRef={ashaIdRef} nextRef={passwordRef} />
+                        inputRef={districtRef} nextRef={passwordRef} autoCapitalize="words" />
 
                     <Field label={S.password} placeholder={S.passwordPH} value={form.password}
                         onChangeText={set('password')} error={errors.password}
@@ -272,7 +317,26 @@ const AshaRegisterScreen = ({ navigation }: any) => {
                         onToggle={() => setShowPassword(p => !p)}
                         inputRef={passwordRef} nextRef={confirmRef} />
 
-                    {/* Confirm password — distinct: no show/hide, shows ✓ when matching */}
+                    {/* Password strength bar */}
+                    {form.password.length > 0 && (() => {
+                        const s = getPasswordStrength(form.password);
+                        return (
+                            <View style={styles.strengthWrap}>
+                                <View style={styles.strengthBars}>
+                                    {[1,2,3,4].map(i => (
+                                        <View key={i} style={[
+                                            styles.strengthBar,
+                                            { backgroundColor: i <= s ? strengthColor(s) : BORDER }
+                                        ]} />
+                                    ))}
+                                </View>
+                                <Text style={[styles.strengthLabel, { color: strengthColor(s) }]}>
+                                    {S.pwStrength[s]}
+                                </Text>
+                            </View>
+                        );
+                    })()}
+
                     <View style={styles.fieldGroup}>
                         <Text style={styles.label}>{S.confirm}</Text>
                         <View style={[styles.inputBox, !!errors.confirmPassword && styles.inputError,
@@ -281,7 +345,7 @@ const AshaRegisterScreen = ({ navigation }: any) => {
                                 ref={confirmRef}
                                 style={styles.inputText}
                                 placeholder={S.confirmPH}
-                                placeholderTextColor={DIM}
+                                placeholderTextColor={PLACEHOLDER}
                                 value={form.confirmPassword}
                                 onChangeText={set('confirmPassword')}
                                 secureTextEntry
@@ -349,10 +413,10 @@ const styles = StyleSheet.create({
         borderColor: BORDER,
     },
     heading: { fontSize: 24, fontWeight: '900', color: WHITE, marginBottom: 6 },
-    sub: { fontSize: 13, color: DIM, marginBottom: 28, lineHeight: 20 },
+    sub: { fontSize: 14, color: DIM, marginBottom: 28, lineHeight: 22 },
     fieldGroup: { marginBottom: 18 },
     label: {
-        fontSize: 11, fontWeight: '700', color: DIM,
+        fontSize: 13, fontWeight: '700', color: DIM,
         marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.7,
     },
     inputBox: {
@@ -363,15 +427,19 @@ const styles = StyleSheet.create({
     inputError: { borderColor: RED },
     inputSuccess: { borderColor: GREEN },
     matchIcon: { fontSize: 18, color: GREEN, fontWeight: '900', paddingLeft: 8 },
-    inputText: { flex: 1, fontSize: 15, color: WHITE, paddingVertical: 13 },
+    inputText: { flex: 1, fontSize: 16, color: WHITE, paddingVertical: 13 },
     toggleLabel: { fontSize: 12, fontWeight: '700', color: GREEN, paddingLeft: 8 },
-    errorText: { fontSize: 12, color: RED, marginTop: 5, marginLeft: 2 },
+    errorText: { fontSize: 13, color: RED, marginTop: 5, marginLeft: 2, fontWeight: '600' },
+    strengthWrap: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 10 },
+    strengthBars: { flexDirection: 'row', gap: 4, flex: 1 },
+    strengthBar: { flex: 1, height: 4, borderRadius: 2 },
+    strengthLabel: { fontSize: 12, fontWeight: '700', width: 50, textAlign: 'right' },
     note: {
         backgroundColor: BG, borderRadius: 10, padding: 14,
         marginBottom: 24, marginTop: 4,
         borderLeftWidth: 3, borderLeftColor: GREEN,
     },
-    noteText: { fontSize: 13, color: DIM, lineHeight: 20 },
+    noteText: { fontSize: 14, color: DIM, lineHeight: 22 },
     submitBtn: {
         backgroundColor: GREEN, borderRadius: 12,
         paddingVertical: 16, alignItems: 'center',
@@ -383,7 +451,6 @@ const styles = StyleSheet.create({
     footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
     footerText: { fontSize: 14, color: DIM },
     footerLink: { fontSize: 14, color: GREEN, fontWeight: '700' },
-
     photoPicker: {
         alignSelf: 'center',
         width: 90, height: 90,
@@ -399,7 +466,7 @@ const styles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center', gap: 4,
     },
     photoEmoji: { fontSize: 26 },
-    photoLabel: { fontSize: 11, color: DIM, fontWeight: '600' },
+    photoLabel: { fontSize: 12, color: DIM, fontWeight: '600' },
     photoBadge: {
         position: 'absolute', bottom: 4, right: 4,
         backgroundColor: GREEN, borderRadius: 10,

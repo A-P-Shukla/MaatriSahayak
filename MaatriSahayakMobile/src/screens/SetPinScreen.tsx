@@ -10,9 +10,9 @@ import { AppDispatch } from '../store';
 const BG = '#0A1F1A';
 const CARD = '#112920';
 const GREEN = '#00E5A0';
-const DIM = '#7A9E90';
+const DIM = '#B8D4CC';
 const WHITE = '#FFFFFF';
-const BORDER = '#1E3D33';
+const BORDER = '#3A6B58';
 const RED = '#FF5252';
 
 const KEYS = ['1','2','3','4','5','6','7','8','9','','0','⌫'];

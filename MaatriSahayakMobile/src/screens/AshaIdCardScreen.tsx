@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet, StatusBar,
-    ScrollView, Image, Alert, Platform, ActivityIndicator, SafeAreaView,
+    ScrollView, Image, Alert, Platform, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { StorageService } from '../services/storage';
 
 const BG     = '#0A1F1A';
 const CARD   = '#112920';
 const GREEN  = '#00E5A0';
-const DIM    = '#7A9E90';
+const DIM    = '#B8D4CC';
 const WHITE  = '#FFFFFF';
-const BORDER = '#1E3D33';
+const BORDER = '#3A6B58';
 const GOLD   = '#FFD700';
 
 const generateAshaId = (phone: string, district: string): string => {
@@ -27,6 +28,7 @@ const AshaIdCardScreen = ({ navigation, route }: any) => {
     const fullName = params.fullName ?? 'ASHA Worker';
     const phone    = params.phone    ?? '0000000000';
     const district = params.district ?? 'General';
+    const email    = params.email    ?? '';
     const [ashaId]  = useState<string>(params.ashaId || generateAshaId(phone, district));
     const [photo, setPhoto]   = useState<string | null>(params.photo ?? null);
     const [saving, setSaving] = useState(false);
@@ -105,6 +107,9 @@ const AshaIdCardScreen = ({ navigation, route }: any) => {
                 keyboardShouldPersistTaps="handled">
 
                 <Text style={styles.hint}>Your ASHA Worker ID has been generated</Text>
+                {!!email && (
+                    <Text style={styles.emailHint}>📧 ID card details sent to {email}</Text>
+                )}
 
                 {/* ── ID CARD ── */}
                 <View style={styles.idCard}>
@@ -215,7 +220,8 @@ const styles = StyleSheet.create({
     headerTitle: { fontSize: 17, fontWeight: '700', color: WHITE },
 
     scroll: { padding: 20, paddingBottom: 52 },
-    hint: { fontSize: 13, color: DIM, textAlign: 'center', marginBottom: 20 },
+    hint: { fontSize: 13, color: DIM, textAlign: 'center', marginBottom: 8 },
+    emailHint: { fontSize: 13, color: GREEN, textAlign: 'center', marginBottom: 20, fontWeight: '600' },
 
     /* ── ID Card ── */
     idCard: {

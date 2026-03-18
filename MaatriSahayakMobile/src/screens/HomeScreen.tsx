@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -7,17 +7,21 @@ import {
     ScrollView,
     StatusBar,
     Alert,
-    SafeAreaView,
+    ActivityIndicator,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
 import { logoutThunk } from '../store/slices/authSlice';
+import { fetchPregnanciesThunk } from '../store/slices/pregnancySlice';
+import { AppDispatch, RootState } from '../store';
 
 const BG       = '#0A1F1A';
 const CARD     = '#112920';
 const GREEN    = '#00E5A0';
 const RED      = '#FF5252';
-const DIMTEXT  = '#7A9E90';
+const DIM      = '#B8D4CC';
 const WHITE    = '#FFFFFF';
+const BORDER   = '#3A6B58';
 
 const STRINGS = {
     en: {
@@ -76,10 +80,20 @@ const STRINGS = {
 
 const HomeScreen = ({ navigation, route }: any) => {
     const username = route?.params?.username || 'ASHA Worker';
-    const dispatch = useDispatch<any>();
+    const dispatch = useDispatch<AppDispatch>();
+    const { pregnancies, loading } = useSelector((s: RootState) => s.pregnancy);
+    const { user } = useSelector((s: RootState) => s.auth);
     const [lang, setLang] = useState<'en' | 'hi'>('en');
     const [activeTab, setActiveTab] = useState('home');
     const t = STRINGS[lang];
+
+    const displayName = user?.name || username;
+    const highRisk = pregnancies.filter(p => p.risk_level === 'HIGH' || p.risk_level === 'CRITICAL').length;
+    const total = pregnancies.length;
+
+    useEffect(() => {
+        dispatch(fetchPregnanciesThunk());
+    }, []);
 
     const handleLogout = () => {
         Alert.alert(t.logout, t.logoutMsg, [
@@ -104,7 +118,7 @@ const HomeScreen = ({ navigation, route }: any) => {
                     </View>
                     <View style={styles.headerMid}>
                         <Text style={styles.namaste}>{t.namaste}</Text>
-                        <Text style={styles.username}>{username}</Text>
+                        <Text style={styles.username}>{displayName}</Text>
                     </View>
                     <View style={styles.headerRight}>
                         {/* Language toggle */}
@@ -133,14 +147,18 @@ const HomeScreen = ({ navigation, route }: any) => {
                             <View style={styles.statIconWrap}>
                                 <Text style={styles.statIcon}>⚠</Text>
                             </View>
-                            <Text style={styles.statValueRed}>3</Text>
+                            {loading
+                                ? <ActivityIndicator color={RED} />
+                                : <Text style={styles.statValueRed}>{highRisk}</Text>}
                             <Text style={styles.statLabel}>{t.highRisk}</Text>
                         </View>
                         <View style={[styles.statCard, styles.statCardGreen]}>
                             <View style={styles.statIconWrapGreen}>
                                 <Text style={styles.statIcon}>👥</Text>
                             </View>
-                            <Text style={styles.statValueGreen}>42</Text>
+                            {loading
+                                ? <ActivityIndicator color={GREEN} />
+                                : <Text style={styles.statValueGreen}>{total}</Text>}
                             <Text style={styles.statLabel}>{t.totalReg}</Text>
                         </View>
                     </View>
@@ -196,7 +214,7 @@ const HomeScreen = ({ navigation, route }: any) => {
                             <Text style={styles.actionLabelDark}>{t.register}</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Vitals')} activeOpacity={0.85}>
+                        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('PregnancyList')} activeOpacity={0.85}>
                             <View style={styles.actionIconCircleGreen}>
                                 <Text style={styles.actionEmoji}>📈</Text>
                             </View>
@@ -277,23 +295,23 @@ const styles = StyleSheet.create({
         borderColor: BG,
     },
     headerMid: { flex: 1 },
-    namaste: { fontSize: 13, color: DIMTEXT, fontWeight: '500' },
+    namaste: { fontSize: 13, color: DIM, fontWeight: '500' },
     username: { fontSize: 20, fontWeight: '900', color: WHITE, marginTop: 1 },
     headerRight: { alignItems: 'flex-end', gap: 8 },
     langToggle: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1.5,
-        borderColor: DIMTEXT,
+        borderColor: DIM,
         borderRadius: 20,
         paddingHorizontal: 12,
         paddingVertical: 5,
     },
-    langOption: { fontSize: 13, fontWeight: '700', color: DIMTEXT },
+    langOption: { fontSize: 13, fontWeight: '700', color: DIM },
     langActive: { color: WHITE },
-    langSlash: { fontSize: 13, color: DIMTEXT },
+    langSlash: { fontSize: 13, color: DIM },
     logoutBtn: { padding: 4 },
-    logoutText: { fontSize: 18, color: DIMTEXT },
+    logoutText: { fontSize: 18, color: DIM },
 
     // Sections
     section: { paddingHorizontal: 20, marginTop: 24 },
@@ -340,7 +358,7 @@ const styles = StyleSheet.create({
     statIcon: { fontSize: 20 },
     statValueRed: { fontSize: 40, fontWeight: '900', color: RED },
     statValueGreen: { fontSize: 40, fontWeight: '900', color: WHITE },
-    statLabel: { fontSize: 13, color: DIMTEXT, fontWeight: '600', lineHeight: 18 },
+    statLabel: { fontSize: 13, color: DIM, fontWeight: '600', lineHeight: 18 },
 
     // Tasks
     taskCard: {
@@ -378,7 +396,7 @@ const styles = StyleSheet.create({
     tagRed: { backgroundColor: 'rgba(255,82,82,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
     tagBlue: { backgroundColor: 'rgba(100,149,237,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
     tagText: { fontSize: 10, fontWeight: '800', color: WHITE, letterSpacing: 0.5 },
-    taskDue: { fontSize: 12, color: DIMTEXT, fontWeight: '600' },
+    taskDue: { fontSize: 12, color: DIM, fontWeight: '600' },
     checkCircle: {
         width: 32,
         height: 32,
@@ -389,7 +407,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.15)',
     },
-    checkMark: { fontSize: 14, color: DIMTEXT },
+    checkMark: { fontSize: 14, color: DIM },
 
     // Quick Actions Grid
     actionsGrid: {
@@ -459,7 +477,7 @@ const styles = StyleSheet.create({
     },
     tabIconActive: { backgroundColor: GREEN },
     tabIcon: { fontSize: 20 },
-    tabLabel: { fontSize: 11, color: DIMTEXT, fontWeight: '600' },
+    tabLabel: { fontSize: 11, color: DIM, fontWeight: '600' },
     tabLabelActive: { color: WHITE, fontWeight: '800' },
 });
 

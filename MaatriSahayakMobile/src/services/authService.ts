@@ -3,15 +3,17 @@ import { StorageService } from './storage';
 import { ENDPOINTS } from '../config/api';
 
 export interface LoginPayload {
-    phone: string;
+    email: string;
     password: string;
 }
 
 export interface RegisterPayload {
-    fullName: string;
+    name: string;
     phone: string;
+    email: string;
     district: string;
-    ashaId?: string;
+    village: string;
+    age: number;
     password: string;
 }
 
@@ -31,10 +33,10 @@ export interface AuthResponse {
 
 export const AuthService = {
     async login(payload: LoginPayload): Promise<AuthResponse> {
-        const { data } = await api.post(ENDPOINTS.LOGIN, payload);
-        await StorageService.setAuthToken(data.token);
-        await StorageService.setUserData(data.user);
-        return data;
+        const { data } = await api.post(ENDPOINTS.LOGIN, { email: payload.email, password: payload.password });
+        await StorageService.setAuthToken(data.data.access_token);
+        await StorageService.setUserData(data.data.user);
+        return { token: data.data.access_token, user: data.data.user };
     },
 
     async register(payload: RegisterPayload): Promise<void> {

@@ -12,36 +12,39 @@ import { AppDispatch, RootState } from '../store';
 const BG     = '#0A1F1A';
 const CARD   = '#112920';
 const GREEN  = '#00E5A0';
-const DIM    = '#7A9E90';
+const DIM    = '#B8D4CC';
 const WHITE  = '#FFFFFF';
-const BORDER = '#1E3D33';
+const BORDER = '#3A6B58';
+const PLACEHOLDER = '#7AADA0';
 
 const STRINGS = {
     en: {
         appName: 'MaatriSahayak', tagline: 'ASHA Worker Portal',
         banner: 'Supported by National Health Mission (NHM)',
-        heading: 'Worker Login', subheading: 'Enter your ASHA ID and 4-digit PIN to continue',
-        labelId: 'ASHA Worker ID', placeholderId: 'e.g. ASHA-DIS-24XXXX-123',
-        labelPin: '4-Digit PIN', placeholderPin: '● ● ● ●',
+        heading: 'Worker Login', subheading: 'Sign in with your registered email and password',
+        labelEmail: 'Email Address', placeholderEmail: 'your@email.com',
+        labelPassword: 'Password', placeholderPassword: 'Your account password',
         signIn: 'Sign In',
         register: 'New ASHA Worker? Register Here',
         helpTitle: 'Need Help?', helpText: 'Contact your supervisor:',
         ok: 'OK', loginFailed: 'Login Failed',
-        missingId: 'Please enter your ASHA Worker ID.',
-        missingPin: 'Please enter your 4-digit PIN.',
+        missingEmail: 'Please enter your email address.',
+        missingPassword: 'Please enter your password.',
+        show: 'Show', hide: 'Hide',
     },
     hi: {
         appName: 'मातृ सहायक', tagline: 'आशा कार्यकर्ता पोर्टल',
         banner: 'राष्ट्रीय स्वास्थ्य मिशन (NHM) द्वारा समर्थित',
-        heading: 'कार्यकर्ता लॉगिन', subheading: 'जारी रखने के लिए ASHA ID और 4-अंकीय PIN दर्ज करें',
-        labelId: 'ASHA कार्यकर्ता ID', placeholderId: 'जैसे ASHA-DIS-24XXXX-123',
-        labelPin: '4-अंकीय PIN', placeholderPin: '● ● ● ●',
+        heading: 'कार्यकर्ता लॉगिन', subheading: 'अपने पंजीकृत ईमेल और पासवर्ड से साइन इन करें',
+        labelEmail: 'ईमेल पता', placeholderEmail: 'your@email.com',
+        labelPassword: 'पासवर्ड', placeholderPassword: 'आपका खाता पासवर्ड',
         signIn: 'लॉग इन करें',
         register: 'नई आशा कार्यकर्ता? यहाँ पंजीकरण करें',
         helpTitle: 'सहायता चाहिए?', helpText: 'अपने पर्यवेक्षक से संपर्क करें:',
         ok: 'ठीक है', loginFailed: 'लॉगिन विफल',
-        missingId: 'कृपया अपना ASHA ID दर्ज करें।',
-        missingPin: 'कृपया अपना 4-अंकीय PIN दर्ज करें।',
+        missingEmail: 'कृपया अपना ईमेल पता दर्ज करें।',
+        missingPassword: 'कृपया अपना पासवर्ड दर्ज करें।',
+        show: 'दिखाएं', hide: 'छुपाएं',
     },
 };
 
@@ -52,24 +55,21 @@ const LoginScreen = ({ navigation }: any) => {
     const [lang, setLang] = useState<'en' | 'hi'>('en');
     const t = STRINGS[lang];
 
-    const [ashaId, setAshaId] = useState('');
-    const [pin, setPin] = useState('');
-    const [idFocused, setIdFocused] = useState(false);
-    const [pinFocused, setPinFocused] = useState(false);
-    const pinRef = useRef<RNTextInput>(null);
-
-    useEffect(() => {
-        if (isAuthenticated && user) navigation.replace('Home');
-    }, [isAuthenticated, user]);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [emailFocused, setEmailFocused] = useState(false);
+    const [passwordFocused, setPasswordFocused] = useState(false);
+    const passwordRef = useRef<RNTextInput>(null);
 
     useEffect(() => {
         if (error) Alert.alert(t.loginFailed, error, [{ text: t.ok, onPress: () => dispatch(clearError()) }]);
     }, [error]);
 
     const handleLogin = () => {
-        if (!ashaId.trim()) { Alert.alert('', t.missingId); return; }
-        if (pin.length < 4)  { Alert.alert('', t.missingPin); return; }
-        dispatch(loginThunk({ phone: ashaId.trim(), password: pin }));
+        if (!email.trim()) { Alert.alert('', t.missingEmail); return; }
+        if (!password.trim()) { Alert.alert('', t.missingPassword); return; }
+        dispatch(loginThunk({ email: email.trim(), password }));
     };
 
     return (
@@ -111,46 +111,48 @@ const LoginScreen = ({ navigation }: any) => {
                     <Text style={styles.heading}>{t.heading}</Text>
                     <Text style={styles.subheading}>{t.subheading}</Text>
 
-                    {/* ASHA ID */}
-                    <Text style={styles.label}>{t.labelId}</Text>
-                    <View style={[styles.inputBox, idFocused && styles.inputFocused]}>
-                        <Text style={styles.inputIcon}>🪪</Text>
+                    {/* Email */}
+                    <Text style={styles.label}>{t.labelEmail}</Text>
+                    <View style={[styles.inputBox, emailFocused && styles.inputFocused]}>
+                        <Text style={styles.inputIcon}>✉️</Text>
                         <View style={styles.inputDivider} />
                         <TextInput
                             style={styles.inputField}
-                            placeholder={t.placeholderId}
-                            placeholderTextColor="#3A6B5A"
-                            value={ashaId}
-                            onChangeText={v => setAshaId(v.toUpperCase())}
-                            autoCapitalize="characters"
+                            placeholder={t.placeholderEmail}
+                            placeholderTextColor={PLACEHOLDER}
+                            value={email}
+                            onChangeText={setEmail}
+                            autoCapitalize="none"
                             autoCorrect={false}
+                            keyboardType="email-address"
                             returnKeyType="next"
-                            onFocus={() => setIdFocused(true)}
-                            onBlur={() => setIdFocused(false)}
-                            onSubmitEditing={() => pinRef.current?.focus()}
+                            onFocus={() => setEmailFocused(true)}
+                            onBlur={() => setEmailFocused(false)}
+                            onSubmitEditing={() => passwordRef.current?.focus()}
                         />
                     </View>
 
-                    {/* PIN */}
-                    <Text style={[styles.label, { marginTop: 20 }]}>{t.labelPin}</Text>
-                    <View style={[styles.inputBox, pinFocused && styles.inputFocused]}>
+                    {/* Password */}
+                    <Text style={[styles.label, { marginTop: 20 }]}>{t.labelPassword}</Text>
+                    <View style={[styles.inputBox, passwordFocused && styles.inputFocused]}>
                         <Text style={styles.inputIcon}>🔒</Text>
                         <View style={styles.inputDivider} />
                         <TextInput
-                            ref={pinRef}
-                            style={[styles.inputField, { letterSpacing: 10, fontSize: 18 }]}
-                            placeholder={t.placeholderPin}
-                            placeholderTextColor="#3A6B5A"
-                            value={pin}
-                            onChangeText={v => setPin(v.replace(/[^0-9]/g, '').slice(0, 4))}
-                            keyboardType="number-pad"
-                            secureTextEntry
-                            maxLength={4}
+                            ref={passwordRef}
+                            style={styles.inputField}
+                            placeholder={t.placeholderPassword}
+                            placeholderTextColor={PLACEHOLDER}
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry={!showPassword}
                             returnKeyType="done"
-                            onFocus={() => setPinFocused(true)}
-                            onBlur={() => setPinFocused(false)}
+                            onFocus={() => setPasswordFocused(true)}
+                            onBlur={() => setPasswordFocused(false)}
                             onSubmitEditing={handleLogin}
                         />
+                        <TouchableOpacity onPress={() => setShowPassword(p => !p)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                            <Text style={styles.showToggle}>{showPassword ? t.hide : t.show}</Text>
+                        </TouchableOpacity>
                     </View>
 
                     {/* Sign In */}
@@ -213,13 +215,14 @@ const styles = StyleSheet.create({
     sheet: { backgroundColor: CARD, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 48, flex: 1 },
     heading: { fontSize: 24, fontWeight: '900', color: WHITE, marginBottom: 6 },
     subheading: { fontSize: 13, color: DIM, marginBottom: 24, lineHeight: 20 },
-    label: { fontSize: 11, fontWeight: '800', color: DIM, marginBottom: 8, letterSpacing: 1.0, textTransform: 'uppercase' },
+    label: { fontSize: 13, fontWeight: '800', color: DIM, marginBottom: 8, letterSpacing: 1.0, textTransform: 'uppercase' },
 
     inputBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: BG, borderWidth: 1.5, borderColor: BORDER, borderRadius: 12, paddingHorizontal: 14, minHeight: 54 },
     inputFocused: { borderColor: GREEN },
     inputIcon: { fontSize: 18, marginRight: 10 },
     inputDivider: { width: 1.5, height: 22, backgroundColor: BORDER, marginRight: 10 },
-    inputField: { flex: 1, fontSize: 15, color: WHITE, fontWeight: '600', paddingVertical: 14 },
+    inputField: { flex: 1, fontSize: 16, color: WHITE, fontWeight: '600', paddingVertical: 14 },
+    showToggle: { fontSize: 12, fontWeight: '700', color: GREEN, paddingLeft: 8 },
 
     loginBtn: { backgroundColor: GREEN, borderRadius: 12, paddingVertical: 17, alignItems: 'center', marginTop: 28, elevation: 4, shadowColor: GREEN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
     loginBtnText: { color: BG, fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },

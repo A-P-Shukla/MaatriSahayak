@@ -1,24 +1,61 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { PregnancyService, RegisterPregnancyPayload, VitalsPayload, EmergencyPayload } from '../../services/pregnancyService';
 
-interface Pregnancy {
-    id: string;
-    name: string;
-    age: number;
-    phone: string;
-    lmp: string;
-    edd: string;
-    riskLevel: string;
-}
+export const fetchPregnanciesThunk = createAsyncThunk(
+    'pregnancy/fetchAll',
+    async (_, { rejectWithValue }) => {
+        try {
+            return await PregnancyService.list();
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data?.message || 'Failed to load pregnancies');
+        }
+    }
+);
+
+export const registerPregnancyThunk = createAsyncThunk(
+    'pregnancy/register',
+    async (payload: RegisterPregnancyPayload, { rejectWithValue }) => {
+        try {
+            return await PregnancyService.register(payload);
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data?.message || 'Failed to register pregnancy');
+        }
+    }
+);
+
+export const recordVitalsThunk = createAsyncThunk(
+    'pregnancy/recordVitals',
+    async (payload: VitalsPayload, { rejectWithValue }) => {
+        try {
+            await PregnancyService.recordVitals(payload);
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data?.message || 'Failed to record vitals');
+        }
+    }
+);
+
+export const triggerEmergencyThunk = createAsyncThunk(
+    'pregnancy/triggerEmergency',
+    async (payload: EmergencyPayload, { rejectWithValue }) => {
+        try {
+            return await PregnancyService.triggerEmergency(payload);
+        } catch (err: any) {
+            return rejectWithValue(err.response?.data?.message || 'Failed to trigger emergency');
+        }
+    }
+);
 
 interface PregnancyState {
-    pregnancies: Pregnancy[];
+    pregnancies: any[];
     loading: boolean;
+    submitting: boolean;
     error: string | null;
 }
 
 const initialState: PregnancyState = {
     pregnancies: [],
     loading: false,
+    submitting: false,
     error: null,
 };
 
@@ -26,36 +63,27 @@ const pregnancySlice = createSlice({
     name: 'pregnancy',
     initialState,
     reducers: {
-        fetchPregnanciesStart: (state) => {
-            state.loading = true;
-            state.error = null;
-        },
-        fetchPregnanciesSuccess: (state, action: PayloadAction<Pregnancy[]>) => {
-            state.pregnancies = action.payload;
-            state.loading = false;
-        },
-        fetchPregnanciesFailure: (state, action: PayloadAction<string>) => {
-            state.loading = false;
-            state.error = action.payload;
-        },
-        addPregnancy: (state, action: PayloadAction<Pregnancy>) => {
-            state.pregnancies.push(action.payload);
-        },
-        updatePregnancy: (state, action: PayloadAction<Pregnancy>) => {
-            const index = state.pregnancies.findIndex(p => p.id === action.payload.id);
-            if (index !== -1) {
-                state.pregnancies[index] = action.payload;
-            }
-        },
+        clearPregnancyError: (state) => { state.error = null; },
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchPregnanciesThunk.pending, (state) => { state.loading = true; state.error = null; })
+            .addCase(fetchPregnanciesThunk.fulfilled, (state, action) => { state.loading = false; state.pregnancies = Array.isArray(action.payload) ? action.payload : []; })
+            .addCase(fetchPregnanciesThunk.rejected, (state, action) => { state.loading = false; state.error = action.payload as string; })
+
+            .addCase(registerPregnancyThunk.pending, (state) => { state.submitting = true; state.error = null; })
+            .addCase(registerPregnancyThunk.fulfilled, (state, action) => { state.submitting = false; if (action.payload) state.pregnancies.unshift(action.payload); })
+            .addCase(registerPregnancyThunk.rejected, (state, action) => { state.submitting = false; state.error = action.payload as string; })
+
+            .addCase(recordVitalsThunk.pending, (state) => { state.submitting = true; state.error = null; })
+            .addCase(recordVitalsThunk.fulfilled, (state) => { state.submitting = false; })
+            .addCase(recordVitalsThunk.rejected, (state, action) => { state.submitting = false; state.error = action.payload as string; })
+
+            .addCase(triggerEmergencyThunk.pending, (state) => { state.submitting = true; state.error = null; })
+            .addCase(triggerEmergencyThunk.fulfilled, (state) => { state.submitting = false; })
+            .addCase(triggerEmergencyThunk.rejected, (state, action) => { state.submitting = false; state.error = action.payload as string; });
     },
 });
 
-export const {
-    fetchPregnanciesStart,
-    fetchPregnanciesSuccess,
-    fetchPregnanciesFailure,
-    addPregnancy,
-    updatePregnancy,
-} = pregnancySlice.actions;
-
+export const { clearPregnancyError } = pregnancySlice.actions;
 export default pregnancySlice.reducer;

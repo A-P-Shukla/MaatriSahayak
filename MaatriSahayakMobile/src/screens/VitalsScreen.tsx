@@ -1,59 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    ScrollView,
-    Alert,
-    StatusBar,
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
+    View, Text, TextInput, TouchableOpacity, StyleSheet,
+    ScrollView, Alert, StatusBar, ActivityIndicator,
+    KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { recordVitalsThunk, clearPregnancyError } from '../store/slices/pregnancySlice';
+import { AppDispatch, RootState } from '../store';
 
-const PURPLE = '#4A148C';
-const PINK = '#D81B60';
+const BG = '#0A1F1A';
+const CARD = '#112920';
+const GREEN = '#00E5A0';
+const RED = '#FF6B6B';
+const DIM = '#B8D4CC';
+const WHITE = '#FFFFFF';
+const BORDER = '#3A6B58';
+const PLACEHOLDER = '#7AADA0';
 
-const VitalsScreen = ({ navigation }: any) => {
+const VitalsScreen = ({ navigation, route }: any) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const { submitting, error } = useSelector((s: RootState) => s.pregnancy);
+    const { user } = useSelector((s: RootState) => s.auth);
+
+    const pregnancyId = route?.params?.pregnancyId || '';
+    const patientName = route?.params?.patientName || 'Patient';
+
     const [vitals, setVitals] = useState({
-        bloodPressure: '',
-        weight: '',
-        hemoglobin: '',
-        temperature: '',
-        pulse: '',
-        notes: '',
+        bpSystolic: '', bpDiastolic: '', weight: '',
+        hemoglobin: '', temperature: '', heartRate: '',
+        oxygenSaturation: '', notes: '',
     });
-    const [loading, setLoading] = useState(false);
 
     const set = (key: string) => (val: string) => setVitals(v => ({ ...v, [key]: val }));
 
-    const handleSubmit = () => {
-        if (!vitals.bloodPressure.trim() || !vitals.weight.trim()) {
-            Alert.alert('Missing Fields', 'Blood pressure and weight are required.');
+    useEffect(() => {
+        if (error) {
+            Alert.alert('Error', error, [{ text: 'OK', onPress: () => dispatch(clearPregnancyError()) }]);
+        }
+    }, [error]);
+
+    const handleSubmit = async () => {
+        if (!vitals.bpSystolic.trim() || !vitals.bpDiastolic.trim()) {
+            Alert.alert('Missing Fields', 'Blood pressure (systolic and diastolic) is required.');
             return;
         }
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        if (!pregnancyId) {
+            Alert.alert('Error', 'No pregnancy selected. Please go back and select a patient.');
+            return;
+        }
+
+        const result = await dispatch(recordVitalsThunk({
+            pregnancy_id: pregnancyId,
+            bp_systolic: parseInt(vitals.bpSystolic, 10) || undefined,
+            bp_diastolic: parseInt(vitals.bpDiastolic, 10) || undefined,
+            heart_rate: vitals.heartRate ? parseInt(vitals.heartRate, 10) : undefined,
+            temperature: vitals.temperature ? parseFloat(vitals.temperature) : undefined,
+            oxygen_saturation: vitals.oxygenSaturation ? parseInt(vitals.oxygenSaturation, 10) : undefined,
+            weight: vitals.weight ? parseFloat(vitals.weight) : undefined,
+            hemoglobin: vitals.hemoglobin ? parseFloat(vitals.hemoglobin) : undefined,
+            notes: vitals.notes.trim() || undefined,
+            recorded_by: user?.id || '',
+        }));
+
+        if (recordVitalsThunk.fulfilled.match(result)) {
             Alert.alert('Saved', 'Vital signs recorded successfully.', [
                 { text: 'OK', onPress: () => navigation.goBack() },
             ]);
-        }, 1000);
+        }
     };
 
     const fields = [
-        { label: 'Blood Pressure', key: 'bloodPressure', placeholder: 'e.g. 120/80 mmHg', required: true },
-        { label: 'Weight (kg)', key: 'weight', placeholder: 'e.g. 58', keyboard: 'numeric' as any, required: true },
+        { label: 'BP Systolic (mmHg)', key: 'bpSystolic', placeholder: 'e.g. 120', keyboard: 'numeric' as any, required: true },
+        { label: 'BP Diastolic (mmHg)', key: 'bpDiastolic', placeholder: 'e.g. 80', keyboard: 'numeric' as any, required: true },
+        { label: 'Weight (kg)', key: 'weight', placeholder: 'e.g. 58', keyboard: 'numeric' as any },
         { label: 'Hemoglobin (g/dL)', key: 'hemoglobin', placeholder: 'e.g. 11.5', keyboard: 'numeric' as any },
-        { label: 'Temperature (°F)', key: 'temperature', placeholder: 'e.g. 98.6', keyboard: 'numeric' as any },
-        { label: 'Pulse (bpm)', key: 'pulse', placeholder: 'e.g. 78', keyboard: 'numeric' as any },
+        { label: 'Temperature (°C)', key: 'temperature', placeholder: 'e.g. 37.0', keyboard: 'numeric' as any },
+        { label: 'Heart Rate (bpm)', key: 'heartRate', placeholder: 'e.g. 78', keyboard: 'numeric' as any },
+        { label: 'Oxygen Saturation (%)', key: 'oxygenSaturation', placeholder: 'e.g. 98', keyboard: 'numeric' as any },
     ];
 
     return (
         <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <StatusBar barStyle="light-content" backgroundColor={PURPLE} />
+            <StatusBar barStyle="light-content" backgroundColor={BG} />
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Text style={styles.back}>←</Text>
@@ -62,36 +90,42 @@ const VitalsScreen = ({ navigation }: any) => {
                 <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView
-                style={styles.body}
-                contentContainerStyle={styles.bodyContent}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}>
+            {!!patientName && (
+                <View style={styles.patientBanner}>
+                    <Text style={styles.patientBannerText}>📋  {patientName}</Text>
+                </View>
+            )}
 
-                <Text style={styles.sectionLabel}>Vital Signs</Text>
+            <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}
+                keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-                {fields.map(f => (
-                    <View key={f.key} style={styles.fieldGroup}>
-                        <Text style={styles.label}>{f.label}{f.required && <Text style={styles.required}> *</Text>}</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={(vitals as any)[f.key]}
-                            onChangeText={set(f.key)}
-                            placeholder={f.placeholder}
-                            placeholderTextColor="#B0B0B0"
-                            keyboardType={f.keyboard || 'default'}
-                        />
-                    </View>
-                ))}
+                <View style={styles.card}>
+                    <Text style={styles.sectionLabel}>Vital Signs</Text>
+                    {fields.map(f => (
+                        <View key={f.key} style={styles.fieldGroup}>
+                            <Text style={styles.label}>
+                                {f.label}{f.required && <Text style={styles.required}> *</Text>}
+                            </Text>
+                            <TextInput
+                                style={styles.input}
+                                value={(vitals as any)[f.key]}
+                                onChangeText={set(f.key)}
+                                placeholder={f.placeholder}
+                                placeholderTextColor={PLACEHOLDER}
+                                keyboardType={f.keyboard || 'default'}
+                            />
+                        </View>
+                    ))}
+                </View>
 
-                <Text style={styles.sectionLabel}>Additional Notes</Text>
-                <View style={styles.fieldGroup}>
+                <View style={styles.card}>
+                    <Text style={styles.sectionLabel}>Notes</Text>
                     <TextInput
                         style={[styles.input, styles.textArea]}
                         value={vitals.notes}
                         onChangeText={set('notes')}
                         placeholder="Any observations or remarks..."
-                        placeholderTextColor="#B0B0B0"
+                        placeholderTextColor={PLACEHOLDER}
                         multiline
                         numberOfLines={4}
                         textAlignVertical="top"
@@ -99,14 +133,11 @@ const VitalsScreen = ({ navigation }: any) => {
                 </View>
 
                 <TouchableOpacity
-                    style={[styles.submitBtn, loading && { opacity: 0.8 }]}
-                    onPress={handleSubmit}
-                    disabled={loading}
-                    activeOpacity={0.9}>
-                    {loading
-                        ? <ActivityIndicator color="#fff" size="small" />
-                        : <Text style={styles.submitText}>Save Vitals</Text>
-                    }
+                    style={[styles.submitBtn, submitting && { opacity: 0.7 }]}
+                    onPress={handleSubmit} disabled={submitting} activeOpacity={0.9}>
+                    {submitting
+                        ? <ActivityIndicator color={BG} size="small" />
+                        : <Text style={styles.submitText}>Save Vitals</Text>}
                 </TouchableOpacity>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -114,63 +145,33 @@ const VitalsScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: '#F8F4FC' },
+    root: { flex: 1, backgroundColor: BG },
     header: {
-        backgroundColor: PURPLE,
-        flexDirection: 'row',
-        alignItems: 'center',
+        backgroundColor: CARD, flexDirection: 'row', alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: Platform.OS === 'ios' ? 56 : 20,
-        paddingBottom: 18,
-        paddingHorizontal: 20,
+        paddingTop: Platform.OS === 'ios' ? 56 : 48,
+        paddingBottom: 16, paddingHorizontal: 20,
+        borderBottomWidth: 1, borderBottomColor: BORDER,
     },
-    back: { fontSize: 22, color: '#fff', fontWeight: '600' },
-    headerTitle: { fontSize: 17, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
+    back: { fontSize: 22, color: GREEN, fontWeight: '600' },
+    headerTitle: { fontSize: 17, fontWeight: '700', color: WHITE, letterSpacing: 0.3 },
+    patientBanner: { backgroundColor: 'rgba(0,229,160,0.1)', paddingHorizontal: 20, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: BORDER },
+    patientBannerText: { color: GREEN, fontSize: 14, fontWeight: '700' },
     body: { flex: 1 },
-    bodyContent: { padding: 20, paddingBottom: 40 },
-    sectionLabel: {
-        fontSize: 11,
-        fontWeight: '700',
-        color: PURPLE,
-        letterSpacing: 1,
-        textTransform: 'uppercase',
-        marginBottom: 12,
-        marginTop: 8,
-    },
-    fieldGroup: { marginBottom: 16 },
-    label: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#444',
-        marginBottom: 7,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    required: { color: PINK },
-    input: {
-        backgroundColor: '#fff',
-        borderWidth: 1.5,
-        borderColor: '#EBEBEB',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 13,
-        fontSize: 15,
-        color: '#1A1A1A',
-    },
-    textArea: { height: 100, textAlignVertical: 'top', paddingTop: 13 },
+    bodyContent: { padding: 16, paddingBottom: 40, gap: 12 },
+    card: { backgroundColor: CARD, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: BORDER },
+    sectionLabel: { fontSize: 11, fontWeight: '700', color: GREEN, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 16 },
+    fieldGroup: { marginBottom: 14 },
+    label: { fontSize: 11, fontWeight: '700', color: DIM, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
+    required: { color: RED },
+    input: { backgroundColor: BG, borderWidth: 1, borderColor: BORDER, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: WHITE },
+    textArea: { height: 100, textAlignVertical: 'top', paddingTop: 12 },
     submitBtn: {
-        backgroundColor: PINK,
-        borderRadius: 12,
-        paddingVertical: 16,
-        alignItems: 'center',
-        marginTop: 12,
-        elevation: 4,
-        shadowColor: PINK,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        backgroundColor: GREEN, borderRadius: 12, paddingVertical: 16,
+        alignItems: 'center', marginTop: 4, elevation: 4,
+        shadowColor: GREEN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
     },
-    submitText: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.4 },
+    submitText: { color: BG, fontSize: 16, fontWeight: '700', letterSpacing: 0.4 },
 });
 
 export default VitalsScreen;
