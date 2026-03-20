@@ -84,7 +84,6 @@ const HomeScreen = ({ navigation, route }: any) => {
     const { pregnancies, loading } = useSelector((s: RootState) => s.pregnancy);
     const { user } = useSelector((s: RootState) => s.auth);
     const [lang, setLang] = useState<'en' | 'hi'>('en');
-    const [activeTab, setActiveTab] = useState('home');
     const t = STRINGS[lang];
 
     const displayName = user?.name || username;
@@ -214,6 +213,13 @@ const HomeScreen = ({ navigation, route }: any) => {
                             <Text style={styles.actionLabelDark}>{t.register}</Text>
                         </TouchableOpacity>
 
+                        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('NearbyPatients')} activeOpacity={0.85}>
+                            <View style={styles.actionIconCircleGreen}>
+                                <Text style={styles.actionEmoji}>📍</Text>
+                            </View>
+                            <Text style={styles.actionLabel}>Nearby\nPatients</Text>
+                        </TouchableOpacity>
+
                         <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('PregnancyList')} activeOpacity={0.85}>
                             <View style={styles.actionIconCircleGreen}>
                                 <Text style={styles.actionEmoji}>📈</Text>
@@ -230,7 +236,7 @@ const HomeScreen = ({ navigation, route }: any) => {
 
                         <TouchableOpacity style={[styles.actionCard, styles.actionCardRed]} onPress={() => navigation.navigate('Emergency')} activeOpacity={0.85}>
                             <View style={styles.actionIconCircleRed}>
-                                <Text style={styles.actionEmoji}>📍</Text>
+                                <Text style={styles.actionEmoji}>🚨</Text>
                             </View>
                             <Text style={styles.actionLabelBold}>{t.emergency}</Text>
                         </TouchableOpacity>
@@ -242,15 +248,19 @@ const HomeScreen = ({ navigation, route }: any) => {
             {/* ── Bottom Tab Bar ── */}
             <View style={styles.tabBar}>
                 {[
-                    { key: 'home', label: t.home, icon: '🏠' },
-                    { key: 'alerts', label: t.alerts, icon: '🔔' },
+                    { key: 'home',     label: t.home,     icon: '🏠' },
+                    { key: 'alerts',   label: t.alerts,   icon: '🔔' },
                     { key: 'settings', label: t.settings, icon: '⚙️' },
                 ].map(tab => (
-                    <TouchableOpacity key={tab.key} style={styles.tabItem} onPress={() => setActiveTab(tab.key)}>
-                        <View style={[styles.tabIconWrap, activeTab === tab.key && styles.tabIconActive]}>
+                    <TouchableOpacity key={tab.key} style={styles.tabItem}
+                        onPress={() => {
+                            if (tab.key === 'alerts')   navigation.navigate('Alerts');
+                            if (tab.key === 'settings') navigation.navigate('Settings');
+                        }}>
+                        <View style={[styles.tabIconWrap, tab.key === 'home' && styles.tabIconActive]}>
                             <Text style={styles.tabIcon}>{tab.icon}</Text>
                         </View>
-                        <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>{tab.label}</Text>
+                        <Text style={[styles.tabLabel, tab.key === 'home' && styles.tabLabelActive]}>{tab.label}</Text>
                     </TouchableOpacity>
                 ))}
             </View>

@@ -19,9 +19,9 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireAuth = true,
-  redirectTo = '/login'
+  redirectTo = '/role-select'
 }) => {
-  const { user, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -41,16 +41,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If authentication is required and user is not authenticated, redirect to login
-  if (requireAuth && !user) {
-    // Save the current location so we can redirect back after login
+  if (requireAuth && !isAuthenticated) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   // If authentication is NOT required and user IS authenticated, redirect away from login page
-  if (!requireAuth && user) {
-    // Redirect to dashboard or the page they were trying to access before login
-    const from = location.state?.from?.pathname || '/';
-    return <Navigate to={from} replace />;
+  if (!requireAuth && isAuthenticated) {
+    const from = (location.state as any)?.from?.pathname;
+    const authPages = ['/login', '/driver/login', '/role-select', '/register', '/drivers/register'];
+    const safeTo = from && !authPages.includes(from) ? from : '/dashboard';
+    return <Navigate to={safeTo} replace />;
   }
 
   // User is authenticated (or auth not required), render children

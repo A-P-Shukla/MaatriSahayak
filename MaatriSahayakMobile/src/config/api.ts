@@ -12,6 +12,8 @@ export const ENDPOINTS = {
     // Auth
     LOGIN: '/asha/login',
     REGISTER: '/asha/register',
+    DRIVER_LOGIN: '/driver/login',
+    DRIVER_REGISTER: '/driver/register',
     REFRESH_TOKEN: '/auth/refresh',
 
     // Pregnancies
@@ -30,6 +32,7 @@ export const ENDPOINTS = {
     // ANC
     RECORD_ANC: '/anc/visits',
     ANC_HISTORY: (id: string) => `/pregnancies/${id}/anc-history`,
+    PROCESS_ANC_CARD: '/anc/process-card',
 
     // Hospitals
     HOSPITALS: '/hospitals',

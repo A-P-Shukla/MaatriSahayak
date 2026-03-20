@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
 import { AuthProvider } from '@hooks/useAuth';
 
-// Components
 import Header from '@components/Header';
 import Sidebar from '@components/Sidebar';
 import Footer from '@components/Footer';
@@ -13,126 +12,148 @@ import ErrorBoundary from '@components/ErrorBoundary';
 import ProtectedRoute from '@components/ProtectedRoute';
 import NotFound from '@components/NotFound';
 
-// Pages
 import Dashboard from '@pages/Dashboard';
 import PregnanciesList from '@pages/PregnanciesList';
 import PregnancyDetails from '@pages/PregnancyDetails';
 import EmergencyAlerts from '@pages/EmergencyAlerts';
 import LiveTracking from '@pages/LiveTracking';
 import Analytics from '@pages/Analytics';
+import AshaWorkers from '@pages/AshaWorkers';
+import AshaWorkerDetails from '@pages/AshaWorkerDetails';
 import Login from '@pages/Login';
+import OfficerRegister from '@pages/OfficerRegister';
+import Drivers from '@pages/Drivers';
+import DriverRegister from '@pages/DriverRegister';
+import DriverDetails from '@pages/DriverDetails';
 
-// Create a React Query client
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30000, // 30 seconds
-      gcTime: 300000, // 5 minutes (cacheTime renamed to gcTime in v5)
+      staleTime: 30000,
+      gcTime: 300000,
       refetchOnWindowFocus: false,
       retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (i) => Math.min(1000 * 2 ** i, 30000),
     },
   },
 });
 
-// Create theme with cool tones
 const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: {
-      main: '#1976d2', // Cool blue
-      light: '#42a5f5',
-      dark: '#1565c0',
-    },
-    secondary: {
-      main: '#9c27b0', // Cool purple
-      light: '#ba68c8',
-      dark: '#7b1fa2',
-    },
-    background: {
-      default: '#f8fafc', // Very light cool gray
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#1e293b', // Cool dark gray
-      secondary: '#64748b', // Cool medium gray
-    },
-    error: {
-      main: '#dc2626', // Cool red
-    },
-    warning: {
-      main: '#f59e0b', // Cool amber
-    },
-    success: {
-      main: '#10b981', // Cool green
-    },
-    info: {
-      main: '#3b82f6', // Cool blue
-    },
+    primary:    { main: '#1B6B4A', light: '#2E8B62', dark: '#0F4A32', contrastText: '#fff' },
+    secondary:  { main: '#E8F5EE', light: '#F0FAF4', dark: '#C8E6D4', contrastText: '#1B6B4A' },
+    background: { default: '#F4F7F5', paper: '#FFFFFF' },
+    text:       { primary: '#1A2E25', secondary: '#5A7A6A' },
+    error:      { main: '#D32F2F' },
+    warning:    { main: '#E65100' },
+    success:    { main: '#1B6B4A' },
+    info:       { main: '#0277BD' },
+    divider:    '#DDE8E2',
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 600,
-    },
-    h2: {
-      fontWeight: 600,
-    },
-    h3: {
-      fontWeight: 600,
-    },
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
+    fontSize: 14,
+    h3: { fontSize: '2.5rem', fontWeight: 700, color: '#1A2E25' },
+    h4: { fontSize: '2rem', fontWeight: 700, color: '#1A2E25' },
+    h5: { fontSize: '1.5rem', fontWeight: 700, color: '#1A2E25' },
+    h6: { fontSize: '1.25rem', fontWeight: 600, color: '#1A2E25' },
+    body1: { fontSize: '1rem', lineHeight: 1.6 },
+    body2: { fontSize: '0.875rem', lineHeight: 1.5 },
   },
-  shape: {
-    borderRadius: 8,
-  },
+  shape: { borderRadius: 12 },
   components: {
     MuiButton: {
       styleOverrides: {
-        root: {
-          textTransform: 'none',
-          fontWeight: 500,
+        root: { 
+          textTransform: 'none', 
+          fontWeight: 600, 
+          borderRadius: 10,
+          fontSize: '0.95rem',
+          padding: '10px 20px',
+        },
+        sizeLarge: {
+          fontSize: '1.05rem',
+          padding: '14px 28px',
         },
       },
     },
-    MuiCard: {
+    MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          border: '1px solid',
-          borderColor: 'rgba(0, 0, 0, 0.08)',
+          backgroundImage: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          border: '1px solid #DDE8E2',
         },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          backgroundColor: '#F4F7F5',
+          color: '#5A7A6A',
+          fontWeight: 700,
+          fontSize: '0.8rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          borderBottom: '2px solid #DDE8E2',
+          padding: '16px',
+        },
+        root: { 
+          borderBottomColor: '#EEF3F0',
+          fontSize: '0.9rem',
+          padding: '16px',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: { 
+        root: { 
+          fontWeight: 600, 
+          fontSize: '0.8rem',
+          height: '28px',
+        } 
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiInputBase-root': {
+            fontSize: '0.95rem',
+          },
+          '& .MuiInputLabel-root': {
+            fontSize: '0.95rem',
+          },
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: { backgroundImage: 'none', backgroundColor: '#FFFFFF' },
       },
     },
   },
 });
 
-/**
- * MainLayout component that wraps protected routes with header, sidebar, and footer
- */
+const DRAWER_WIDTH = 270;
+
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const emergencyCount = 0; // This would come from a real data source
-
+  const emergencyCount = 0;
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Header
-        onMenuClick={() => setSidebarOpen(true)}
-        emergencyCount={emergencyCount}
-      />
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        emergencyCount={emergencyCount}
-      />
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <Header onMenuClick={() => setSidebarOpen(true)} emergencyCount={emergencyCount} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} emergencyCount={emergencyCount} />
       <Box
         component="main"
         sx={{
@@ -140,129 +161,49 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
-          pt: { xs: 7, md: 8 }, // Account for header height
-          pl: { md: '280px' }, // Account for sidebar width on desktop
+          width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          ml: { md: `${DRAWER_WIDTH}px` },
+          pt: { xs: '56px', md: '64px' },
+          overflowX: 'hidden',
         }}
       >
-        <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 } }}>
-          {children}
-        </Box>
+        <Box sx={{ flexGrow: 1, p: { xs: 2, sm: 3, md: 4 }, maxWidth: '100%' }}>{children}</Box>
         <Footer />
       </Box>
     </Box>
   );
 };
 
-/**
- * App component - Root of the application
- */
-const App: React.FC = () => {
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <AuthProvider>
-            <Router
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true,
-              }}
-            >
-              <Routes>
-                {/* Public routes */}
-                <Route
-                  path="/login"
-                  element={
-                    <ProtectedRoute requireAuth={false}>
-                      <Login />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Protected routes with main layout */}
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <Dashboard />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/pregnancies"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <PregnanciesList />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/pregnancies/:id"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <PregnancyDetails />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/emergencies"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <EmergencyAlerts />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tracking"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <LiveTracking />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/analytics"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <Analytics />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* 404 route */}
-                <Route
-                  path="*"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <NotFound />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </Router>
-          </AuthProvider>
-        </ThemeProvider>
-        {process.env.NODE_ENV === 'development' && (
-          <ReactQueryDevtools initialIsOpen={false} />
-        )}
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-};
+const App: React.FC = () => (
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<OfficerRegister />} />
+              <Route path="/drivers" element={<ProtectedRoute><MainLayout><Drivers /></MainLayout></ProtectedRoute>} />
+              <Route path="/drivers/register" element={<DriverRegister />} />
+              <Route path="/drivers/:id" element={<ProtectedRoute><MainLayout><DriverDetails /></MainLayout></ProtectedRoute>} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/dashboard" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
+              <Route path="/pregnancies" element={<ProtectedRoute><MainLayout><PregnanciesList /></MainLayout></ProtectedRoute>} />
+              <Route path="/pregnancies/:id" element={<ProtectedRoute><MainLayout><PregnancyDetails /></MainLayout></ProtectedRoute>} />
+              <Route path="/emergencies" element={<ProtectedRoute><MainLayout><EmergencyAlerts /></MainLayout></ProtectedRoute>} />
+              <Route path="/tracking" element={<ProtectedRoute><MainLayout><LiveTracking /></MainLayout></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><MainLayout><Analytics /></MainLayout></ProtectedRoute>} />
+              <Route path="/asha" element={<ProtectedRoute><MainLayout><AshaWorkers /></MainLayout></ProtectedRoute>} />
+              <Route path="/asha/:id" element={<ProtectedRoute><MainLayout><AshaWorkerDetails /></MainLayout></ProtectedRoute>} />
+              <Route path="*" element={<ProtectedRoute><MainLayout><NotFound /></MainLayout></ProtectedRoute>} />
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
+  </ErrorBoundary>
+);
 
 export default App;

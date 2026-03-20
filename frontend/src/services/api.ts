@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // API configuration from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/dev';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev';
 const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 10000; // 10 seconds default
 const MAX_RETRIES = Number(import.meta.env.VITE_API_MAX_RETRIES) || 3; // 3 retries default
 

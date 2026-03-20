@@ -23,7 +23,7 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
       token_type: string;
       user: User;
     }>>(
-      '/dev/asha/login',
+      '/asha/login',
       {
         email: credentials.email,
         password: credentials.password,
@@ -78,7 +78,7 @@ export const refreshToken = async (): Promise<AuthTokens> => {
     }
 
     const response = await apiClient.post<ApiResponse<AuthTokens>>(
-      '/dev/auth/refresh',
+      '/auth/refresh',
       { refresh_token: refreshToken }
     );
 
@@ -104,7 +104,7 @@ export const getCurrentUser = async (): Promise<User> => {
       throw new Error('No user ID found');
     }
 
-    const response = await apiClient.get<ApiResponse<User>>(`/dev/asha/${storedUser.user_id}`);
+    const response = await apiClient.get<ApiResponse<User>>(`/asha/${storedUser.user_id}`);
 
     if (!response.data.data) {
       throw new Error('Failed to fetch user data');
@@ -127,7 +127,7 @@ export const updateProfile = async (profileData: Partial<User>): Promise<User> =
     }
 
     const response = await apiClient.put<ApiResponse<User>>(
-      `/dev/asha/${storedUser.user_id}`,
+      `/asha/${storedUser.user_id}`,
       profileData
     );
 
@@ -150,11 +150,17 @@ export const registerASHA = async (registrationData: {
   phone: string;
   email: string;
   password: string;
+  age: number;
   district: string;
+  village: string;
+  block?: string;
+  qualification?: string;
+  experience_years?: number;
+  languages?: string[];
 }): Promise<User> => {
   try {
     const response = await apiClient.post<ApiResponse<User>>(
-      '/dev/asha/register',
+      '/asha/register',
       registrationData
     );
 

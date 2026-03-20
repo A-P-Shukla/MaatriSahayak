@@ -21,7 +21,7 @@ export const getEmergencies = async (
     if (filters.limit) params.append('limit', filters.limit.toString());
 
     const response = await apiClient.get<ApiResponse<Emergency[]>>(
-      `/dev/emergencies?${params.toString()}`
+      `/emergencies?${params.toString()}`
     );
 
     return response.data.data || [];
@@ -34,7 +34,7 @@ export const getEmergencies = async (
 export const getEmergencyById = async (emergencyId: string): Promise<Emergency> => {
   try {
     const response = await apiClient.get<ApiResponse<Emergency>>(
-      `/dev/emergency/${emergencyId}/status`
+      `/emergency/${emergencyId}/status`
     );
 
     if (!response.data.data) {
@@ -52,13 +52,42 @@ export const getEmergenciesByPregnancyId = async (
   pregnancyId: string
 ): Promise<Emergency[]> => {
   try {
-    const response = await apiClient.get<ApiResponse<Emergency[]>>(
-      `/dev/pregnancies/${pregnancyId}/emergencies`
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/pregnancies/${pregnancyId}/emergencies`
     );
 
-    return response.data.data || [];
+    const rawData = response.data.data;
+    
+    // Handle different response formats
+    let emergenciesArray: any[] = [];
+    if (Array.isArray(rawData)) {
+      emergenciesArray = rawData;
+    } else if (rawData && Array.isArray(rawData.emergencies)) {
+      emergenciesArray = rawData.emergencies;
+    } else if (rawData && Array.isArray(rawData.items)) {
+      emergenciesArray = rawData.items;
+    }
+
+    // Map to Emergency type with field name mapping
+    return emergenciesArray.map((item: any) => ({
+      event_id: item.event_id || item.id,
+      pregnancy_id: item.pregnancy_id,
+      patient_name: item.patient_name,
+      event_type: item.event_type,
+      severity_level: item.severity_level,
+      status: item.status,
+      trigger_timestamp: item.trigger_timestamp || item.created_at,
+      response_time_seconds: item.response_time_seconds || item.response_time,
+      location: item.location,
+      symptoms: item.symptoms,
+      ambulance_id: item.ambulance_id,
+      hospital_id: item.hospital_id,
+      asha_worker_id: item.asha_worker_id,
+      notes: item.notes,
+    }));
   } catch (error) {
-    throw new Error(handleApiError(error));
+    console.error('Error fetching emergencies for pregnancy:', error);
+    return [];
   }
 };
 
@@ -75,7 +104,7 @@ export const triggerEmergency = async (emergencyData: {
 }): Promise<Emergency> => {
   try {
     const response = await apiClient.post<ApiResponse<Emergency>>(
-      '/dev/emergency',
+      '/emergency',
       emergencyData
     );
 
@@ -93,7 +122,7 @@ export const triggerEmergency = async (emergencyData: {
 export const completeEmergency = async (emergencyId: string): Promise<Emergency> => {
   try {
     const response = await apiClient.post<ApiResponse<Emergency>>(
-      `/dev/emergency/${emergencyId}/complete`,
+      `/emergency/${emergencyId}/complete`,
       {}
     );
 
@@ -119,7 +148,7 @@ export const updateEmergencyStatus = async (
     }
 
     const response = await apiClient.put<ApiResponse<Emergency>>(
-      `/dev/emergency/${emergencyId}/status`,
+      `/emergency/${emergencyId}/status`,
       { status }
     );
 
@@ -137,7 +166,7 @@ export const updateEmergencyStatus = async (
 export const getEmergencyStats = async (): Promise<EmergencyStats> => {
   try {
     const response = await apiClient.get<ApiResponse<EmergencyStats>>(
-      '/dev/analytics'
+      '/analytics'
     );
 
     return response.data.data || {

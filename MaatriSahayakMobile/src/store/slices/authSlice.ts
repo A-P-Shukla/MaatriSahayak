@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { AuthService, LoginPayload, RegisterPayload, AuthUser } from '../../services/authService';
+import { AuthService, LoginPayload, RegisterPayload, DriverRegisterPayload, AuthUser } from '../../services/authService';
 import { StorageService } from '../../services/storage';
 
 interface AuthState {
@@ -41,6 +41,18 @@ export const registerThunk = createAsyncThunk(
     async (payload: RegisterPayload, { rejectWithValue }) => {
         try {
             await AuthService.register(payload);
+        } catch (err: any) {
+            const msg = err.response?.data?.message || 'Registration failed. Please try again.';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const driverRegisterThunk = createAsyncThunk(
+    'auth/driverRegister',
+    async (payload: DriverRegisterPayload, { rejectWithValue }) => {
+        try {
+            await AuthService.registerDriver(payload);
         } catch (err: any) {
             const msg = err.response?.data?.message || 'Registration failed. Please try again.';
             return rejectWithValue(msg);
@@ -110,6 +122,19 @@ const authSlice = createSlice({
             state.loading = false;
         });
         builder.addCase(registerThunk.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload as string;
+        });
+
+        // Driver Register
+        builder.addCase(driverRegisterThunk.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        });
+        builder.addCase(driverRegisterThunk.fulfilled, (state) => {
+            state.loading = false;
+        });
+        builder.addCase(driverRegisterThunk.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload as string;
         });

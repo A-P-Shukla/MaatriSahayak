@@ -153,8 +153,77 @@ const Analytics: React.FC = () => {
   };
 
   // Handle export
-  const handleExport = () => {
-    alert('Export functionality will download a PDF/Excel report with all analytics data');
+  const handleExport = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL || 'https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev'}/analytics/export`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          },
+          body: JSON.stringify({
+            start_date: filters.start_date,
+            end_date: filters.end_date,
+            format: 'pdf',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `maatrisahayak-analytics-${filters.start_date}-to-${filters.end_date}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export failed:', error);
+      // Fallback: Generate CSV export
+      const csvData = generateCSVExport(displayData);
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `maatrisahayak-analytics-${filters.start_date}-to-${filters.end_date}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }
+  };
+
+  // Generate CSV export as fallback
+  const generateCSVExport = (data: any) => {
+    const lines = [
+      'MaatriSahayak Analytics Report',
+      `Period: ${filters.start_date} to ${filters.end_date}`,
+      '',
+      'Key Metrics',
+      `Average Response Time,${formatMinutes(data.response_time_metrics.average)}`,
+      `Median Response Time,${formatMinutes(data.response_time_metrics.median)}`,
+      `Total Emergencies,${data.outcomes.total}`,
+      `Success Rate,${data.outcomes.success_rate.toFixed(1)}%`,
+      '',
+      'Outcomes',
+      `Successful,${data.outcomes.successful}`,
+      `Delayed,${data.outcomes.delayed}`,
+      `Failed,${data.outcomes.failed}`,
+      '',
+      'District Performance',
+      'District,Emergency Count,Avg Response Time,Success Rate',
+      ...data.by_district.map((d: any) => 
+        `${d.district},${d.emergency_count},${formatMinutes(d.average_response_time)},${d.success_rate.toFixed(1)}%`
+      ),
+    ];
+    return lines.join('\n');
   };
 
   return (

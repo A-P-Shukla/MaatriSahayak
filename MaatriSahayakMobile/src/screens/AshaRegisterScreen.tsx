@@ -233,13 +233,26 @@ const AshaRegisterScreen = ({ navigation }: any) => {
             district: form.district, password: form.password,
         }));
         if (registerThunk.fulfilled.match(result)) {
-            navigation.navigate('AshaIdCard', {
-                fullName: form.fullName,
-                phone: form.phone,
-                district: form.district,
-                email: form.email,
-                photo: photo || undefined,
-            });
+            // Show success popup
+            Alert.alert(
+                '✅ Registration Successful!',
+                `Welcome ${form.fullName}!\n\nYour ASHA Worker account has been created successfully. You can now access nearby patients and start providing care.\n\nYour registration details have been sent for verification.`,
+                [
+                    {
+                        text: 'View Nearby Patients',
+                        onPress: () => {
+                            navigation.navigate('AshaIdCard', {
+                                fullName: form.fullName,
+                                phone: form.phone,
+                                district: form.district,
+                                email: form.email,
+                                photo: photo || undefined,
+                            });
+                        },
+                    },
+                ],
+                { cancelable: false }
+            );
         }
     };
 

@@ -48,6 +48,13 @@ export type {
   HospitalType,
 } from './hospital';
 
+// ASHA Worker types
+export type {
+  AshaWorker,
+  AshaFilters,
+  AshaStats,
+} from './asha';
+
 // Analytics types
 export type {
   ResponseTimeMetrics,

@@ -40,7 +40,7 @@ export const registerHospital = async (hospitalData: {
 }): Promise<Hospital> => {
   try {
     const response = await apiClient.post<ApiResponse<Hospital>>(
-      '/dev/hospitals',
+      '/hospitals',
       hospitalData
     );
 
@@ -65,7 +65,7 @@ export const getHospitals = async (
     if (filters.type) params.append('type', filters.type);
 
     const response = await apiClient.get<ApiResponse<Hospital[]>>(
-      `/dev/hospitals?${params.toString()}`
+      `/hospitals?${params.toString()}`
     );
 
     return response.data.data || [];
@@ -83,7 +83,7 @@ export const updateHospitalCapacity = async (
 ): Promise<Hospital> => {
   try {
     const response = await apiClient.put<ApiResponse<Hospital>>(
-      `/dev/hospitals/${hospitalId}/capacity`,
+      `/hospitals/${hospitalId}/capacity`,
       capacityData
     );
 
@@ -101,7 +101,7 @@ export const updateHospitalCapacity = async (
 export const getHospitalCapacity = async (): Promise<any> => {
   try {
     const response = await apiClient.get<ApiResponse<any>>(
-      '/dev/hospitals/capacity'
+      '/hospitals/capacity'
     );
 
     return response.data.data || null;

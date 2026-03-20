@@ -91,4 +91,22 @@ export const PregnancyService = {
         const { data } = await api.get(ENDPOINTS.EMERGENCIES);
         return data.data || [];
     },
+
+    async processAncCard(pregnancyId: string, imageBase64: string, autoUpdate = false): Promise<any> {
+        const { data } = await api.post(ENDPOINTS.PROCESS_ANC_CARD, {
+            pregnancy_id: pregnancyId,
+            image_data: imageBase64,
+            auto_update: autoUpdate,
+        });
+        return data.data;
+    },
+
+    async getNearbyHospitals(district?: string): Promise<any[]> {
+        const params = district ? `?district=${encodeURIComponent(district)}` : '';
+        const { data } = await api.get(`${ENDPOINTS.HOSPITALS}${params}`);
+        const result = data.data;
+        if (Array.isArray(result)) return result;
+        if (result && Array.isArray(result.hospitals)) return result.hospitals;
+        return [];
+    },
 };

@@ -23,13 +23,45 @@ export const getPregnancies = async (
       params.append('sort', `${filters.sort_field}:${filters.sort_order}`);
     }
 
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Pregnancy>>>(
-      `/dev/pregnancies?${params.toString()}`
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/pregnancies?${params.toString()}`
     );
 
-    return response.data.data || {
-      items: [],
-      total: 0,
+    // Handle both array and nested object response formats
+    let rawItems: any[] = [];
+    const data = response.data.data;
+    
+    if (Array.isArray(data)) {
+      rawItems = data;
+    } else if (data && Array.isArray(data.pregnancies)) {
+      rawItems = data.pregnancies;
+    } else if (data && data.items) {
+      rawItems = data.items;
+    }
+
+    // Map backend field names to frontend field names
+    const items: Pregnancy[] = rawItems.map((item: any) => ({
+      pregnancy_id: item.id || item.pregnancy_id,
+      patient_name: item.patient_name,
+      age: item.age,
+      phone: item.phone,
+      district: item.district,
+      village: item.village,
+      lmp_date: item.lmp_date,
+      edd: item.edd,
+      blood_type: item.blood_type,
+      asha_worker_id: item.asha_worker_id,
+      risk_score: item.risk_score || 0,
+      risk_category: (item.risk_level || item.risk_category || 'low').toLowerCase() as any,
+      current_status: (item.status || item.current_status || 'active').toLowerCase() as any,
+      medical_history: item.medical_history,
+      registration_date: item.created_at || item.registration_date,
+      last_updated: item.updated_at || item.last_updated,
+    }));
+
+    return {
+      items,
+      total: items.length,
       page: filters.page || 1,
       limit: filters.limit || 20,
       hasMore: false,
@@ -42,15 +74,37 @@ export const getPregnancies = async (
 // Get detailed information about a specific pregnancy
 export const getPregnancyById = async (pregnancyId: string): Promise<Pregnancy> => {
   try {
-    const response = await apiClient.get<ApiResponse<Pregnancy>>(
-      `/dev/pregnancies/${pregnancyId}`
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/pregnancies/${pregnancyId}`
     );
 
     if (!response.data.data) {
       throw new Error('Pregnancy not found');
     }
 
-    return response.data.data;
+    const item = response.data.data;
+
+    // Map backend field names to frontend field names
+    const pregnancy: Pregnancy = {
+      pregnancy_id: item.id || item.pregnancy_id,
+      patient_name: item.patient_name,
+      age: item.age,
+      phone: item.phone,
+      district: item.district,
+      village: item.village,
+      lmp_date: item.lmp_date,
+      edd: item.edd,
+      blood_type: item.blood_type,
+      asha_worker_id: item.asha_worker_id,
+      risk_score: item.risk_score || 0,
+      risk_category: (item.risk_level || item.risk_category || 'low').toLowerCase() as any,
+      current_status: (item.status || item.current_status || 'active').toLowerCase() as any,
+      medical_history: item.medical_history,
+      registration_date: item.created_at || item.registration_date,
+      last_updated: item.updated_at || item.last_updated,
+    };
+
+    return pregnancy;
   } catch (error) {
     throw new Error(handleApiError(error));
   }
@@ -62,7 +116,7 @@ export const registerPregnancy = async (
 ): Promise<Pregnancy> => {
   try {
     const response = await apiClient.post<ApiResponse<Pregnancy>>(
-      '/dev/pregnancies',
+      '/pregnancies',
       pregnancyData
     );
 
@@ -79,13 +133,40 @@ export const registerPregnancy = async (
 // Get vital signs for a pregnancy
 export const getVitalsByPregnancyId = async (pregnancyId: string): Promise<VitalSigns[]> => {
   try {
-    const response = await apiClient.get<ApiResponse<VitalSigns[]>>(
-      `/dev/pregnancies/${pregnancyId}/vitals-history`
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/pregnancies/${pregnancyId}/vitals-history`
     );
 
-    return response.data.data || [];
+    const rawData = response.data.data;
+    
+    // Handle different response formats
+    let vitalsArray: any[] = [];
+    if (Array.isArray(rawData)) {
+      vitalsArray = rawData;
+    } else if (rawData && Array.isArray(rawData.vitals)) {
+      vitalsArray = rawData.vitals;
+    } else if (rawData && Array.isArray(rawData.items)) {
+      vitalsArray = rawData.items;
+    }
+
+    // Map to VitalSigns type
+    return vitalsArray.map((item: any) => ({
+      vital_id: item.vital_id || item.id,
+      pregnancy_id: item.pregnancy_id,
+      bp_systolic: item.bp_systolic || item.systolic,
+      bp_diastolic: item.bp_diastolic || item.diastolic,
+      heart_rate: item.heart_rate,
+      temperature: item.temperature,
+      weight: item.weight,
+      hemoglobin: item.hemoglobin,
+      blood_sugar: item.blood_sugar,
+      notes: item.notes,
+      recorded_by: item.recorded_by || item.asha_worker_id,
+      timestamp: item.timestamp || item.recorded_at || item.created_at,
+    }));
   } catch (error) {
-    throw new Error(handleApiError(error));
+    console.error('Error fetching vitals:', error);
+    return [];
   }
 };
 
@@ -95,7 +176,7 @@ export const recordVitals = async (
 ): Promise<VitalSigns> => {
   try {
     const response = await apiClient.post<ApiResponse<VitalSigns>>(
-      '/dev/vitals',
+      '/vitals',
       vitalsData
     );
 
@@ -113,7 +194,7 @@ export const recordVitals = async (
 export const getPregnancyStats = async (): Promise<PregnancyStats> => {
   try {
     const response = await apiClient.get<ApiResponse<PregnancyStats>>(
-      '/dev/analytics'
+      '/analytics'
     );
 
     return response.data.data || {
@@ -131,7 +212,7 @@ export const getPregnancyStats = async (): Promise<PregnancyStats> => {
 export const getANCHistory = async (pregnancyId: string): Promise<any[]> => {
   try {
     const response = await apiClient.get<ApiResponse<any[]>>(
-      `/dev/pregnancies/${pregnancyId}/anc-history`
+      `/pregnancies/${pregnancyId}/anc-history`
     );
 
     return response.data.data || [];
@@ -144,7 +225,7 @@ export const getANCHistory = async (pregnancyId: string): Promise<any[]> => {
 export const getRiskTrends = async (pregnancyId: string): Promise<any> => {
   try {
     const response = await apiClient.get<ApiResponse<any>>(
-      `/dev/pregnancies/${pregnancyId}/risk-trends`
+      `/pregnancies/${pregnancyId}/risk-trends`
     );
 
     return response.data.data || null;
@@ -157,7 +238,7 @@ export const getRiskTrends = async (pregnancyId: string): Promise<any> => {
 export const recordANCVisit = async (visitData: any): Promise<any> => {
   try {
     const response = await apiClient.post<ApiResponse<any>>(
-      '/dev/anc/visits',
+      '/anc/visits',
       visitData
     );
 
@@ -178,7 +259,7 @@ export const updatePregnancy = async (
 ): Promise<Pregnancy> => {
   try {
     const response = await apiClient.put<ApiResponse<Pregnancy>>(
-      `/dev/pregnancies/${pregnancyId}`,
+      `/pregnancies/${pregnancyId}`,
       updateData
     );
 

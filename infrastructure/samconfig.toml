@@ -1,0 +1,19 @@
+version = 0.1
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "maatrisahayak-v2"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-kq7wedjfb42t"
+s3_prefix = "maatrisahayak-v2"
+region = "ap-south-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Environment=\"dev\""
+image_repositories = []
+disable_rollback = true
+
+[default.build]
+[default.build.parameters]
+cached = true
+parallel = true

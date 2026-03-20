@@ -1,28 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Typography,
-  Paper,
-  Chip,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  CircularProgress,
-  Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Tooltip,
+  Box, Typography, Paper, Chip, MenuItem, Select, FormControl, InputLabel,
+  CircularProgress, Alert, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, IconButton, Tooltip, Card, CardContent,
+  Stack, Grid, useTheme, useMediaQuery,
 } from '@mui/material';
-import {
-  Refresh as RefreshIcon,
-  Visibility as VisibilityIcon,
-} from '@mui/icons-material';
+import { Refresh as RefreshIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import { useEmergencies } from '../hooks/useEmergencies';
 import EmergencyDetailsModal from '../components/EmergencyDetailsModal';
 import FilterBar from '../components/FilterBar';
@@ -30,155 +13,106 @@ import SearchInput from '../components/SearchInput';
 import StatusFilter from '../components/StatusFilter';
 import type { EmergencyStatus, SeverityLevel, EmergencyFilters } from '../types';
 
-/**
- * Emergency Alerts page - Real-time monitoring of emergencies
- * Auto-refreshes every 10 seconds
- */
 const EmergencyAlerts: React.FC = () => {
-  // Filter state
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const [filters, setFilters] = useState<EmergencyFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Modal state
   const [selectedEmergencyId, setSelectedEmergencyId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Handle opening modal
-  const handleOpenModal = (emergencyId: string) => {
-    setSelectedEmergencyId(emergencyId);
-    setModalOpen(true);
-  };
-
-  // Handle closing modal
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setSelectedEmergencyId(null);
-  };
-
-  // Fetch emergencies with auto-refresh
   const { data: emergencies = [], isLoading, isError, error, refetch } = useEmergencies(filters);
 
-  // Filter emergencies by search query (patient name)
-  const filteredEmergencies = emergencies.filter((emergency) =>
-    emergency.patient_name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredEmergencies = emergencies.filter((e) =>
+    e.patient_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Count active emergencies
-  const activeCount = emergencies.filter(
-    (e) => e.status !== 'completed'
-  ).length;
+  const activeCount = emergencies.filter((e) => e.status !== 'completed').length;
 
-  // Get status color
-  const getStatusColor = (status: EmergencyStatus): 'default' | 'primary' | 'warning' | 'success' | 'error' => {
-    switch (status) {
-      case 'initiated':
-        return 'primary';
-      case 'dispatched':
-        return 'warning';
-      case 'in_transit':
-        return 'warning';
-      case 'arrived':
-        return 'success';
-      case 'completed':
-        return 'default';
-      default:
-        return 'default';
-    }
+  const getStatusColor = (s: EmergencyStatus): 'default' | 'primary' | 'warning' | 'success' | 'error' => {
+    if (s === 'initiated') return 'primary';
+    if (s === 'dispatched' || s === 'in_transit') return 'warning';
+    if (s === 'arrived') return 'success';
+    if (s === 'completed') return 'default';
+    return 'default';
   };
 
-  // Get severity color
-  const getSeverityColor = (severity: SeverityLevel): 'default' | 'info' | 'warning' | 'error' => {
-    switch (severity) {
-      case 'low':
-        return 'info';
-      case 'medium':
-        return 'warning';
-      case 'high':
-        return 'warning';
-      case 'critical':
-        return 'error';
-      default:
-        return 'default';
-    }
+  const getSeverityColor = (s: SeverityLevel): 'default' | 'info' | 'warning' | 'error' => {
+    if (s === 'low') return 'info';
+    if (s === 'medium' || s === 'high') return 'warning';
+    if (s === 'critical') return 'error';
+    return 'default';
   };
 
-  // Format timestamp
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const formatTimestamp = (ts: string) =>
+    new Date(ts).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  // Format response time
-  const formatResponseTime = (seconds?: number) => {
-    if (!seconds) return 'N/A';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
+  const formatResponseTime = (s?: number) => {
+    if (!s) return 'N/A';
+    return `${Math.floor(s / 60)}m ${s % 60}s`;
   };
 
   return (
-    <Box>
-      {/* Page header */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Box sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+      {/* Header */}
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: { xs: 'flex-start', sm: 'center' },
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 2,
+        mb: 3,
+      }}>
         <Box>
-          <Typography variant="h4" fontWeight={600} gutterBottom>
+          <Typography variant="h4" fontWeight={700} sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }}>
             Emergency Alerts
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Monitor active emergencies and review emergency history in real-time
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Monitor active emergencies in real-time
           </Typography>
         </Box>
-        <Tooltip title="Refresh data">
-          <IconButton onClick={() => refetch()} color="primary">
+        <Tooltip title="Refresh">
+          <IconButton onClick={() => refetch()} color="primary" sx={{ border: '1px solid', borderColor: 'divider' }}>
             <RefreshIcon />
           </IconButton>
         </Tooltip>
       </Box>
 
-      {/* Active emergencies count */}
+      {/* Active count banner */}
       <Paper
         sx={{
           p: 2,
           mb: 3,
+          borderRadius: 2,
           border: '1px solid',
           borderColor: activeCount > 0 ? 'error.main' : 'success.main',
-          borderRadius: 2,
-          bgcolor: activeCount > 0 ? 'error.lighter' : 'success.lighter',
+          bgcolor: activeCount > 0 ? 'rgba(211,47,47,0.05)' : 'rgba(27,107,74,0.05)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6" fontWeight={600}>
-            Active Emergencies: {activeCount}
+        <Box>
+          <Typography variant="h6" fontWeight={700} color={activeCount > 0 ? 'error.main' : 'success.main'}>
+            {activeCount > 0 ? `${activeCount} Active Emergency${activeCount > 1 ? 'ies' : ''}` : '✓ All Clear'}
           </Typography>
-          <Chip
-            label={activeCount > 0 ? `${activeCount} Active` : 'All Clear'}
-            color={activeCount > 0 ? 'error' : 'success'}
-            size="medium"
-          />
+          <Typography variant="caption" color="text.secondary">Auto-refreshes every 10 seconds</Typography>
         </Box>
+        <Chip
+          label={activeCount > 0 ? `${activeCount} Active` : 'All Clear'}
+          color={activeCount > 0 ? 'error' : 'success'}
+        />
       </Paper>
 
-      {/* Filters section */}
-      <FilterBar
-        onClear={() => {
-          setFilters({});
-          setSearchQuery('');
-        }}
-      >
-        {/* Search */}
+      {/* Filters */}
+      <FilterBar onClear={() => { setFilters({}); setSearchQuery(''); }}>
         <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Search by patient name..."
-          fullWidth={false}
+          placeholder="Search patient..."
+          fullWidth={isMobile}
         />
-
-        {/* Status filter using chips */}
         <StatusFilter
           label="Status"
           options={[
@@ -189,18 +123,14 @@ const EmergencyAlerts: React.FC = () => {
             { value: 'completed', label: 'Completed', color: 'default' },
           ]}
           selectedValue={filters.status || ''}
-          onChange={(value) => setFilters({ ...filters, status: value as EmergencyStatus || undefined })}
+          onChange={(v) => setFilters({ ...filters, status: v as EmergencyStatus || undefined })}
         />
-
-        {/* Severity filter */}
-        <FormControl size="small" sx={{ minWidth: 150 }}>
+        <FormControl size="small" sx={{ minWidth: 130 }}>
           <InputLabel>Severity</InputLabel>
           <Select
             value={filters.severity_level || ''}
             label="Severity"
-            onChange={(e) =>
-              setFilters({ ...filters, severity_level: e.target.value as SeverityLevel || undefined })
-            }
+            onChange={(e) => setFilters({ ...filters, severity_level: e.target.value as SeverityLevel || undefined })}
           >
             <MenuItem value="">All</MenuItem>
             <MenuItem value="low">Low</MenuItem>
@@ -211,51 +141,71 @@ const EmergencyAlerts: React.FC = () => {
         </FormControl>
       </FilterBar>
 
-      {/* Emergency list */}
-      <Paper sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-        <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" fontWeight={600}>
-            Emergency Events ({filteredEmergencies.length})
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Auto-refreshes every 10 seconds
-          </Typography>
+      {/* Content */}
+      <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
+        <Box sx={{ px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" fontWeight={600}>Emergency Events</Typography>
+          <Chip label={`${filteredEmergencies.length} records`} size="small" color="primary" variant="outlined" />
         </Box>
 
-        {/* Loading state */}
         {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
             <CircularProgress />
           </Box>
         )}
 
-        {/* Error state */}
         {isError && (
           <Box sx={{ p: 3 }}>
             <Alert severity="error">
-              Failed to load emergencies: {error instanceof Error ? error.message : 'Unknown error'}
+              {error instanceof Error ? error.message : 'Failed to load emergencies'}
             </Alert>
           </Box>
         )}
 
-        {/* Empty state */}
         {!isLoading && !isError && filteredEmergencies.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: 6 }}>
-            <Typography variant="body1" color="text.secondary" gutterBottom>
-              No emergencies found
-            </Typography>
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Typography variant="body1" color="text.secondary">No emergencies found</Typography>
             <Typography variant="caption" color="text.secondary">
-              {searchQuery || filters.status || filters.severity_level
-                ? 'Try adjusting your filters'
-                : 'All systems are operating normally'}
+              {searchQuery || filters.status ? 'Try adjusting your filters' : 'All systems operating normally'}
             </Typography>
           </Box>
         )}
 
-        {/* Emergency table */}
-        {!isLoading && !isError && filteredEmergencies.length > 0 && (
-          <TableContainer>
-            <Table>
+        {/* Mobile: Cards */}
+        {!isLoading && !isError && filteredEmergencies.length > 0 && isMobile && (
+          <Box sx={{ p: 2 }}>
+            <Grid container spacing={2}>
+              {filteredEmergencies.map((e) => (
+                <Grid item xs={12} key={e.event_id}>
+                  <Card
+                    variant="outlined"
+                    sx={{ cursor: 'pointer', '&:hover': { borderColor: 'error.main', boxShadow: 2 }, transition: 'all 0.2s' }}
+                    onClick={() => { setSelectedEmergencyId(e.event_id); setModalOpen(true); }}
+                  >
+                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Typography variant="subtitle1" fontWeight={600}>{e.patient_name}</Typography>
+                        <Chip label={e.severity_level.toUpperCase()} color={getSeverityColor(e.severity_level)} size="small" />
+                      </Box>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+                        <Chip label={e.status.replace('_', ' ').toUpperCase()} color={getStatusColor(e.status)} size="small" />
+                        <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>{e.event_type}</Typography>
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatTimestamp(e.trigger_timestamp)} · Response: {formatResponseTime(e.response_time_seconds)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
+
+        {/* Desktop: Table */}
+        {!isLoading && !isError && filteredEmergencies.length > 0 && !isMobile && (
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Patient</TableCell>
@@ -268,55 +218,23 @@ const EmergencyAlerts: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredEmergencies.map((emergency) => (
-                  <TableRow
-                    key={emergency.event_id}
-                    hover
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
+                {filteredEmergencies.map((e) => (
+                  <TableRow key={e.event_id} hover sx={{ '&:last-child td': { border: 0 } }}>
                     <TableCell>
-                      <Typography variant="body2" fontWeight={500}>
-                        {emergency.patient_name}
-                      </Typography>
-                      {emergency.patient_village && (
-                        <Typography variant="caption" color="text.secondary">
-                          {emergency.patient_village}
-                        </Typography>
-                      )}
+                      <Typography variant="body2" fontWeight={500}>{e.patient_name}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={emergency.severity_level.toUpperCase()}
-                        color={getSeverityColor(emergency.severity_level)}
-                        size="small"
-                      />
+                      <Chip label={e.severity_level.toUpperCase()} color={getSeverityColor(e.severity_level)} size="small" />
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={emergency.status.replace('_', ' ').toUpperCase()}
-                        color={getStatusColor(emergency.status)}
-                        size="small"
-                      />
+                      <Chip label={e.status.replace('_', ' ').toUpperCase()} color={getStatusColor(e.status)} size="small" />
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">{emergency.event_type}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {formatTimestamp(emergency.trigger_timestamp)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {formatResponseTime(emergency.response_time_seconds)}
-                      </Typography>
-                    </TableCell>
+                    <TableCell><Typography variant="body2">{e.event_type}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{formatTimestamp(e.trigger_timestamp)}</Typography></TableCell>
+                    <TableCell><Typography variant="body2">{formatResponseTime(e.response_time_seconds)}</Typography></TableCell>
                     <TableCell align="center">
                       <Tooltip title="View details">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenModal(emergency.event_id)}
-                        >
+                        <IconButton size="small" onClick={() => { setSelectedEmergencyId(e.event_id); setModalOpen(true); }}>
                           <VisibilityIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
@@ -329,11 +247,10 @@ const EmergencyAlerts: React.FC = () => {
         )}
       </Paper>
 
-      {/* Emergency Details Modal */}
       <EmergencyDetailsModal
         emergencyId={selectedEmergencyId}
         open={modalOpen}
-        onClose={handleCloseModal}
+        onClose={() => { setModalOpen(false); setSelectedEmergencyId(null); }}
       />
     </Box>
   );

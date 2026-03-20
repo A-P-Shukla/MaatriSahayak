@@ -1087,5 +1087,660 @@ Remember:
 
 ---
 
+## 🚑 UNIFIED APP: ASHA + DRIVER IMPLEMENTATION (3-4 Days)
+
+### Overview
+**Goal**: Extend mobile app to support both ASHA workers AND ambulance drivers with role-based navigation
+**Priority**: HIGH - Critical for complete emergency workflow demonstration
+**Timeline**: 3-4 days
+
+### Why This Matters
+- **Complete Emergency Workflow**: ASHA triggers → Driver accepts → Patient transported → Hospital receives
+- **Real-Time Coordination**: Live tracking, instant notifications between stakeholders
+- **Demo Impact**: Show end-to-end emergency response in action
+- **Scalable Architecture**: Role-based system supports future roles (Hospital Staff, Admin)
+
+---
+
+### 📋 PHASE 1: Backend Changes (Day 1)
+**Time**: 8-10 hours
+
+#### New Lambda Functions (6 functions)
+
+**1. register_driver**
+```python
+# Registers ambulance driver with vehicle assignment
+# Input: name, phone, license_number, license_photo, ambulance_id
+# Output: driver_id, user credentials
+# DynamoDB: Drivers table
+```
+
+**2. get_driver_profile**
+```python
+# Fetches driver profile and assigned ambulance
+# Input: driver_id
+# Output: driver details, ambulance info, stats (rating, total_rides)
+```
+
+**3. update_driver_status**
+```python
+# Updates driver availability
+# Input: driver_id, status (AVAILABLE/ON_RIDE/OFFLINE)
+# Output: updated status
+```
+
+**4. get_assigned_emergencies**
+```python
+# Gets emergencies assigned to driver's ambulance
+# Input: ambulance_id, status filter
+# Output: list of emergency events with patient details
+```
+
+**5. accept_emergency**
+```python
+# Driver accepts emergency request
+# Input: emergency_id, driver_id
+# Output: patient details, navigation route, hospital info
+# Updates: EmergencyEvents status, Ambulance status
+```
+
+**6. complete_ride**
+```python
+# Marks emergency as completed
+# Input: emergency_id, outcome, notes, hospital_reached_at
+# Output: ride summary, duration, distance
+# Updates: Driver stats, Ambulance availability
+```
+
+#### DynamoDB Schema Updates
+
+**New Table: Drivers**
+```json
+{
+  "driverId": "drv_xxx",
+  "userId": "cognito_sub",
+  "name": "string",
+  "phone": "string",
+  "photo": "s3://...",
+  "licenseNumber": "string",
+  "licensePhotoUrl": "s3://...",
+  "ambulanceId": "amb_xxx",
+  "status": "AVAILABLE | ON_RIDE | OFFLINE",
+  "currentLocation": {
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "lastUpdated": "timestamp"
+  },
+  "rating": 4.5,
+  "totalRides": 0,
+  "createdAt": "timestamp"
+}
+```
+
+**Update Table: Ambulances**
+```json
+{
+  // Existing fields...
+  "assignedDriverId": "drv_xxx",
+  "driverName": "string",
+  "driverPhone": "string"
+}
+```
+
+**Update Table: EmergencyEvents**
+```json
+{
+  // Existing fields...
+  "driverAcceptedAt": "timestamp",
+  "driverArrivedAt": "timestamp",
+  "patientPickedAt": "timestamp",
+  "hospitalReachedAt": "timestamp"
+}
+```
+
+#### Cognito User Pool Updates
+```
+custom:role → "ASHA" | "DRIVER" | "HOSPITAL"
+custom:ashaId → "asha_xxx" (if ASHA)
+custom:driverId → "drv_xxx" (if DRIVER)
+custom:ambulanceId → "amb_xxx" (if DRIVER)
+```
+
+**Day 1 Checklist**:
+- [ ] Create 6 new Lambda functions
+- [ ] Create Drivers DynamoDB table
+- [ ] Update Ambulances table schema
+- [ ] Update EmergencyEvents table schema
+- [ ] Add Cognito custom attributes
+- [ ] Deploy all Lambda functions
+- [ ] Test APIs with Postman
+- [ ] Update API Gateway routes
+
+---
+
+### 📱 PHASE 2: Mobile App - Auth & Navigation (Day 2)
+**Time**: 8-10 hours
+
+#### Type Definitions Update
+**File**: `src/types/index.ts`
+```typescript
+export type UserRole = 'ASHA' | 'DRIVER' | 'HOSPITAL';
+
+export interface User {
+    id: string;
+    username: string;
+    name: string;
+    role: UserRole;  // NEW
+    phone: string;
+    ashaId?: string;
+    driverId?: string;
+    ambulanceId?: string;
+}
+
+export interface Driver {
+    id: string;
+    userId: string;
+    name: string;
+    phone: string;
+    licenseNumber: string;
+    ambulanceId: string;
+    status: 'AVAILABLE' | 'ON_RIDE' | 'OFFLINE';
+    currentLocation: { latitude: number; longitude: number; };
+    rating: number;
+    totalRides: number;
+}
+
+export interface EmergencyRide {
+    id: string;
+    pregnancyId: string;
+    patientName: string;
+    patientPhone: string;
+    pickupLocation: { latitude: number; longitude: number; address: string; };
+    hospitalLocation: { latitude: number; longitude: number; name: string; };
+    symptoms: string;
+    severity: 'HIGH' | 'MEDIUM' | 'LOW';
+    status: 'PENDING' | 'ACCEPTED' | 'EN_ROUTE' | 'ARRIVED' | 'TRANSPORTING' | 'COMPLETED';
+    createdAt: string;
+    eta?: number;
+}
+```
+
+#### Auth Slice Update
+**File**: `src/store/slices/authSlice.ts`
+```typescript
+interface AuthState {
+    // ... existing fields
+    userRole: UserRole | null;  // NEW
+}
+
+// Update loginThunk to extract role from Cognito
+// Update reducer to store userRole
+```
+
+#### New Driver Slice
+**File**: `src/store/slices/driverSlice.ts`
+```typescript
+interface DriverState {
+    profile: Driver | null;
+    activeRide: EmergencyRide | null;
+    pendingRides: EmergencyRide[];
+    rideHistory: EmergencyRide[];
+    loading: boolean;
+    error: string | null;
+}
+
+// Thunks:
+// - fetchDriverProfileThunk
+// - fetchPendingRidesThunk
+// - acceptRideThunk
+// - updateLocationThunk
+// - completeRideThunk
+```
+
+#### Login Screen Update
+**File**: `src/screens/LoginScreen.tsx`
+```typescript
+// ADD role selector UI
+<View style={styles.roleSelector}>
+    <Text style={styles.label}>Login As</Text>
+    <View style={styles.roleButtons}>
+        <TouchableOpacity onPress={() => setSelectedRole('ASHA')}>
+            <Text>👩‍⚕️ ASHA Worker</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setSelectedRole('DRIVER')}>
+            <Text>🚑 Ambulance Driver</Text>
+        </TouchableOpacity>
+    </View>
+</View>
+```
+
+#### App Navigator Update
+**File**: `src/navigation/AppNavigator.tsx`
+```typescript
+// ADD Driver Stack
+const DriverStack = () => (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="DriverHome" component={DriverHomeScreen} />
+        <Stack.Screen name="ActiveRide" component={ActiveRideScreen} />
+        <Stack.Screen name="RideHistory" component={RideHistoryScreen} />
+        <Stack.Screen name="DriverLocation" component={DriverLocationScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+    </Stack.Navigator>
+);
+
+// UPDATE getStack logic
+const getStack = () => {
+    if (!isAuthenticated) return <AuthStack />;
+    if (hasPinSet && !pinVerified) return <PinStack />;
+    if (userRole === 'DRIVER') return <DriverStack />;  // NEW
+    return <AppStack />;  // ASHA workers
+};
+```
+
+**Day 2 Checklist**:
+- [ ] Update `types/index.ts` with Driver types
+- [ ] Update `authSlice.ts` with userRole
+- [ ] Create `driverSlice.ts`
+- [ ] Update `store/index.ts`
+- [ ] Update `LoginScreen.tsx` with role selector
+- [ ] Create `DriverRegisterScreen.tsx`
+- [ ] Update `AppNavigator.tsx` with DriverStack
+- [ ] Test role-based navigation
+
+---
+
+### 🚗 PHASE 3: Driver Screens (Day 3)
+**Time**: 8-10 hours
+
+#### Screen 1: DriverHomeScreen
+**File**: `src/screens/driver/DriverHomeScreen.tsx`
+
+**Features**:
+- Driver profile card (name, photo, rating, total rides)
+- Availability toggle (AVAILABLE ↔ OFFLINE)
+- Pending emergency requests list (with pulsing animation)
+- Active ride card (if any)
+- Quick stats (today's rides, earnings)
+- Bottom tabs: Home | Active | History | Location | Settings
+
+**UI Elements**:
+```typescript
+<View style={styles.container}>
+    {/* Profile Card */}
+    <Card>
+        <Image source={{ uri: driver.photo }} />
+        <Text>{driver.name}</Text>
+        <Text>⭐ {driver.rating} | {driver.totalRides} rides</Text>
+        <Switch value={isAvailable} onValueChange={toggleAvailability} />
+    </Card>
+    
+    {/* Pending Requests */}
+    <Text style={styles.heading}>Emergency Requests</Text>
+    <FlatList
+        data={pendingRides}
+        renderItem={({ item }) => (
+            <EmergencyCard
+                emergency={item}
+                onAccept={() => handleAccept(item.id)}
+            />
+        )}
+    />
+</View>
+```
+
+#### Screen 2: ActiveRideScreen
+**File**: `src/screens/driver/ActiveRideScreen.tsx`
+
+**Features**:
+- Patient info card (name, age, symptoms, severity badge)
+- Map view with route (pickup → hospital)
+- ETA display (updates every 30 seconds)
+- Navigation button (opens Google Maps)
+- Status buttons:
+  - "Arrived at Patient" → updates status to ARRIVED
+  - "Patient Picked Up" → updates status to TRANSPORTING
+  - "Reached Hospital" → completes ride
+- Emergency contact buttons (call patient, call hospital)
+- Real-time location tracking
+
+**UI Elements**:
+```typescript
+<View style={styles.container}>
+    {/* Patient Info */}
+    <Card style={styles.patientCard}>
+        <Text style={styles.patientName}>{ride.patientName}</Text>
+        <Badge severity={ride.severity}>{ride.severity}</Badge>
+        <Text>{ride.symptoms}</Text>
+        <Text>📞 {ride.patientPhone}</Text>
+    </Card>
+    
+    {/* Map */}
+    <MapView
+        initialRegion={...}
+        showsUserLocation
+    >
+        <Marker coordinate={ride.pickupLocation} title="Patient" />
+        <Marker coordinate={ride.hospitalLocation} title="Hospital" />
+        <Polyline coordinates={route} />
+    </MapView>
+    
+    {/* ETA */}
+    <View style={styles.etaCard}>
+        <Text>ETA: {ride.eta} minutes</Text>
+    </View>
+    
+    {/* Action Buttons */}
+    <Button onPress={handleArrivedAtPatient}>Arrived at Patient</Button>
+    <Button onPress={handlePatientPickedUp}>Patient Picked Up</Button>
+    <Button onPress={handleReachedHospital}>Reached Hospital</Button>
+</View>
+```
+
+#### Screen 3: RideHistoryScreen
+**File**: `src/screens/driver/RideHistoryScreen.tsx`
+
+**Features**:
+- List of completed rides
+- Filter by date range
+- Each item shows: patient name, date, distance, duration, outcome
+- Tap to view details
+- Export report button
+
+#### Screen 4: DriverLocationScreen
+**File**: `src/screens/driver/DriverLocationScreen.tsx`
+
+**Features**:
+- Map showing driver's current location
+- GPS status indicator (green = active, red = inactive)
+- Last updated timestamp
+- Nearby hospitals markers
+- Ambulance status badge (AVAILABLE/ON_RIDE/OFFLINE)
+- Manual location refresh button
+
+**Day 3 Checklist**:
+- [ ] Create `DriverHomeScreen.tsx`
+- [ ] Create `ActiveRideScreen.tsx`
+- [ ] Create `RideHistoryScreen.tsx`
+- [ ] Create `DriverLocationScreen.tsx`
+- [ ] Create `DriverRegisterScreen.tsx`
+- [ ] Create reusable components (EmergencyCard, StatusBadge)
+- [ ] Test all driver screens
+- [ ] Integrate Google Maps for navigation
+
+---
+
+### 🔌 PHASE 4: Services & Integration (Day 4)
+**Time**: 8-10 hours
+
+#### Driver Service
+**File**: `src/services/driverService.ts`
+```typescript
+export class DriverService {
+    static async register(data: RegisterDriverPayload): Promise<Driver> {
+        const response = await api.post('/driver/register', data);
+        return response.data;
+    }
+
+    static async getProfile(driverId: string): Promise<Driver> {
+        const response = await api.get(`/driver/${driverId}`);
+        return response.data;
+    }
+
+    static async updateStatus(driverId: string, status: string): Promise<void> {
+        await api.put(`/driver/${driverId}/status`, { status });
+    }
+
+    static async getPendingRides(ambulanceId: string): Promise<EmergencyRide[]> {
+        const response = await api.get(`/driver/rides/pending?ambulanceId=${ambulanceId}`);
+        return response.data;
+    }
+
+    static async acceptRide(emergencyId: string, driverId: string): Promise<EmergencyRide> {
+        const response = await api.post(`/emergency/${emergencyId}/accept`, { driverId });
+        return response.data;
+    }
+
+    static async updateLocation(driverId: string, lat: number, lng: number): Promise<void> {
+        await api.put(`/driver/${driverId}/location`, { latitude: lat, longitude: lng });
+    }
+
+    static async completeRide(emergencyId: string, outcome: string, notes: string): Promise<EmergencyRide> {
+        const response = await api.post(`/emergency/${emergencyId}/complete`, { outcome, notes });
+        return response.data;
+    }
+
+    static async getRideHistory(driverId: string): Promise<EmergencyRide[]> {
+        const response = await api.get(`/driver/${driverId}/history`);
+        return response.data;
+    }
+}
+```
+
+#### Location Tracking Service
+**File**: `src/services/locationService.ts`
+```typescript
+import * as Location from 'expo-location';
+import { DriverService } from './driverService';
+
+export class LocationService {
+    private static watchId: Location.LocationSubscription | null = null;
+
+    static async startTracking(driverId: string): Promise<void> {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') throw new Error('Location permission denied');
+
+        this.watchId = await Location.watchPositionAsync(
+            {
+                accuracy: Location.Accuracy.High,
+                timeInterval: 30000,  // 30 seconds
+                distanceInterval: 100,  // 100 meters
+            },
+            async (location) => {
+                await DriverService.updateLocation(
+                    driverId,
+                    location.coords.latitude,
+                    location.coords.longitude
+                );
+            }
+        );
+    }
+
+    static async stopTracking(): Promise<void> {
+        if (this.watchId) {
+            this.watchId.remove();
+            this.watchId = null;
+        }
+    }
+
+    static async getCurrentLocation(): Promise<Location.LocationObject> {
+        return await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High,
+        });
+    }
+}
+```
+
+#### End-to-End Testing
+
+**Test Scenario: Complete Emergency Flow**
+```
+1. ASHA Worker App:
+   - Login as ASHA
+   - Record high BP for patient (170/115)
+   - AI flags as CRITICAL
+   - Tap emergency button
+   - Verify emergency created
+
+2. Driver App:
+   - Login as Driver
+   - See new emergency request in pending list
+   - Tap "Accept"
+   - View patient details and route
+   - Tap "Navigate" (opens Google Maps)
+   - Tap "Arrived at Patient"
+   - Tap "Patient Picked Up"
+   - Tap "Reached Hospital"
+   - Enter outcome notes
+   - Complete ride
+
+3. Web Dashboard:
+   - View real-time ambulance location
+   - See emergency status updates
+   - Verify completion
+   - Check response time metrics
+
+Expected Result: < 30 minute total response time
+```
+
+**Day 4 Checklist**:
+- [ ] Create `driverService.ts`
+- [ ] Create `locationService.ts`
+- [ ] Wire all driver screens to services
+- [ ] Test end-to-end emergency flow
+- [ ] Test offline sync for driver actions
+- [ ] Test push notifications
+- [ ] Performance testing
+- [ ] UI/UX polish
+- [ ] Bug fixes
+- [ ] Update documentation
+
+---
+
+### 📊 Implementation Checklist Summary
+
+#### Backend (Day 1)
+- [ ] Create `register_driver` Lambda
+- [ ] Create `get_driver_profile` Lambda
+- [ ] Create `update_driver_status` Lambda
+- [ ] Create `get_assigned_emergencies` Lambda
+- [ ] Create `accept_emergency` Lambda
+- [ ] Create `complete_ride` Lambda
+- [ ] Create `Drivers` DynamoDB table
+- [ ] Update `Ambulances` table schema
+- [ ] Update `EmergencyEvents` table schema
+- [ ] Add Cognito custom attributes
+- [ ] Deploy all Lambda functions
+- [ ] Test APIs with Postman
+
+#### Mobile - Auth & State (Day 2)
+- [ ] Update `types/index.ts` with Driver types
+- [ ] Update `authSlice.ts` with userRole
+- [ ] Create `driverSlice.ts`
+- [ ] Update `store/index.ts`
+- [ ] Update `LoginScreen.tsx` with role selector
+- [ ] Create `DriverRegisterScreen.tsx`
+- [ ] Update `AppNavigator.tsx` with DriverStack
+- [ ] Test role-based navigation
+
+#### Mobile - Driver Screens (Day 3)
+- [ ] Create `DriverHomeScreen.tsx`
+- [ ] Create `ActiveRideScreen.tsx`
+- [ ] Create `RideHistoryScreen.tsx`
+- [ ] Create `DriverLocationScreen.tsx`
+- [ ] Create `driverService.ts`
+- [ ] Create `locationService.ts`
+- [ ] Integrate Google Maps for navigation
+- [ ] Test all driver screens
+
+#### Testing & Polish (Day 4)
+- [ ] End-to-end emergency flow test
+- [ ] Offline sync test
+- [ ] Push notification test
+- [ ] Performance testing
+- [ ] UI/UX polish
+- [ ] Bug fixes
+- [ ] Documentation update
+
+---
+
+### 🎨 UI/UX Design Guidelines
+
+#### Driver App Color Scheme
+- **Primary**: `#FF6B35` (Ambulance Orange)
+- **Background**: `#0A1F1A` (Dark Green - consistent with ASHA app)
+- **Accent**: `#00E5A0` (Bright Green)
+- **Emergency**: `#FF3B30` (Red)
+- **Success**: `#34C759` (Green)
+
+#### Key UI Principles
+- **Large Touch Targets**: Buttons minimum 48x48 dp (drivers use while moving)
+- **High Contrast**: Text readable in bright sunlight
+- **Minimal Text**: Icon-based navigation where possible
+- **Status Indicators**: Color-coded badges (Red=Emergency, Green=Available, Gray=Offline)
+- **Haptic Feedback**: Vibration on critical actions (accept ride, complete ride)
+
+---
+
+### 🚀 Demo Script Addition
+
+**After showing ASHA triggering emergency:**
+
+"Now let's see the driver's perspective..."
+
+1. **Driver receives notification** (show push notification on screen)
+2. **Opens app, sees emergency request** (patient details, location, severity)
+3. **Taps 'Accept'** (instant confirmation)
+4. **Views route on map** (pickup location → hospital)
+5. **Taps 'Navigate'** (opens Google Maps)
+6. **Updates status at each step**:
+   - "Arrived at Patient" (9:23 AM)
+   - "Patient Picked Up" (9:25 AM)
+   - "Reached Hospital" (9:45 AM)
+7. **Completes ride** (enters outcome notes)
+
+**Result**: 28-minute total response time vs 134-minute average. Life saved. ✅
+
+---
+
+### 💡 Future Enhancements (Post-Hackathon)
+
+**Phase 2 Features**:
+- [ ] Driver earnings tracking
+- [ ] Rating system (patients rate drivers)
+- [ ] Voice navigation in Hindi
+- [ ] Offline maps (pre-downloaded)
+- [ ] Driver shift scheduling
+- [ ] Fuel/maintenance tracking
+- [ ] Multi-ambulance coordination
+- [ ] Driver training modules
+- [ ] Emergency protocol checklists
+- [ ] In-app communication (driver ↔ ASHA ↔ hospital)
+
+---
+
+### 📈 Success Metrics
+
+#### Driver Adoption
+- **Target**: 80% of drivers actively using app
+- **Measure**: Daily active users, ride acceptance rate
+
+#### Response Time
+- **Target**: < 30 minutes from emergency trigger to hospital arrival
+- **Measure**: Average time across all emergencies
+
+#### User Satisfaction
+- **Target**: 4.5+ rating from drivers
+- **Measure**: In-app feedback, surveys
+
+#### System Reliability
+- **Target**: 99.9% uptime, < 1% failed dispatches
+- **Measure**: CloudWatch metrics, error logs
+
+---
+
+### 🎯 Why This Completes Your Project
+
+1. **Full Emergency Workflow**: ASHA → Driver → Hospital (end-to-end)
+2. **Real-Time Coordination**: Live tracking, instant notifications
+3. **Practical Implementation**: Drivers are critical stakeholders
+4. **Scalable Architecture**: Role-based system supports future roles (Hospital, Admin)
+5. **Demo Impact**: Show complete emergency response in demo video
+6. **AWS Integration**: IoT Core for GPS, Location Service for routing, SNS for notifications
+7. **Social Impact**: Demonstrates how technology saves lives in real-time
+
+**This unified app transforms your project from a monitoring system to a complete life-saving platform!** 🚑💙
+
+---
+
 *Last Updated: February 17, 2026*
 *Submission Deadline: March 13, 2026, 11:59 PM*

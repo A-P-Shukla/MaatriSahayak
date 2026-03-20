@@ -285,6 +285,36 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
 
+  DriversTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: phone
+          AttributeType: S
+        - AttributeName: ambulanceId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: phone-index
+          KeySchema:
+            - AttributeName: phone
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ambulance-index
+          KeySchema:
+            - AttributeName: ambulanceId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
   # ==================== Lambda Layers ====================
   SharedDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -1263,6 +1293,187 @@ Resources:
             Path: /ambulances/{id}/route
             Method: POST
 
+  # ==================== Driver Management Functions ====================
+  RegisterDriverFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/register_driver/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Register new ambulance driver
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+          CLIENT_ID: !Ref UserPoolClient
+          DRIVERS_TABLE: !Ref DriversTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DriversTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminCreateUser
+                - cognito-idp:AdminSetUserPassword
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        RegisterDriver:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /driver/register
+            Method: POST
+
+  GetDriverProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/get_driver_profile/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Get driver profile with ambulance details
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          DRIVERS_TABLE: !Ref DriversTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DriversTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        GetDriverProfile:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /driver/{driver_id}
+            Method: GET
+
+  UpdateDriverStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/update_driver_status/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Update driver availability status
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          DRIVERS_TABLE: !Ref DriversTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DriversTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        UpdateDriverStatus:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /driver/status
+            Method: PUT
+
+  GetAssignedEmergenciesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/get_assigned_emergencies/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Get emergencies assigned to driver's ambulance
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref AmbulancesTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmergencyEventsTable
+      Events:
+        GetAssignedEmergencies:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /driver/emergencies
+            Method: GET
+
+  AcceptEmergencyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/accept_emergency/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Driver accepts emergency request
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          DRIVERS_TABLE: !Ref DriversTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DriversTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmergencyEventsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref ASHAWorkersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt EmergencyNotificationsTopic.TopicName
+      Events:
+        AcceptEmergency:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /driver/emergency/{emergency_id}/accept
+            Method: POST
+
+  CompleteRideFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/complete_ride/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Complete emergency ride
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          DRIVERS_TABLE: !Ref DriversTable
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DriversTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AmbulancesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmergencyEventsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref ASHAWorkersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt EmergencyNotificationsTopic.TopicName
+      Events:
+        CompleteRide:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /driver/ride/{emergency_id}/complete
+            Method: POST
+
   EmergencyNotificationsTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -1361,3 +1572,9 @@ Outputs:
     Value: !Ref ASHAWorkersTable
     Export:
       Name: !Sub ${AWS::StackName}-ASHAWorkersTable
+
+  DriversTableName:
+    Description: Drivers DynamoDB Table Name
+    Value: !Ref DriversTable
+    Export:
+      Name: !Sub ${AWS::StackName}-DriversTable

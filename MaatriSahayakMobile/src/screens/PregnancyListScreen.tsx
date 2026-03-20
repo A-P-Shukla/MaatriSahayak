@@ -125,6 +125,11 @@ const PregnancyListScreen = ({ navigation }: any) => {
                                     </TouchableOpacity>
                                     <View style={styles.actionDivider} />
                                     <TouchableOpacity style={styles.actionBtn}
+                                        onPress={() => navigation.navigate('AncCard', { pregnancyId: p.id, patientName: p.patient_name })}>
+                                        <Text style={styles.actionText}>Scan ANC</Text>
+                                    </TouchableOpacity>
+                                    <View style={styles.actionDivider} />
+                                    <TouchableOpacity style={styles.actionBtn}
                                         onPress={() => navigation.navigate('Emergency', { pregnancyId: p.id, patientName: p.patient_name, phone: p.phone })}>
                                         <Text style={[styles.actionText, { color: RED }]}>Emergency</Text>
                                     </TouchableOpacity>

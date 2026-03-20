@@ -161,7 +161,7 @@ const PregnancyDetails: React.FC = () => {
           </Box>
         </Box>
         <Chip
-          label={`${pregnancy.risk_category.toUpperCase()} RISK`}
+          label={`${(pregnancy.risk_category || 'unknown').toUpperCase()} RISK`}
           color={getRiskColor(pregnancy.risk_category)}
           size="medium"
           icon={<WarningIcon />}
@@ -376,7 +376,7 @@ const PregnancyDetails: React.FC = () => {
         <Button variant="outlined" startIcon={<HospitalIcon />} onClick={() => alert('Record vitals coming soon')}>
           Record Vitals
         </Button>
-        {(pregnancy.risk_category === 'high' || pregnancy.risk_category === 'critical') && (
+        {(pregnancy.risk_category === 'high' || pregnancy.risk_category === 'critical') && pregnancy.risk_category && (
           <Button
             variant="contained"
             color="error"

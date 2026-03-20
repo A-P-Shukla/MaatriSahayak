@@ -96,7 +96,9 @@ const LoginScreen = ({ navigation }: any) => {
                     </View>
 
                     <View style={styles.logoRow}>
-                        <Image source={require('../../assets/icon.png')} style={styles.appIcon} />
+                        <View style={styles.ashaImageBox}>
+                            <Image source={require('../../assets/asha_worker.png')} style={styles.ashaImage} />
+                        </View>
                         <Text style={styles.appName}>{t.appName}</Text>
                         <Text style={styles.tagline}>{t.tagline}</Text>
                     </View>
@@ -205,7 +207,12 @@ const styles = StyleSheet.create({
     langBtnTextActive: { color: BG },
 
     logoRow: { alignItems: 'center', paddingTop: 24, paddingBottom: 4 },
-    appIcon: { width: 90, height: 90, resizeMode: 'contain', marginBottom: 12 },
+    ashaImageBox: {
+        width: 90, height: 90, borderRadius: 45,
+        overflow: 'hidden', marginBottom: 12,
+        borderWidth: 3, borderColor: GREEN,
+    },
+    ashaImage: { width: '100%', height: '100%', resizeMode: 'cover' },
     appName: { fontSize: 26, fontWeight: '900', color: WHITE, letterSpacing: 0.4, textAlign: 'center' },
     tagline: { fontSize: 11, color: DIM, marginTop: 5, letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' },
 

@@ -17,7 +17,7 @@ export const getAmbulances = async (
     if (filters.district) params.append('district', filters.district);
 
     const response = await apiClient.get<ApiResponse<Ambulance[]>>(
-      `/dev/ambulances?${params.toString()}`
+      `/ambulances?${params.toString()}`
     );
 
     return response.data.data || [];
@@ -30,7 +30,7 @@ export const getAmbulances = async (
 export const getAmbulanceById = async (ambulanceId: string): Promise<Ambulance> => {
   try {
     const response = await apiClient.get<ApiResponse<Ambulance>>(
-      `/dev/ambulances/${ambulanceId}/status`
+      `/ambulances/${ambulanceId}/status`
     );
 
     if (!response.data.data) {
@@ -47,7 +47,7 @@ export const getAmbulanceById = async (ambulanceId: string): Promise<Ambulance> 
 export const findNearestAmbulance = async (location: Location): Promise<Ambulance> => {
   try {
     const response = await apiClient.post<ApiResponse<Ambulance>>(
-      '/dev/ambulances/nearest',
+      '/ambulances/nearest',
       { location }
     );
 
@@ -73,7 +73,7 @@ export const updateAmbulanceLocation = async (
 ): Promise<Ambulance> => {
   try {
     const response = await apiClient.put<ApiResponse<Ambulance>>(
-      `/dev/ambulances/${ambulanceId}/location`,
+      `/ambulances/${ambulanceId}/location`,
       {
         location,
         ...additionalData,
@@ -97,7 +97,7 @@ export const updateAmbulanceStatus = async (
 ): Promise<Ambulance> => {
   try {
     const response = await apiClient.put<ApiResponse<Ambulance>>(
-      `/dev/ambulances/${ambulanceId}/location`,
+      `/ambulances/${ambulanceId}/location`,
       { status }
     );
 
@@ -118,7 +118,7 @@ export const getAmbulanceRoute = async (
 ): Promise<AmbulanceRoute> => {
   try {
     const response = await apiClient.post<ApiResponse<AmbulanceRoute>>(
-      `/dev/ambulances/${ambulanceId}/route`,
+      `/ambulances/${ambulanceId}/route`,
       { emergency_id: emergencyId }
     );
 
@@ -136,7 +136,7 @@ export const getAmbulanceRoute = async (
 export const getAmbulanceEmergencies = async (ambulanceId: string): Promise<Emergency[]> => {
   try {
     const response = await apiClient.get<ApiResponse<Emergency[]>>(
-      `/dev/ambulances/${ambulanceId}/emergencies`
+      `/ambulances/${ambulanceId}/emergencies`
     );
 
     return response.data.data || [];
@@ -149,7 +149,7 @@ export const getAmbulanceEmergencies = async (ambulanceId: string): Promise<Emer
 export const getAmbulanceStats = async (): Promise<AmbulanceStats> => {
   try {
     const response = await apiClient.get<ApiResponse<AmbulanceStats>>(
-      '/dev/analytics'
+      '/analytics'
     );
 
     return response.data.data || {
@@ -175,7 +175,7 @@ export const registerAmbulance = async (ambulanceData: {
 }): Promise<Ambulance> => {
   try {
     const response = await apiClient.post<ApiResponse<Ambulance>>(
-      '/dev/ambulances',
+      '/ambulances',
       ambulanceData
     );
 

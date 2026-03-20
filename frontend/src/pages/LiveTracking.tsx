@@ -14,6 +14,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Chip,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -21,6 +22,7 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { useAmbulances } from '../hooks/useAmbulances';
+import { useWebSocket } from '../hooks/useWebSocket';
 import AmbulanceMap from '../components/AmbulanceMap';
 import type { AmbulanceStatus } from '../types';
 
@@ -36,6 +38,9 @@ const LiveTracking: React.FC = () => {
     statusFilter ? { status: statusFilter } : {}
   );
 
+  // WebSocket for real-time location updates
+  const { isConnected } = useWebSocket({ enabled: true });
+
   // Calculate ambulance counts by status
   const ambulanceCounts = {
     available: ambulances.filter((a) => a.status === 'available').length,
@@ -50,13 +55,23 @@ const LiveTracking: React.FC = () => {
   return (
     <Box>
       {/* Page header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
         <Box>
-          <Typography variant="h4" fontWeight={600} gutterBottom>
-            Live Ambulance Tracking
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+            <Typography variant="h4" fontWeight={600}>
+              Live Ambulance Tracking
+            </Typography>
+            {isConnected && (
+              <Chip
+                label="Live Updates"
+                color="success"
+                size="small"
+                sx={{ fontWeight: 600 }}
+              />
+            )}
+          </Box>
           <Typography variant="body1" color="text.secondary">
-            Real-time tracking of ambulance locations and emergency routes
+            Real-time tracking of ambulance locations using OpenStreetMap
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
