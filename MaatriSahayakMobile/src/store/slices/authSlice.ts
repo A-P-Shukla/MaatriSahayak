@@ -52,7 +52,7 @@ export const driverRegisterThunk = createAsyncThunk(
     'auth/driverRegister',
     async (payload: DriverRegisterPayload, { rejectWithValue }) => {
         try {
-            await AuthService.registerDriver(payload);
+            return await AuthService.registerDriver(payload);
         } catch (err: any) {
             const msg = err.response?.data?.message || 'Registration failed. Please try again.';
             return rejectWithValue(msg);

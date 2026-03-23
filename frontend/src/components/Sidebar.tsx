@@ -7,7 +7,8 @@ import {
   Dashboard as DashboardIcon, PregnantWoman as PregnancyIcon,
   Warning as EmergencyIcon, LocationOn as TrackingIcon,
   Analytics as AnalyticsIcon, People as PeopleIcon,
-  DirectionsCar as DriverIcon,
+  DirectionsCar as DriverIcon, LocalHospital as HospitalIcon,
+  AccountCircle as ProfileIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
@@ -33,6 +34,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, emergencyCount = 0 }) 
     { text: 'Drivers', icon: <DriverIcon />, path: '/drivers', badge: 0 },
     { text: 'Live Tracking', icon: <TrackingIcon />, path: '/tracking', badge: 0 },
     { text: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics', badge: 0 },
+    { text: 'Hospitals', icon: <HospitalIcon />, path: '/hospitals', badge: 0 },
+    { text: 'My Profile', icon: <ProfileIcon />, path: '/profile', badge: 0 },
   ];
 
   const handleNavigation = (path: string) => {

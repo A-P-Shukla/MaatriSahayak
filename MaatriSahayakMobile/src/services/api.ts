@@ -8,6 +8,13 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' },
 });
 
+// Public API instance — no auth header, used for registration endpoints
+export const publicApi = axios.create({
+    baseURL: API_CONFIG.BASE_URL,
+    timeout: API_CONFIG.TIMEOUT,
+    headers: { 'Content-Type': 'application/json' },
+});
+
 api.interceptors.request.use(
     async (config) => {
         const token = await AsyncStorage.getItem('authToken');

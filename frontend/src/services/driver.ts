@@ -16,6 +16,7 @@ export interface Driver {
     type: string;
   };
   status: 'AVAILABLE' | 'ON_RIDE' | 'OFFLINE';
+  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   currentLocation?: { latitude: number; longitude: number; lastUpdated: string };
   rating: number;
   totalRides: number;
@@ -61,6 +62,32 @@ export const updateDriverStatus = async (
       '/driver/status',
       { driver_id: driverId, status }
     );
+    return res.data.data;
+  } catch (e) {
+    throw new Error(handleApiError(e));
+  }
+};
+
+export const listDrivers = async (): Promise<Driver[]> => {
+  try {
+    const res = await apiClient.get<{ data: Driver[] | { items: Driver[] } }>('/driver/list');
+    const raw = res.data.data;
+    return Array.isArray(raw) ? raw : (raw as any).items ?? [];
+  } catch (e) {
+    throw new Error(handleApiError(e));
+  }
+};
+
+export const verifyRegistration = async (
+  id: string,
+  type: 'DRIVER' | 'ASHA',
+  action: 'APPROVE' | 'REJECT',
+  reason?: string
+): Promise<{ id: string; status: string }> => {
+  try {
+    const res = await apiClient.post<{ data: { id: string; status: string } }>('/admin/verify', {
+      id, type, action, reason: reason ?? '',
+    });
     return res.data.data;
   } catch (e) {
     throw new Error(handleApiError(e));

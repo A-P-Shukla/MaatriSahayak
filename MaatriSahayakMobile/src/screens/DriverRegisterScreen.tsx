@@ -29,7 +29,7 @@ const STRINGS = {
         phone: 'Phone Number', phonePH: '10-digit mobile number',
         email: 'Email Address', emailPH: 'your@email.com',
         license: 'Driving License Number', licensePH: 'e.g. DL-1420110012345',
-        vehicle: 'Vehicle / Ambulance Number', vehiclePH: 'e.g. UP32AB1234',
+        vehicle: 'Ambulance ID (Optional)', vehiclePH: 'e.g. AMB-001 — leave blank if unknown',
         experience: 'Years of Experience', experiencePH: 'e.g. 5',
         password: 'Create Password', passwordPH: 'Minimum 8 characters',
         confirm: 'Repeat Password', confirmPH: 'Type your password again',
@@ -59,7 +59,7 @@ const STRINGS = {
         phone: 'फ़ोन नंबर', phonePH: '10 अंकों का मोबाइल नंबर',
         email: 'ईमेल पता', emailPH: 'your@email.com',
         license: 'ड्राइविंग लाइसेंस नंबर', licensePH: 'जैसे DL-1420110012345',
-        vehicle: 'वाहन / एम्बुलेंस नंबर', vehiclePH: 'जैसे UP32AB1234',
+        vehicle: 'एम्बुलेंस आईडी (वैकल्पिक)', vehiclePH: 'खाली छोड़ सकते हैं',
         experience: 'अनुभव (वर्षों में)', experiencePH: 'जैसे 5',
         password: 'पासवर्ड बनाएं', passwordPH: 'न्यूनतम 8 अक्षर',
         confirm: 'पासवर्ड दोहराएं', confirmPH: 'पासवर्ड फिर से टाइप करें',
@@ -169,8 +169,7 @@ const DriverRegisterScreen = ({ navigation }: any) => {
     const emailRef      = useRef<RNTextInput>(null);
     const licenseRef    = useRef<RNTextInput>(null);
     const vehicleRef    = useRef<RNTextInput>(null);
-    const experienceRef = useRef<RNTextInput>(null);
-    const passwordRef   = useRef<RNTextInput>(null);
+    const experienceRef = useRef<RNTextInput>(null);    const passwordRef   = useRef<RNTextInput>(null);
     const confirmRef    = useRef<RNTextInput>(null);
 
     useEffect(() => {
@@ -188,7 +187,6 @@ const DriverRegisterScreen = ({ navigation }: any) => {
         if (!form.phone.trim() || form.phone.length !== 10) e.phone = S.errPhone;
         if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = S.errEmail;
         if (!form.license.trim()) e.license = S.errLicense;
-        if (!form.vehicle.trim()) e.vehicle = S.errVehicle;
         const exp = parseInt(form.experience, 10);
         if (!form.experience.trim() || isNaN(exp) || exp < 0 || exp > 50) e.experience = S.errExperience;
         if (form.password.length < 8) e.password = S.errPassword;
@@ -204,17 +202,20 @@ const DriverRegisterScreen = ({ navigation }: any) => {
             name: form.fullName,
             phone: `+91${form.phone}`,
             email: form.email,
-            licenseNumber: form.license,
-            vehicleNumber: form.vehicle,
+            license_number: form.license,
+            ambulance_id: form.vehicle.trim() || undefined,
             password: form.password,
         }));
         if (driverRegisterThunk.fulfilled.match(result)) {
-            Alert.alert(
-                '✅ Registration Submitted!',
-                `Welcome ${form.fullName}!\n\nYour driver account request has been submitted for review. You will be notified once your account is activated by the district coordinator.`,
-                [{ text: 'Go to Login', onPress: () => navigation.navigate('DriverLogin') }],
-                { cancelable: false }
-            );
+            const { id, ambulanceId } = result.payload as { id: string; ambulanceId: string };
+            navigation.navigate('DriverIdCard', {
+                fullName: form.fullName,
+                phone: `+91${form.phone}`,
+                email: form.email,
+                licenseNumber: form.license,
+                ambulanceId: ambulanceId === 'UNASSIGNED' ? 'Not Assigned' : ambulanceId,
+                driverId: id,
+            });
         }
     };
 
@@ -282,7 +283,7 @@ const DriverRegisterScreen = ({ navigation }: any) => {
 
                     <Field label={S.vehicle} placeholder={S.vehiclePH} value={form.vehicle}
                         onChangeText={set('vehicle')} error={errors.vehicle}
-                        inputRef={vehicleRef} nextRef={experienceRef} autoCapitalize="characters" />
+                        inputRef={vehicleRef} nextRef={experienceRef} autoCapitalize="none" />
 
                     <Field label={S.experience} placeholder={S.experiencePH} value={form.experience}
                         onChangeText={set('experience')} error={errors.experience}

@@ -1,4 +1,4 @@
-import api from './api';
+import api, { publicApi } from './api';
 import { StorageService } from './storage';
 import { ENDPOINTS } from '../config/api';
 
@@ -22,8 +22,8 @@ export interface DriverRegisterPayload {
     name: string;
     phone: string;
     email: string;
-    licenseNumber: string;
-    vehicleNumber: string;
+    license_number: string;
+    ambulance_id?: string;
     password: string;
 }
 
@@ -44,18 +44,27 @@ export interface AuthResponse {
 export const AuthService = {
     async login(payload: LoginPayload): Promise<AuthResponse> {
         const endpoint = payload.role === 'driver' ? ENDPOINTS.DRIVER_LOGIN : ENDPOINTS.LOGIN;
-        const { data } = await api.post(endpoint, { email: payload.email, password: payload.password });
+        const { data } = await publicApi.post(endpoint, { email: payload.email, password: payload.password });
         await StorageService.setAuthToken(data.data.access_token);
         await StorageService.setUserData(data.data.user);
         return { token: data.data.access_token, user: data.data.user };
     },
 
     async register(payload: RegisterPayload): Promise<void> {
-        await api.post(ENDPOINTS.REGISTER, payload);
+        await publicApi.post(ENDPOINTS.REGISTER, payload);
     },
 
-    async registerDriver(payload: DriverRegisterPayload): Promise<void> {
-        await api.post(ENDPOINTS.DRIVER_REGISTER, payload);
+    async registerDriver(payload: DriverRegisterPayload): Promise<{ id: string; ambulanceId: string }> {
+        const body: any = {
+            name: payload.name,
+            phone: payload.phone,
+            email: payload.email,
+            license_number: payload.license_number,
+            password: payload.password,
+        };
+        if (payload.ambulance_id) body.ambulance_id = payload.ambulance_id;
+        const { data } = await publicApi.post(ENDPOINTS.DRIVER_REGISTER, body);
+        return { id: data.data.id, ambulanceId: data.data.ambulanceId };
     },
 
     async logout(): Promise<void> {

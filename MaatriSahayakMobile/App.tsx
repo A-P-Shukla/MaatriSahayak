@@ -5,14 +5,18 @@ import { store } from './src/store';
 import AppNavigator from './src/navigation/AppNavigator';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import NetworkBanner from './src/components/NetworkBanner';
 
 function App(): React.JSX.Element {
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
         <Provider store={store}>
-          <AppNavigator />
+          <View style={styles.container}>
+            <AppNavigator />
+            <NetworkBanner />
+          </View>
           <StatusBar style="auto" />
         </Provider>
       </SafeAreaProvider>

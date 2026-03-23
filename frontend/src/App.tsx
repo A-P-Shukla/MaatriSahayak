@@ -23,8 +23,9 @@ import AshaWorkerDetails from '@pages/AshaWorkerDetails';
 import Login from '@pages/Login';
 import OfficerRegister from '@pages/OfficerRegister';
 import Drivers from '@pages/Drivers';
-import DriverRegister from '@pages/DriverRegister';
 import DriverDetails from '@pages/DriverDetails';
+import Hospitals from '@pages/Hospitals';
+import Profile from '@pages/Profile';
 
 
 const queryClient = new QueryClient({
@@ -185,7 +186,6 @@ const App: React.FC = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<OfficerRegister />} />
               <Route path="/drivers" element={<ProtectedRoute><MainLayout><Drivers /></MainLayout></ProtectedRoute>} />
-              <Route path="/drivers/register" element={<DriverRegister />} />
               <Route path="/drivers/:id" element={<ProtectedRoute><MainLayout><DriverDetails /></MainLayout></ProtectedRoute>} />
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/dashboard" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
@@ -196,6 +196,8 @@ const App: React.FC = () => (
               <Route path="/analytics" element={<ProtectedRoute><MainLayout><Analytics /></MainLayout></ProtectedRoute>} />
               <Route path="/asha" element={<ProtectedRoute><MainLayout><AshaWorkers /></MainLayout></ProtectedRoute>} />
               <Route path="/asha/:id" element={<ProtectedRoute><MainLayout><AshaWorkerDetails /></MainLayout></ProtectedRoute>} />
+              <Route path="/hospitals" element={<ProtectedRoute><MainLayout><Hospitals /></MainLayout></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><MainLayout><Profile /></MainLayout></ProtectedRoute>} />
               <Route path="*" element={<ProtectedRoute><MainLayout><NotFound /></MainLayout></ProtectedRoute>} />
             </Routes>
           </Router>

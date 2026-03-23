@@ -55,7 +55,7 @@ def validate_phone_number(phone: str) -> bool:
         ValidationError: If phone number is invalid
     """
     # Indian phone number: 10 digits, optionally starting with +91 or 91
-    pattern = r'^(\+91|91)?[6-9]\d{9}$'$'
+    pattern = r'^(\+91|91)?[6-9]\d{9}$'
     
     if not re.match(pattern, phone):
         raise ValidationError(
@@ -79,7 +79,7 @@ def validate_email(email: str) -> bool:
     Raises:
         ValidationError: If email is invalid
     """
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'$'
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     
     if not re.match(pattern, email):
         raise ValidationError(

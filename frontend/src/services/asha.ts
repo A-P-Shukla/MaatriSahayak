@@ -47,6 +47,7 @@ export const getAshaWorkers = async (filters: AshaFilters = {}): Promise<AshaWor
       active_pregnancies: item.active_pregnancies || 0,
       high_risk_cases: item.high_risk_cases || 0,
       total_emergencies_handled: item.total_emergencies_handled || item.emergencies_handled || 0,
+      verificationStatus: item.verificationStatus,
       status: item.status || 'active',
       registration_date: item.registration_date || item.created_at,
       last_active: item.last_active || item.updated_at,
@@ -83,6 +84,7 @@ export const getAshaWorkerById = async (ashaId: string): Promise<AshaWorker> => 
       active_pregnancies: item.active_pregnancies || 0,
       high_risk_cases: item.high_risk_cases || 0,
       total_emergencies_handled: item.total_emergencies_handled || item.emergencies_handled || 0,
+      verificationStatus: item.verificationStatus,
       status: item.status || 'active',
       registration_date: item.registration_date || item.created_at,
       last_active: item.last_active || item.updated_at,
@@ -132,6 +134,21 @@ export const getAshaStats = async (): Promise<AshaStats> => {
       average_patients_per_asha: 0,
       by_district: [],
     };
+  }
+};
+
+export const verifyAshaRegistration = async (
+  id: string,
+  action: 'APPROVE' | 'REJECT',
+  reason?: string
+): Promise<{ id: string; status: string }> => {
+  try {
+    const response = await apiClient.post<ApiResponse<{ id: string; status: string }>>('/admin/verify', {
+      id, type: 'ASHA', action, reason: reason ?? '',
+    });
+    return response.data.data!;
+  } catch (error) {
+    throw new Error(handleApiError(error));
   }
 };
 

@@ -23,7 +23,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef(0);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const queryClient = useQueryClient();
 
   const connect = useCallback(() => {

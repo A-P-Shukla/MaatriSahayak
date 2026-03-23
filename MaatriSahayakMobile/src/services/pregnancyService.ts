@@ -101,9 +101,18 @@ export const PregnancyService = {
         return data.data;
     },
 
-    async getNearbyHospitals(district?: string): Promise<any[]> {
-        const params = district ? `?district=${encodeURIComponent(district)}` : '';
-        const { data } = await api.get(`${ENDPOINTS.HOSPITALS}${params}`);
+    async getEmergencyStatus(emergencyId: string): Promise<any> {
+        const { data } = await api.get(ENDPOINTS.EMERGENCY_STATUS(emergencyId));
+        return data.data;
+    },
+
+    async getNearbyHospitals(district?: string, latitude?: number, longitude?: number): Promise<any[]> {
+        const params = new URLSearchParams();
+        if (district)  params.append('district',  district);
+        if (latitude != null)  params.append('latitude',  String(latitude));
+        if (longitude != null) params.append('longitude', String(longitude));
+        const qs = params.toString();
+        const { data } = await api.get(`${ENDPOINTS.HOSPITALS}${qs ? '?' + qs : ''}`);
         const result = data.data;
         if (Array.isArray(result)) return result;
         if (result && Array.isArray(result.hospitals)) return result.hospitals;

@@ -1,27 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  Grid,
-  Chip,
-  CircularProgress,
-  Alert,
-  Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Box, Typography, Paper, Button, Grid, Chip, CircularProgress,
+  Alert, Divider, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Dialog, DialogTitle, DialogContent,
+  DialogActions, TextField, MenuItem, Stack,
 } from '@mui/material';
 import {
-  ArrowBack as BackIcon,
-  Warning as WarningIcon,
-  LocalHospital as HospitalIcon,
-  Phone as PhoneIcon,
-  LocationOn as LocationIcon,
+  ArrowBack as BackIcon, Warning as WarningIcon,
+  Phone as PhoneIcon, LocationOn as LocationIcon,
+  MonitorHeart as VitalsIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -71,6 +58,65 @@ const PregnancyDetails: React.FC = () => {
     queryFn: () => getEmergenciesByPregnancyId(id || ''),
     enabled: !!id,
   });
+
+  const [vitalsOpen, setVitalsOpen] = useState(false);
+  const [emergencyOpen, setEmergencyOpen] = useState(false);
+  const [vitalsForm, setVitalsForm] = useState({ bp_systolic: '', bp_diastolic: '', heart_rate: '', temperature: '', weight: '' });
+  const [emergencyForm, setEmergencyForm] = useState({ event_type: 'HIGH_BP_EMERGENCY', severity_level: 'high', symptoms: '' });
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  const handleRecordVitals = async () => {
+    if (!pregnancy) return;
+    if (!vitalsForm.bp_systolic || !vitalsForm.bp_diastolic || !vitalsForm.heart_rate) {
+      setActionError('BP Systolic, BP Diastolic and Heart Rate are required');
+      return;
+    }
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const { recordVitals } = await import('../services/pregnancy');
+      await recordVitals({
+        pregnancy_id: pregnancy.pregnancy_id,
+        bp_systolic: parseInt(vitalsForm.bp_systolic),
+        bp_diastolic: parseInt(vitalsForm.bp_diastolic),
+        heart_rate: parseInt(vitalsForm.heart_rate),
+        temperature: vitalsForm.temperature ? parseFloat(vitalsForm.temperature) : 0,
+        weight: vitalsForm.weight ? parseFloat(vitalsForm.weight) : 0,
+        recorded_by: 'officer',
+      });
+      setVitalsOpen(false);
+      setVitalsForm({ bp_systolic: '', bp_diastolic: '', heart_rate: '', temperature: '', weight: '' });
+      setActionSuccess('Vitals recorded successfully');
+    } catch (e: any) {
+      setActionError(e.message ?? 'Failed to record vitals');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTriggerEmergency = async () => {
+    if (!pregnancy) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const { triggerEmergency } = await import('../services/emergency');
+      await triggerEmergency({
+        pregnancy_id: pregnancy.pregnancy_id,
+        event_type: emergencyForm.event_type,
+        severity_level: emergencyForm.severity_level,
+        location: { latitude: 0, longitude: 0 },
+        symptoms: emergencyForm.symptoms || undefined,
+      });
+      setEmergencyOpen(false);
+      setActionSuccess('Emergency triggered successfully');
+    } catch (e: any) {
+      setActionError(e.message ?? 'Failed to trigger emergency');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   // Get risk category color
   const getRiskColor = (risk: RiskCategory): 'success' | 'warning' | 'error' => {
@@ -371,22 +417,81 @@ const PregnancyDetails: React.FC = () => {
         )}
       </Paper>
 
+      {actionSuccess && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setActionSuccess(null)}>{actionSuccess}</Alert>}
+      {actionError && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setActionError(null)}>{actionError}</Alert>}
+
       {/* Action Buttons */}
       <Box sx={{ display: 'flex', gap: 2 }}>
-        <Button variant="outlined" startIcon={<HospitalIcon />} onClick={() => alert('Record vitals coming soon')}>
+        <Button variant="outlined" startIcon={<VitalsIcon />} onClick={() => { setVitalsOpen(true); setActionError(null); }}>
           Record Vitals
         </Button>
-        {(pregnancy.risk_category === 'high' || pregnancy.risk_category === 'critical') && pregnancy.risk_category && (
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<WarningIcon />}
-            onClick={() => alert('Trigger emergency coming soon')}
-          >
+        {(pregnancy.risk_category === 'high' || pregnancy.risk_category === 'critical') && (
+          <Button variant="contained" color="error" startIcon={<WarningIcon />}
+            onClick={() => { setEmergencyOpen(true); setActionError(null); }}>
             Trigger Emergency
           </Button>
         )}
       </Box>
+
+      {/* Record Vitals Dialog */}
+      <Dialog open={vitalsOpen} onClose={() => setVitalsOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle fontWeight={700}>Record Vital Signs</DialogTitle>
+        <DialogContent>
+          {actionError && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{actionError}</Alert>}
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={1.5}>
+              <TextField fullWidth label="BP Systolic *" type="number" value={vitalsForm.bp_systolic}
+                onChange={(e) => setVitalsForm({ ...vitalsForm, bp_systolic: e.target.value })} />
+              <TextField fullWidth label="BP Diastolic *" type="number" value={vitalsForm.bp_diastolic}
+                onChange={(e) => setVitalsForm({ ...vitalsForm, bp_diastolic: e.target.value })} />
+            </Stack>
+            <TextField fullWidth label="Heart Rate (bpm) *" type="number" value={vitalsForm.heart_rate}
+              onChange={(e) => setVitalsForm({ ...vitalsForm, heart_rate: e.target.value })} />
+            <TextField fullWidth label="Temperature (°C)" type="number" value={vitalsForm.temperature}
+              onChange={(e) => setVitalsForm({ ...vitalsForm, temperature: e.target.value })} />
+            <TextField fullWidth label="Weight (kg)" type="number" value={vitalsForm.weight}
+              onChange={(e) => setVitalsForm({ ...vitalsForm, weight: e.target.value })} />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setVitalsOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
+          <Button variant="contained" onClick={handleRecordVitals} disabled={actionLoading}
+            sx={{ textTransform: 'none', fontWeight: 700 }}>
+            {actionLoading ? <CircularProgress size={16} sx={{ color: '#fff', mr: 1 }} /> : null} Save Vitals
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Trigger Emergency Dialog */}
+      <Dialog open={emergencyOpen} onClose={() => setEmergencyOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle fontWeight={700} sx={{ color: '#dc2626' }}>Trigger Emergency</DialogTitle>
+        <DialogContent>
+          {actionError && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{actionError}</Alert>}
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField fullWidth select label="Event Type" value={emergencyForm.event_type}
+              onChange={(e) => setEmergencyForm({ ...emergencyForm, event_type: e.target.value })}>
+              {['HIGH_BP_EMERGENCY', 'PREMATURE_LABOR', 'SEVERE_BLEEDING', 'ECLAMPSIA', 'FETAL_DISTRESS', 'OTHER'].map((t) => (
+                <MenuItem key={t} value={t}>{t.replace(/_/g, ' ')}</MenuItem>
+              ))}
+            </TextField>
+            <TextField fullWidth select label="Severity" value={emergencyForm.severity_level}
+              onChange={(e) => setEmergencyForm({ ...emergencyForm, severity_level: e.target.value })}>
+              {['low', 'medium', 'high', 'critical'].map((s) => (
+                <MenuItem key={s} value={s}>{s.toUpperCase()}</MenuItem>
+              ))}
+            </TextField>
+            <TextField fullWidth label="Symptoms / Notes" multiline rows={2} value={emergencyForm.symptoms}
+              onChange={(e) => setEmergencyForm({ ...emergencyForm, symptoms: e.target.value })} />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setEmergencyOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleTriggerEmergency} disabled={actionLoading}
+            sx={{ textTransform: 'none', fontWeight: 700 }}>
+            {actionLoading ? <CircularProgress size={16} sx={{ color: '#fff', mr: 1 }} /> : null} Trigger Emergency
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

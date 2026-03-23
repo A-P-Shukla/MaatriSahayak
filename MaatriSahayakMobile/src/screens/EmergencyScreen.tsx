@@ -8,6 +8,7 @@ import * as Location from 'expo-location';
 import { useDispatch, useSelector } from 'react-redux';
 import { triggerEmergencyThunk, clearPregnancyError } from '../store/slices/pregnancySlice';
 import { PregnancyService } from '../services/pregnancyService';
+import api from '../services/api';
 import { AppDispatch, RootState } from '../store';
 
 const BG      = '#0A1F1A';
@@ -57,6 +58,8 @@ const EmergencyScreen = ({ navigation, route }: any) => {
     const [hospitals, setHospitals] = useState<any[]>([]);
     const [hospitalsLoading, setHospitalsLoading] = useState(false);
     const [selectedHospital, setSelectedHospital] = useState<string | null>(null);
+    const [drivers, setDrivers] = useState<any[]>([]);
+    const [driversLoading, setDriversLoading] = useState(false);
 
     const set = (key: string) => (val: string) => setForm(f => ({ ...f, [key]: val }));
 
@@ -68,6 +71,14 @@ const EmergencyScreen = ({ navigation, route }: any) => {
         fetchLocation();
         fetchHospitals();
     }, []);
+
+    // Re-fetch hospitals and drivers once location is known
+    useEffect(() => {
+        if (location) {
+            fetchHospitals(location);
+            fetchNearbyDrivers();
+        }
+    }, [location]);
 
     const fetchLocation = async () => {
         setLocLoading(true);
@@ -81,14 +92,34 @@ const EmergencyScreen = ({ navigation, route }: any) => {
         setLocLoading(false);
     };
 
-    const fetchHospitals = async () => {
+    const fetchHospitals = async (loc?: { latitude: number; longitude: number } | null) => {
         setHospitalsLoading(true);
         try {
-            const list = await PregnancyService.getNearbyHospitals(user?.district);
+            const useLoc = loc || location;
+            const list = await PregnancyService.getNearbyHospitals(
+                user?.district,
+                useLoc?.latitude,
+                useLoc?.longitude,
+            );
             setHospitals(list);
             if (list.length > 0) setSelectedHospital(list[0].id);
         } catch { /* non-blocking */ }
         setHospitalsLoading(false);
+    };
+
+    const fetchNearbyDrivers = async () => {
+        if (!location || !user?.district) return;
+        setDriversLoading(true);
+        try {
+            const { data } = await api.post('/ambulances/nearest', {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                district: user.district,
+                max_distance_km: 50,
+            });
+            setDrivers(data?.data?.ambulances || []);
+        } catch { /* non-blocking */ }
+        setDriversLoading(false);
     };
 
     const handleSubmit = async () => {
@@ -112,10 +143,11 @@ const EmergencyScreen = ({ navigation, route }: any) => {
         }));
 
         if (triggerEmergencyThunk.fulfilled.match(result)) {
+            const emergencyData = (result.payload as any);
             Alert.alert(
                 '🚨 Alert Dispatched',
                 'Hospital and ambulance have been notified immediately.',
-                [{ text: 'OK', onPress: () => navigation.goBack() }]
+                [{ text: 'OK', onPress: () => navigation.navigate('Home', { activeEmergency: emergencyData }) }]
             );
         }
     };
@@ -200,9 +232,9 @@ const EmergencyScreen = ({ navigation, route }: any) => {
                 <View style={styles.card}>
                     <View style={styles.sectionRow}>
                         <Text style={styles.sectionLabel}>Nearby Hospitals</Text>
-                        {user?.district && (
-                            <Text style={styles.districtTag}>{user.district}</Text>
-                        )}
+                        <TouchableOpacity onPress={() => fetchHospitals()} disabled={hospitalsLoading}>
+                            <Text style={styles.refreshText}>{hospitalsLoading ? 'Loading...' : '\u21bb Refresh'}</Text>
+                        </TouchableOpacity>
                     </View>
 
                     {hospitalsLoading && (
@@ -214,8 +246,8 @@ const EmergencyScreen = ({ navigation, route }: any) => {
 
                     {!hospitalsLoading && hospitals.length === 0 && (
                         <View style={styles.hospitalsEmpty}>
-                            <Text style={styles.hospitalsEmptyText}>No hospitals found for your district.</Text>
-                            <TouchableOpacity onPress={fetchHospitals}>
+                            <Text style={styles.hospitalsEmptyText}>No hospitals found.</Text>
+                            <TouchableOpacity onPress={() => fetchHospitals()}>
                                 <Text style={styles.retryText}>Retry</Text>
                             </TouchableOpacity>
                         </View>
@@ -223,6 +255,21 @@ const EmergencyScreen = ({ navigation, route }: any) => {
 
                     {hospitals.map((h, idx) => {
                         const isSelected = selectedHospital === h.id;
+                        const ownership = (h.ownership_type || h.ownership || '').toUpperCase();
+                        const ownershipLabel =
+                            ownership.includes('GOVT') || ownership.includes('GOVERNMENT') || ownership.includes('PUBLIC') ? 'GOVT'
+                            : ownership.includes('MUNIC') ? 'MUNICIPAL'
+                            : ownership ? ownership
+                            : h.type === 'PHC' || h.type === 'CHC' || h.type === 'DISTRICT' || h.type === 'MEDICAL_COLLEGE' ? 'GOVT'
+                            : 'PRIVATE';
+                        const ownershipColor =
+                            ownershipLabel === 'GOVT' ? GREEN
+                            : ownershipLabel === 'MUNICIPAL' ? ORANGE
+                            : '#A78BFA';
+                        const ownershipBg =
+                            ownershipLabel === 'GOVT' ? 'rgba(0,229,160,0.12)'
+                            : ownershipLabel === 'MUNICIPAL' ? 'rgba(255,160,64,0.12)'
+                            : 'rgba(167,139,250,0.12)';
                         return (
                             <TouchableOpacity
                                 key={h.id || idx}
@@ -232,44 +279,125 @@ const EmergencyScreen = ({ navigation, route }: any) => {
 
                                 <View style={styles.hospitalLeft}>
                                     <View style={[styles.hospitalIconWrap, isSelected && styles.hospitalIconWrapSelected]}>
-                                        <Text style={styles.hospitalIcon}>🏥</Text>
+                                        <Text style={styles.hospitalIcon}>\ud83c\udfe5</Text>
                                     </View>
                                     <View style={styles.hospitalInfo}>
                                         <Text style={styles.hospitalName} numberOfLines={1}>{h.name}</Text>
-                                        <Text style={styles.hospitalType}>{typeLabel[h.type] || h.type}</Text>
+                                        <View style={styles.hospitalBadgeRow}>
+                                            <View style={[styles.ownershipBadge, { backgroundColor: ownershipBg }]}>
+                                                <Text style={[styles.ownershipBadgeText, { color: ownershipColor }]}>{ownershipLabel}</Text>
+                                            </View>
+                                            <Text style={styles.hospitalType}>{typeLabel[h.type] || h.type}</Text>
+                                        </View>
                                         {h.address && (
                                             <Text style={styles.hospitalAddress} numberOfLines={1}>{h.address}</Text>
                                         )}
                                         <View style={styles.hospitalTags}>
                                             {h.has_blood_bank && (
-                                                <View style={styles.tag}>
-                                                    <Text style={styles.tagText}>🩸 Blood Bank</Text>
-                                                </View>
+                                                <View style={styles.tag}><Text style={styles.tagText}>\ud83e\ude78 Blood Bank</Text></View>
                                             )}
                                             {h.nicu_beds > 0 && (
-                                                <View style={styles.tag}>
-                                                    <Text style={styles.tagText}>👶 NICU</Text>
-                                                </View>
+                                                <View style={styles.tag}><Text style={styles.tagText}>\ud83d\udc76 NICU</Text></View>
+                                            )}
+                                            {h.available_maternity_beds > 0 && (
+                                                <View style={styles.tag}><Text style={styles.tagText}>\ud83d\udecc {h.available_maternity_beds} beds</Text></View>
                                             )}
                                         </View>
                                     </View>
                                 </View>
 
                                 <View style={styles.hospitalRight}>
+                                    {h.distance_km != null && (
+                                        <View style={styles.distBadge}>
+                                            <Text style={styles.distKm}>{h.distance_km}</Text>
+                                            <Text style={styles.distUnit}>km</Text>
+                                        </View>
+                                    )}
                                     {isSelected && (
                                         <View style={styles.selectedBadge}>
-                                            <Text style={styles.selectedBadgeText}>✓</Text>
+                                            <Text style={styles.selectedBadgeText}>\u2713</Text>
                                         </View>
                                     )}
                                     {h.phone && (
                                         <TouchableOpacity
                                             style={styles.callBtn}
                                             onPress={() => Linking.openURL(`tel:${h.phone}`)}>
-                                            <Text style={styles.callBtnText}>📞</Text>
+                                            <Text style={styles.callBtnText}>\ud83d\udcde</Text>
                                         </TouchableOpacity>
                                     )}
                                 </View>
                             </TouchableOpacity>
+                        );
+                    })}
+                </View>
+
+                {/* Nearby Drivers */}
+                <View style={styles.card}>
+                    <View style={styles.sectionRow}>
+                        <Text style={styles.sectionLabel}>Nearby Drivers</Text>
+                        <TouchableOpacity onPress={fetchNearbyDrivers} disabled={driversLoading}>
+                            <Text style={styles.refreshText}>{driversLoading ? 'Refreshing...' : '↻ Refresh'}</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {!location && !driversLoading && (
+                        <View style={styles.driversEmpty}>
+                            <Text style={styles.driversEmptyText}>📍 Waiting for your location...</Text>
+                        </View>
+                    )}
+
+                    {driversLoading && (
+                        <View style={styles.driversLoading}>
+                            <ActivityIndicator color={GREEN} size="small" />
+                            <Text style={styles.driversLoadingText}>Finding nearby ambulances...</Text>
+                        </View>
+                    )}
+
+                    {!driversLoading && location && drivers.length === 0 && (
+                        <View style={styles.driversEmpty}>
+                            <Text style={styles.driversEmptyText}>No available ambulances nearby</Text>
+                        </View>
+                    )}
+
+                    {!driversLoading && drivers.map((d, idx) => {
+                        const isAvailable = d.status === 'AVAILABLE';
+                        const etaMins = d.estimated_time_minutes ?? Math.round((d.distance_km ?? 0) * 1.5);
+                        return (
+                            <View key={d.id || idx} style={styles.driverCard}>
+                                <View style={styles.driverLeft}>
+                                    <View style={[styles.driverAvatar, { backgroundColor: isAvailable ? 'rgba(0,229,160,0.12)' : 'rgba(255,82,82,0.1)' }]}>
+                                        <Text style={styles.driverAvatarIcon}>🚑</Text>
+                                        <View style={[styles.driverStatusDot, { backgroundColor: isAvailable ? GREEN : RED }]} />
+                                    </View>
+                                    <View style={styles.driverInfo}>
+                                        <Text style={styles.driverName}>{d.driver_name || 'Driver'}</Text>
+                                        <Text style={styles.driverVehicle}>{d.vehicle_number || '—'}</Text>
+                                        <View style={styles.driverMeta}>
+                                            <View style={[styles.driverStatusPill, { backgroundColor: isAvailable ? 'rgba(0,229,160,0.12)' : 'rgba(255,82,82,0.1)' }]}>
+                                                <Text style={[styles.driverStatusText, { color: isAvailable ? GREEN : RED }]}>
+                                                    {isAvailable ? 'Available' : d.status}
+                                                </Text>
+                                            </View>
+                                            <Text style={styles.driverDist}>
+                                                {d.distance_km != null ? `${d.distance_km.toFixed(1)} km` : ''}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+                                <View style={styles.driverRight}>
+                                    <Text style={styles.driverEtaLabel}>ETA</Text>
+                                    <Text style={[styles.driverEta, { color: isAvailable ? GREEN : DIM }]}>
+                                        ~{etaMins}m
+                                    </Text>
+                                    {d.driver_phone && (
+                                        <TouchableOpacity
+                                            style={styles.driverCallBtn}
+                                            onPress={() => Linking.openURL(`tel:${d.driver_phone}`)}>
+                                            <Text style={styles.driverCallIcon}>📞</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            </View>
                         );
                     })}
                 </View>
@@ -376,6 +504,46 @@ const styles = StyleSheet.create({
     selectedBadgeText: { fontSize: 13, color: BG, fontWeight: '900' },
     callBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(0,229,160,0.1)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: BORDER },
     callBtnText: { fontSize: 16 },
+
+    // Drivers
+    driversLoading: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
+    driversLoadingText: { color: DIM, fontSize: 13 },
+    driversEmpty: { alignItems: 'center', paddingVertical: 16 },
+    driversEmptyText: { color: DIM, fontSize: 13, fontWeight: '500' },
+    refreshText: { fontSize: 12, color: GREEN, fontWeight: '700' },
+    driverCard: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        backgroundColor: BG, borderRadius: 14, padding: 12,
+        marginBottom: 10, borderWidth: 1, borderColor: BORDER,
+    },
+    driverLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+    driverAvatar: {
+        width: 46, height: 46, borderRadius: 14,
+        justifyContent: 'center', alignItems: 'center', position: 'relative',
+    },
+    driverAvatarIcon: { fontSize: 22 },
+    driverStatusDot: {
+        position: 'absolute', top: -2, right: -2,
+        width: 10, height: 10, borderRadius: 5,
+        borderWidth: 2, borderColor: CARD,
+    },
+    driverInfo: { flex: 1, gap: 3 },
+    driverName: { fontSize: 14, fontWeight: '700', color: WHITE },
+    driverVehicle: { fontSize: 11, color: DIM, fontWeight: '600' },
+    driverMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
+    driverStatusPill: { borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
+    driverStatusText: { fontSize: 10, fontWeight: '700' },
+    driverDist: { fontSize: 11, color: DIM, fontWeight: '500' },
+    driverRight: { alignItems: 'center', gap: 4, minWidth: 52 },
+    driverEtaLabel: { fontSize: 9, color: DIM, fontWeight: '700', letterSpacing: 0.8 },
+    driverEta: { fontSize: 16, fontWeight: '900' },
+    driverCallBtn: {
+        width: 32, height: 32, borderRadius: 10,
+        backgroundColor: 'rgba(0,229,160,0.1)',
+        justifyContent: 'center', alignItems: 'center',
+        borderWidth: 1, borderColor: BORDER, marginTop: 2,
+    },
+    driverCallIcon: { fontSize: 14 },
 
     // Location
     locationCard: {

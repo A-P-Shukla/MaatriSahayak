@@ -1,671 +1,398 @@
-# MaatriSahayak API Testing Collection - Postman
+. Register Hospital (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/hospitals
 
-**✅ CORRECT Base URL:** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev`
-
----
-
-## 🔐 AUTHENTICATION APIs
-
-### 1. Register ASHA Worker (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/register`
-
-```json
-{
-  "phone_number": "+919876543201",
-  "name": "Sunita Sharma",
-  "email": "sunita.sharma@example.com",
-  "password": "Asha@123",
-  "village": "Rajpur",
-  "district": "Varanasi",
-  "state": "Uttar Pradesh"
-}
-```
-
-### 2. Register ASHA Worker (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/register`
-
-```json
-{
-  "phone_number": "+919876543202",
-  "name": "Meera Devi",
-  "email": "meera.devi@example.com",
-  "password": "Asha@456",
-  "village": "Sultanpur",
-  "district": "Lucknow",
-  "state": "Uttar Pradesh"
-}
-```
-
-### 3. Login ASHA Worker (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/login`
-
-```json
-{
-  "phone_number": "+919876543201",
-  "password": "Asha@123"
-}
-```
-
-**Save Response:** `access_token`, `id_token`, `refresh_token`, `asha_id`
-
-### 4. Login ASHA Worker (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/login`
-
-```json
-{
-  "phone_number": "+919876543202",
-  "password": "Asha@456"
-}
-```
-
-### 5. Refresh Token
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/auth/refresh`
-
-```json
-{
-  "refresh_token": "<refresh_token_from_login>"
-}
-```
-
----
-
-## 👤 ASHA PROFILE APIs
-
-**Headers for all:** `Authorization: Bearer <access_token>`
-
-### 6. Get ASHA Profile (Entry 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/{asha_id}`
-
-### 7. Update ASHA Profile (Entry 1)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/{asha_id}`
-
-```json
-{
-  "village": "Rajpur Kalan",
-  "district": "Varanasi",
-  "state": "Uttar Pradesh",
-  "experience_years": 5
-}
-```
-
-### 8. Update ASHA Profile (Entry 2)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/{asha_id}`
-
-```json
-{
-  "village": "Sultanpur",
-  "district": "Lucknow",
-  "state": "Uttar Pradesh",
-  "experience_years": 3
-}
-```
-
----
-
-## 🤰 PREGNANCY MANAGEMENT APIs
-
-### 9. Register Pregnancy (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies`
-
-```json
-{
-  "asha_id": "<asha_id>",
-  "patient_name": "Priya Sharma",
-  "patient_phone": "+919876501001",
-  "patient_age": 26,
-  "address": "House No. 45, Rajpur Village, Varanasi",
-  "lmp_date": "2024-01-15",
-  "edd": "2024-10-22",
-  "blood_group": "O+",
-  "previous_pregnancies": 1,
-  "previous_complications": "None"
-}
-```
-
-**Save Response:** `pregnancy_id`
-
-### 10. Register Pregnancy (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies`
-
-```json
-{
-  "asha_id": "<asha_id>",
-  "patient_name": "Anjali Verma",
-  "patient_phone": "+919876501002",
-  "patient_age": 23,
-  "address": "House No. 78, Sultanpur, Lucknow",
-  "lmp_date": "2024-02-10",
-  "edd": "2024-11-17",
-  "blood_group": "B+",
-  "previous_pregnancies": 0,
-  "previous_complications": "None"
-}
-```
-
-### 11. Get Pregnancy Details (Entry 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies/{pregnancy_id}`
-
-### 12. List Pregnancies (ASHA 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies?asha_id={asha_id}`
-
-### 13. Update Pregnancy (Entry 1)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies/{pregnancy_id}`
-
-```json
-{
-  "risk_level": "MEDIUM",
-  "current_status": "ACTIVE",
-  "notes": "Patient showing signs of gestational diabetes"
-}
-```
-
----
-
-## 🩺 ANC VISIT & VITALS APIs
-
-### 14. Record ANC Visit (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/anc/visits`
-
-```json
-{
-  "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "visit_number": 1,
-  "visit_date": "2024-03-15",
-  "weight": 62.5,
-  "blood_pressure": "120/80",
-  "hemoglobin": 11.2,
-  "fundal_height": 12,
-  "fetal_heart_rate": 145,
-  "notes": "First trimester checkup completed",
-  "next_visit_date": "2024-04-15"
-}
-```
-
-### 15. Record ANC Visit (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/anc/visits`
-
-```json
-{
-  "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "visit_number": 1,
-  "visit_date": "2024-03-18",
-  "weight": 58.0,
-  "blood_pressure": "115/75",
-  "hemoglobin": 10.8,
-  "fundal_height": 10,
-  "fetal_heart_rate": 142,
-  "notes": "First ANC visit, advised iron supplements",
-  "next_visit_date": "2024-04-18"
-}
-```
-
-### 16. Get ANC History (Entry 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies/{pregnancy_id}/anc-history`
-
-### 17. Record Vitals (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/vitals`
-
-```json
-{
-  "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "blood_pressure": "125/82",
-  "heart_rate": 78,
-  "temperature": 98.4,
-  "weight": 63.0,
-  "notes": "Regular monitoring"
-}
-```
-
-### 18. Record Vitals (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/vitals`
-
-```json
-{
-  "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "blood_pressure": "118/76",
-  "heart_rate": 75,
-  "temperature": 98.2,
-  "weight": 58.5,
-  "notes": "Patient feeling well"
-}
-```
-
-### 19. Get Vitals History (Entry 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies/{pregnancy_id}/vitals-history`
-
----
-
-## 🔬 SYMPTOM ANALYSIS APIs
-
-### 20. Analyze Symptoms (Entry 1 - High Risk)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/symptoms/analyze`
-
-```json
-{
-  "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "symptoms": [
-    "severe headache",
-    "blurred vision",
-    "swelling in hands and feet",
-    "upper abdominal pain"
-  ],
-  "severity": "HIGH",
-  "duration_hours": 6
-}
-```
-
-### 21. Analyze Symptoms (Entry 2 - Medium Risk)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/symptoms/analyze`
-
-```json
-{
-  "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "symptoms": [
-    "mild nausea",
-    "fatigue",
-    "back pain"
-  ],
-  "severity": "MEDIUM",
-  "duration_hours": 24
-}
-```
-
-### 22. Process ANC Card (OCR) - Entry 1
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/anc-card/process`
-
-```json
-{
-  "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "image_base64": "<base64_encoded_image>",
-  "card_type": "MCP_CARD"
-}
-```
-
----
-
-## 🏥 HOSPITAL MANAGEMENT APIs
-
-### 23. Register Hospital (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/hospitals`
-
-```json
 {
   "name": "District Hospital Varanasi",
+  "type": "DISTRICT",
+  "district": "Varanasi",
+  "address": "Kabir Chaura, Varanasi, Uttar Pradesh 221001",
+  "latitude": 25.3176,
+  "longitude": 82.9739,
   "phone": "+915422501234",
-  "email": "dhvaranasi@gov.in",
-  "address": "Kabir Chaura, Varanasi, UP - 221001",
-  "location": {
-    "latitude": 25.3176,
-    "longitude": 82.9739
-  },
   "total_beds": 200,
-  "available_beds": 45,
-  "has_nicu": true,
+  "maternity_beds": 40,
+  "nicu_beds": 10,
   "has_blood_bank": true,
-  "specialties": ["Obstetrics", "Gynecology", "Pediatrics", "Emergency"]
+  "has_operation_theater": true,
+  "specializations": ["MATERNITY", "NICU", "EMERGENCY", "SURGERY"]
 }
-```
 
-**Save Response:** `hospital_id`
+Copy
+json
+2. Register Hospital (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/hospitals
 
-### 24. Register Hospital (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/hospitals`
-
-```json
 {
   "name": "Community Health Centre Lucknow",
+  "type": "CHC",
+  "district": "Lucknow",
+  "address": "Gomti Nagar, Lucknow, Uttar Pradesh 226010",
+  "latitude": 26.8467,
+  "longitude": 80.9462,
   "phone": "+915222401234",
-  "email": "chclucknow@gov.in",
-  "address": "Gomti Nagar, Lucknow, UP - 226010",
-  "location": {
-    "latitude": 26.8467,
-    "longitude": 80.9462
-  },
   "total_beds": 100,
-  "available_beds": 25,
-  "has_nicu": false,
+  "maternity_beds": 20,
+  "nicu_beds": 0,
   "has_blood_bank": true,
-  "specialties": ["Obstetrics", "Gynecology", "General Medicine"]
+  "has_operation_theater": false,
+  "specializations": ["MATERNITY", "GYNECOLOGY"]
 }
-```
 
-### 25. List Hospitals
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/hospitals`
+Copy
+json
+3. Register Ambulance (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances
 
-### 26. Check Hospital Capacity (Entry 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/hospitals/capacity?hospital_id={hospital_id}`
-
-### 27. Update Hospital Capacity (Entry 1)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/hospitals/{hospital_id}/capacity`
-
-```json
-{
-  "available_beds": 40,
-  "available_icu_beds": 5,
-  "available_nicu_beds": 3
-}
-```
-
-### 28. Update Hospital Capacity (Entry 2)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/hospitals/{hospital_id}/capacity`
-
-```json
-{
-  "available_beds": 20,
-  "available_icu_beds": 2,
-  "available_nicu_beds": 0
-}
-```
-
----
-
-## 🚑 AMBULANCE MANAGEMENT APIs
-
-### 29. Register Ambulance (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances`
-
-```json
 {
   "vehicle_number": "UP32AB1234",
-  "vehicle_type": "ALS",
+  "district": "Varanasi",
+  "latitude": 25.3176,
+  "longitude": 82.9739,
   "driver_name": "Rajesh Kumar",
   "driver_phone": "+919876543210",
-  "current_location": {
-    "latitude": 25.3176,
-    "longitude": 82.9739
-  },
-  "base_hospital_id": "<hospital_id>",
-  "equipment": ["Oxygen", "Defibrillator", "Stretcher", "First Aid Kit"]
+  "type": "ADVANCED",
+  "equipment": ["OXYGEN", "DEFIBRILLATOR", "STRETCHER", "OBSTETRIC_KIT"],
+  "status": "AVAILABLE"
 }
-```
 
-**Save Response:** `ambulance_id`
+Copy
+json
+4. Register Ambulance (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances
 
-### 30. Register Ambulance (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances`
-
-```json
 {
   "vehicle_number": "UP32CD5678",
-  "vehicle_type": "BLS",
+  "district": "Lucknow",
+  "latitude": 26.8467,
+  "longitude": 80.9462,
   "driver_name": "Amit Singh",
   "driver_phone": "+919876543211",
-  "current_location": {
-    "latitude": 26.8467,
-    "longitude": 80.9462
-  },
-  "base_hospital_id": "<hospital_id>",
-  "equipment": ["Oxygen", "Stretcher", "First Aid Kit"]
+  "type": "BASIC",
+  "equipment": ["OXYGEN", "STRETCHER", "IV_EQUIPMENT"],
+  "status": "AVAILABLE"
 }
-```
 
-### 31. Get Ambulance Status (Entry 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances/{ambulance_id}/status`
+Copy
+json
+5. Register ASHA Worker (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/register
 
-### 32. Update Ambulance Location (Entry 1)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances/{ambulance_id}/location`
-
-```json
 {
-  "latitude": 25.3200,
-  "longitude": 82.9800,
-  "speed": 45,
-  "heading": 90
+  "name": "Sunita Sharma",
+  "phone": "+919876543201",
+  "email": "sunita.sharma@maatrisahayak.in",
+  "password": "Sunita@123",
+  "age": 32,
+  "district": "Varanasi",
+  "block": "Rajpur",
+  "village": "Rajpur Kalan",
+  "qualification": "ANM",
+  "experience_years": 5,
+  "languages": ["Hindi", "Bhojpuri"]
 }
-```
 
-### 33. Update Ambulance Location (Entry 2)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances/{ambulance_id}/location`
+Copy
+json
+6. Register ASHA Worker (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/register
 
-```json
 {
-  "latitude": 26.8500,
-  "longitude": 80.9500,
-  "speed": 50,
-  "heading": 180
+  "name": "Meera Devi",
+  "phone": "+919876543202",
+  "email": "meera.devi@maatrisahayak.in",
+  "password": "Meera@456",
+  "age": 28,
+  "district": "Lucknow",
+  "block": "Gomti Nagar",
+  "village": "Sultanpur",
+  "qualification": "ANM",
+  "experience_years": 3,
+  "languages": ["Hindi", "Urdu"]
 }
-```
 
-### 34. Find Nearest Ambulance (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances/nearest`
+Copy
+json
+7. Login ASHA Worker (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/login
 
-```json
 {
-  "location": {
-    "latitude": 25.3150,
-    "longitude": 82.9700
-  },
-  "required_type": "ALS",
-  "max_distance_km": 10
+  "email": "sunita.sharma@maatrisahayak.in",
+  "password": "Sunita@123"
 }
-```
 
-### 35. Find Nearest Ambulance (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances/nearest`
+Copy
+json
+8. Login ASHA Worker (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/asha/login
 
-```json
 {
-  "location": {
-    "latitude": 26.8450,
-    "longitude": 80.9450
-  },
-  "required_type": "BLS",
-  "max_distance_km": 15
+  "email": "meera.devi@maatrisahayak.in",
+  "password": "Meera@456"
 }
-```
 
----
+Copy
+json
+9. Register Pregnancy (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies
 
-## 🚨 EMERGENCY MANAGEMENT APIs
+{
+  "patient_name": "Priya Sharma",
+  "age": 26,
+  "phone": "+919876501001",
+  "district": "Varanasi",
+  "block": "Rajpur",
+  "village": "Rajpur Kalan",
+  "latitude": 25.3150,
+  "longitude": 82.9700,
+  "lmp_date": "2024-08-01",
+  "edd": "2025-05-08",
+  "gestational_age_weeks": 12,
+  "blood_type": "O+",
+  "gravida": 2,
+  "parity": 1,
+  "previous_complications": [],
+  "chronic_conditions": [],
+  "asha_worker_id": "<asha_id_from_login>",
+  "asha_worker_name": "Sunita Sharma",
+  "asha_worker_phone": "+919876543201"
+}
 
-### 36. Trigger Emergency (Entry 1 - High Risk)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/emergency`
 
-```json
+Copy
+json
+10. Register Pregnancy (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies
+
+{
+  "patient_name": "Anjali Verma",
+  "age": 23,
+  "phone": "+919876501002",
+  "district": "Lucknow",
+  "block": "Gomti Nagar",
+  "village": "Sultanpur",
+  "latitude": 26.8450,
+  "longitude": 80.9450,
+  "lmp_date": "2024-09-10",
+  "edd": "2025-06-17",
+  "gestational_age_weeks": 8,
+  "blood_type": "B+",
+  "gravida": 1,
+  "parity": 0,
+  "previous_complications": [],
+  "chronic_conditions": [],
+  "asha_worker_id": "<asha_id_from_login>",
+  "asha_worker_name": "Meera Devi",
+  "asha_worker_phone": "+919876543202"
+}
+
+
+Copy
+json
+11. Record Vitals (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/vitals
+
 {
   "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "emergency_type": "SEVERE_BLEEDING",
-  "symptoms": ["heavy bleeding", "severe abdominal pain", "dizziness"],
+  "bp_systolic": 118,
+  "bp_diastolic": 76,
+  "heart_rate": 82,
+  "temperature": 37.1,
+  "oxygen_saturation": 98,
+  "fetal_heart_rate": 145,
+  "weight": 62.5,
+  "symptoms": [],
+  "notes": "Routine checkup, all normal",
+  "recorded_by": "<asha_id>"
+}
+
+Copy
+json
+12. Record Vitals (Entry 2 - High BP Alert)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/vitals
+
+{
+  "pregnancy_id": "<pregnancy_id>",
+  "bp_systolic": 148,
+  "bp_diastolic": 95,
+  "heart_rate": 92,
+  "temperature": 37.8,
+  "oxygen_saturation": 96,
+  "fetal_heart_rate": 162,
+  "weight": 58.0,
+  "symptoms": ["severe headache", "swelling in feet"],
+  "notes": "Patient complaining of headache and swelling",
+  "recorded_by": "<asha_id>"
+}
+
+Copy
+json
+13. Record ANC Visit (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/anc/visits
+
+{
+  "pregnancy_id": "<pregnancy_id>",
+  "visit_number": 1,
+  "visit_date": "2025-01-15",
+  "gestational_age_weeks": 12,
+  "weight_kg": 62.5,
+  "bp_systolic": 118,
+  "bp_diastolic": 76,
+  "hemoglobin": 11.2,
+  "fundal_height_cm": 12.0,
+  "fetal_heart_rate": 145,
+  "fetal_movement": "Normal",
+  "edema": "NONE",
+  "complaints": [],
+  "medications_prescribed": ["Iron tablets", "Folic acid"],
+  "tests_ordered": ["CBC", "Urine routine"],
+  "next_visit_date": "2025-02-15",
+  "notes": "First ANC visit completed, all parameters normal",
+  "recorded_by": "<asha_id>",
+  "recorded_by_name": "Sunita Sharma"
+}
+
+
+Copy
+json
+14. Record ANC Visit (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/anc/visits
+
+{
+  "pregnancy_id": "<pregnancy_id>",
+  "visit_number": 1,
+  "visit_date": "2025-01-18",
+  "gestational_age_weeks": 8,
+  "weight_kg": 58.0,
+  "bp_systolic": 115,
+  "bp_diastolic": 74,
+  "hemoglobin": 10.8,
+  "fundal_height_cm": 8.0,
+  "fetal_heart_rate": 142,
+  "fetal_movement": "Normal",
+  "edema": "NONE",
+  "complaints": ["mild nausea"],
+  "medications_prescribed": ["Iron tablets", "Folic acid", "Vitamin B6"],
+  "tests_ordered": ["CBC", "Blood sugar", "Thyroid"],
+  "next_visit_date": "2025-02-18",
+  "notes": "First trimester, advised rest and nutrition",
+  "recorded_by": "<asha_id>",
+  "recorded_by_name": "Meera Devi"
+}
+
+
+Copy
+json
+15. Trigger Emergency (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/emergency
+
+{
+  "pregnancy_id": "<pregnancy_id>",
+  "event_type": "SEVERE_BLEEDING",
   "severity": "CRITICAL",
-  "location": {
-    "latitude": 25.3176,
-    "longitude": 82.9739,
-    "address": "House No. 45, Rajpur Village, Varanasi"
-  },
-  "patient_condition": "Patient is bleeding heavily, appears weak"
+  "description": "Patient experiencing heavy vaginal bleeding with severe abdominal pain",
+  "latitude": 25.3150,
+  "longitude": 82.9700,
+  "location_address": "House No. 45, Rajpur Kalan, Varanasi",
+  "triggered_by": "<asha_id>"
 }
-```
 
-**Save Response:** `emergency_id`
+Copy
+json
+16. Trigger Emergency (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/emergency
 
-### 37. Trigger Emergency (Entry 2 - Medium Risk)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/emergency`
-
-```json
 {
   "pregnancy_id": "<pregnancy_id>",
-  "asha_id": "<asha_id>",
-  "emergency_type": "LABOR_COMPLICATIONS",
-  "symptoms": ["contractions", "water broke", "back pain"],
+  "event_type": "HIGH_BP_EMERGENCY",
   "severity": "HIGH",
-  "location": {
-    "latitude": 26.8467,
-    "longitude": 80.9462,
-    "address": "House No. 78, Sultanpur, Lucknow"
-  },
-  "patient_condition": "Labor started, contractions every 5 minutes"
+  "description": "Patient BP 160/110, severe headache, blurred vision, possible preeclampsia",
+  "latitude": 26.8450,
+  "longitude": 80.9450,
+  "location_address": "House No. 78, Sultanpur, Lucknow",
+  "triggered_by": "<asha_id>"
 }
-```
 
-### 38. Monitor Emergency (Entry 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/emergency/{emergency_id}/status`
+Copy
+json
+17. Register Driver (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/register
 
-### 39. Get Ambulance Route (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances/{ambulance_id}/route`
-
-```json
 {
-  "origin": {
-    "latitude": 25.3200,
-    "longitude": 82.9750
-  },
-  "destination": {
-    "latitude": 25.3176,
-    "longitude": 82.9739
-  }
-}
-```
-
-### 40. Get Ambulance Route (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/ambulances/{ambulance_id}/route`
-
-```json
-{
-  "origin": {
-    "latitude": 26.8500,
-    "longitude": 80.9480
-  },
-  "destination": {
-    "latitude": 26.8467,
-    "longitude": 80.9462
-  }
-}
-```
-
-### 41. Complete Emergency (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/emergency/{emergency_id}/complete`
-
-```json
-{
-  "outcome": "SUCCESSFUL",
-  "hospital_id": "<hospital_id>",
-  "arrival_time": "2024-03-19T10:45:00Z",
-  "notes": "Patient admitted to ICU, condition stable"
-}
-```
-
-### 42. Complete Emergency (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/emergency/{emergency_id}/complete`
-
-```json
-{
-  "outcome": "SUCCESSFUL",
-  "hospital_id": "<hospital_id>",
-  "arrival_time": "2024-03-19T11:30:00Z",
-  "notes": "Normal delivery, mother and baby healthy"
-}
-```
-
-### 43. List Emergencies (ASHA 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/emergencies?asha_id={asha_id}`
-
-### 44. Get Emergency History (Pregnancy 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies/{pregnancy_id}/emergencies`
-
----
-
-## 🚗 DRIVER MANAGEMENT APIs
-
-### 45. Register Driver (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/register`
-
-```json
-{
-  "phone_number": "+919876543210",
   "name": "Rajesh Kumar",
-  "email": "rajesh.kumar@example.com",
-  "license_number": "DL-0420210012345",
-  "license_expiry": "2028-12-31",
-  "ambulance_id": "<ambulance_id>",
-  "password": "Driver@123"
+  "phone": "+919876543210",
+  "email": "rajesh.kumar@maatrisahayak.in",
+  "password": "Rajesh@123",
+  "license_number": "UP3220210012345",
+  "ambulance_id": "<ambulance_id>"
 }
-```
 
-**Save Response:** `driver_id`
+Copy
+json
+18. Register Driver (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/register
 
-### 46. Register Driver (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/register`
-
-```json
 {
-  "phone_number": "+919876543211",
   "name": "Amit Singh",
-  "email": "amit.singh@example.com",
-  "license_number": "DL-0720210054321",
-  "license_expiry": "2027-06-30",
-  "ambulance_id": "<ambulance_id>",
-  "password": "Driver@456"
+  "phone": "+919876543211",
+  "email": "amit.singh@maatrisahayak.in",
+  "password": "Amit@4567",
+  "license_number": "UP3220210054321",
+  "ambulance_id": "<ambulance_id>"
 }
-```
 
-### 47. Get Driver Profile (Entry 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/{driver_id}`
+Copy
+json
+19. Update Driver Status (Entry 1)
+PUT https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/status
 
-**Headers:** `Authorization: Bearer <driver_access_token>`
-
-### 48. Update Driver Status (Entry 1 - Available)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/status`
-
-```json
 {
   "driver_id": "<driver_id>",
   "status": "AVAILABLE"
 }
-```
 
-### 49. Update Driver Status (Entry 2 - Available)
-**PUT** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/status`
+Copy
+json
+20. Update Driver Status (Entry 2)
+PUT https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/status
 
-```json
 {
   "driver_id": "<driver_id>",
-  "status": "AVAILABLE"
+  "status": "OFFLINE"
 }
-```
 
-### 50. Get Assigned Emergencies (Driver 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/emergencies?driver_id={driver_id}`
+Copy
+json
+21. Accept Emergency (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/emergency/<emergency_id>/accept
 
-### 51. Accept Emergency (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/emergency/{emergency_id}/accept`
-
-```json
 {
   "driver_id": "<driver_id>",
   "current_location": {
     "latitude": 25.3200,
     "longitude": 82.9750
   },
-  "estimated_arrival": 15
+  "estimated_arrival": 12
 }
-```
 
-### 52. Accept Emergency (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/emergency/{emergency_id}/accept`
+Copy
+json
+22. Accept Emergency (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/emergency/<emergency_id>/accept
 
-```json
 {
   "driver_id": "<driver_id>",
   "current_location": {
     "latitude": 26.8500,
     "longitude": 80.9480
   },
-  "estimated_arrival": 20
+  "estimated_arrival": 18
 }
-```
 
-### 53. Complete Ride (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/ride/{emergency_id}/complete`
+Copy
+json
+23. Complete Ride (Entry 1)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/ride/<emergency_id>/complete
 
-```json
 {
   "driver_id": "<driver_id>",
   "hospital_id": "<hospital_id>",
@@ -674,14 +401,14 @@
     "latitude": 25.3176,
     "longitude": 82.9739
   },
-  "notes": "Patient delivered safely to emergency ward"
+  "notes": "Patient delivered safely, admitted to maternity ward"
 }
-```
 
-### 54. Complete Ride (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/ride/{emergency_id}/complete`
+Copy
+json
+24. Complete Ride (Entry 2)
+POST https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/driver/ride/<emergency_id>/complete
 
-```json
 {
   "driver_id": "<driver_id>",
   "hospital_id": "<hospital_id>",
@@ -690,137 +417,9 @@
     "latitude": 26.8467,
     "longitude": 80.9462
   },
-  "notes": "Patient admitted to maternity ward"
+  "notes": "Patient stable, BP controlled, admitted to ICU"
 }
-```
 
----
-
-## 📊 ANALYTICS & REPORTS APIs
-
-### 55. Generate Analytics (ASHA 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/analytics?asha_id={asha_id}&start_date=2024-01-01&end_date=2024-03-31`
-
-### 56. Get Risk Trends (Pregnancy 1)
-**GET** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/pregnancies/{pregnancy_id}/risk-trends`
-
-### 57. Export Reports (ASHA 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/reports/export`
-
-```json
-{
-  "asha_id": "<asha_id>",
-  "report_type": "MONTHLY_SUMMARY",
-  "start_date": "2024-03-01",
-  "end_date": "2024-03-31",
-  "format": "PDF"
-}
-```
-
-### 58. Export Reports (ASHA 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/reports/export`
-
-```json
-{
-  "asha_id": "<asha_id>",
-  "report_type": "EMERGENCY_LOG",
-  "start_date": "2024-01-01",
-  "end_date": "2024-03-31",
-  "format": "CSV"
-}
-```
-
----
-
-## 📱 OFFLINE SYNC APIs
-
-### 59. Sync Offline Data (Entry 1)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/sync`
-
-```json
-{
-  "asha_id": "<asha_id>",
-  "sync_data": [
-    {
-      "type": "VITALS",
-      "pregnancy_id": "<pregnancy_id>",
-      "data": {
-        "blood_pressure": "120/80",
-        "weight": 63.5,
-        "recorded_at": "2024-03-18T14:30:00Z"
-      }
-    },
-    {
-      "type": "ANC_VISIT",
-      "pregnancy_id": "<pregnancy_id>",
-      "data": {
-        "visit_number": 2,
-        "visit_date": "2024-03-18",
-        "notes": "Second trimester checkup"
-      }
-    }
-  ]
-}
-```
-
-### 60. Sync Offline Data (Entry 2)
-**POST** `https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev/sync`
-
-```json
-{
-  "asha_id": "<asha_id>",
-  "sync_data": [
-    {
-      "type": "PREGNANCY_UPDATE",
-      "pregnancy_id": "<pregnancy_id>",
-      "data": {
-        "current_status": "ACTIVE",
-        "notes": "Patient progressing well"
-      }
-    }
-  ]
-}
-```
-
----
-
-## 📝 TESTING SEQUENCE
-
-### Complete Flow Test (Recommended Order):
-
-1. **Setup Phase** (1-8): Register & login ASHA workers
-2. **Pregnancy Phase** (9-13): Register pregnancies
-3. **Monitoring Phase** (14-22): Record ANC visits, vitals, symptoms
-4. **Infrastructure Phase** (23-35): Register hospitals & ambulances
-5. **Driver Phase** (45-49): Register drivers & update status
-6. **Emergency Phase** (36-44): Trigger & manage emergencies
-7. **Driver Response** (50-54): Accept & complete rides
-8. **Analytics Phase** (55-58): Generate reports
-9. **Sync** (59-60): Test offline sync
-
----
-
-## 🔑 Important Notes:
-
-1. **Save IDs**: After each POST request, save the returned IDs for subsequent requests
-2. **Authentication**: Most endpoints require `Authorization: Bearer <token>` header
-3. **Replace Placeholders**: Replace `{asha_id}`, `{pregnancy_id}`, `{hospital_id}`, etc. with actual values
-4. **Test Order**: Follow the testing sequence for best results
-5. **Error Handling**: Check response status codes (200, 400, 401, 500)
-
----
-
-## 📊 Expected Success Responses:
-
-- **200 OK**: Request successful
-- **201 Created**: Resource created successfully
-- **400 Bad Request**: Invalid input data
-- **401 Unauthorized**: Missing or invalid token
-- **404 Not Found**: Resource not found
-- **500 Internal Server Error**: Server-side error
-
----
-
-**Total Test Cases: 60**
-**Minimum Entries per Function: 2**
-**Coverage: All Lambda Functions**
+Copy
+json
+✅ Testing Order:

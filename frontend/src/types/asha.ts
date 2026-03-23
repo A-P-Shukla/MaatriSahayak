@@ -17,6 +17,7 @@ export interface AshaWorker {
   active_pregnancies: number;
   high_risk_cases: number;
   total_emergencies_handled: number;
+  verificationStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
   status: 'active' | 'inactive' | 'on_leave';
   registration_date: string;
   last_active: string;

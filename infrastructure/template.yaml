@@ -544,6 +544,7 @@ Resources:
         Variables:
           USER_POOL_ID: !Ref UserPool
           ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
+          SES_SENDER_EMAIL: noreply@maatrisahayak.in
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ASHAWorkersTable
@@ -552,7 +553,13 @@ Resources:
               Action:
                 - cognito-idp:AdminCreateUser
                 - cognito-idp:AdminSetUserPassword
+                - cognito-idp:AdminDisableUser
               Resource: !GetAtt UserPool.Arn
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
       Events:
         RegisterASHA:
           Type: Api
@@ -1294,6 +1301,29 @@ Resources:
             Method: POST
 
   # ==================== Driver Management Functions ====================
+  ListDriversFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/list_drivers/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: List all drivers (officer dashboard)
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          DRIVERS_TABLE: !Ref DriversTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DriversTable
+      Events:
+        ListDrivers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /driver/list
+            Method: GET
+
   RegisterDriverFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -1309,6 +1339,7 @@ Resources:
           CLIENT_ID: !Ref UserPoolClient
           DRIVERS_TABLE: !Ref DriversTable
           AMBULANCES_TABLE: !Ref AmbulancesTable
+          SES_SENDER_EMAIL: noreply@maatrisahayak.in
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DriversTable
@@ -1319,7 +1350,13 @@ Resources:
               Action:
                 - cognito-idp:AdminCreateUser
                 - cognito-idp:AdminSetUserPassword
+                - cognito-idp:AdminDisableUser
               Resource: !GetAtt UserPool.Arn
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
       Events:
         RegisterDriver:
           Type: Api
@@ -1438,6 +1475,72 @@ Resources:
           Properties:
             RestApiId: !Ref MaatriSahayakApi
             Path: /driver/emergency/{emergency_id}/accept
+            Method: POST
+
+  SendWelcomeEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/send_welcome_email/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Send welcome email to newly registered District Officer
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          SES_SENDER_EMAIL: noreply@maatrisahayak.in
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Events:
+        SendWelcomeEmail:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /officer/welcome-email
+            Method: POST
+
+  VerifyRegistrationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/verify_registration/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Officer approves or rejects pending ASHA/Driver registrations
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+          DRIVERS_TABLE: !Ref DriversTable
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
+          SES_SENDER_EMAIL: noreply@maatrisahayak.in
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DriversTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ASHAWorkersTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminEnableUser
+                - cognito-idp:AdminDisableUser
+              Resource: !GetAtt UserPool.Arn
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Events:
+        VerifyRegistration:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /admin/verify
             Method: POST
 
   CompleteRideFunction:

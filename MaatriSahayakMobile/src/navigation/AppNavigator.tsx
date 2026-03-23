@@ -9,12 +9,17 @@ import { restoreSessionThunk, checkPinThunk } from '../store/slices/authSlice';
 import LoginScreen from '../screens/LoginScreen';
 import DriverLoginScreen from '../screens/DriverLoginScreen';
 import DriverRegisterScreen from '../screens/DriverRegisterScreen';
+import DriverIdCardScreen from '../screens/DriverIdCardScreen';
 import RoleSelectScreen from '../screens/RoleSelectScreen';
 import AshaRegisterScreen from '../screens/AshaRegisterScreen';
 import AshaIdCardScreen from '../screens/AshaIdCardScreen';
 import SetPinScreen from '../screens/SetPinScreen';
 import PinLoginScreen from '../screens/PinLoginScreen';
 import HomeScreen from '../screens/HomeScreen';
+import DriverHomeScreen from '../screens/DriverHomeScreen';
+import DriverMyRidesScreen from '../screens/DriverMyRidesScreen';
+import DriverUpdateLocationScreen from '../screens/DriverUpdateLocationScreen';
+import DriverProfileScreen from '../screens/DriverProfileScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import VitalsScreen from '../screens/VitalsScreen';
 import EmergencyScreen from '../screens/EmergencyScreen';
@@ -23,6 +28,8 @@ import AlertsScreen from '../screens/AlertsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AncCardScreen from '../screens/AncCardScreen';
 import NearbyPatientsScreen from '../screens/NearbyPatientsScreen';
+
+import DriverEmergencyTrackingScreen from '../screens/DriverEmergencyTrackingScreen';
 
 const Stack = createNativeStackNavigator();
 const BG = '#0A1F1A';
@@ -35,6 +42,7 @@ const AuthStack = () => (
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="DriverLogin" component={DriverLoginScreen} />
         <Stack.Screen name="DriverRegister" component={DriverRegisterScreen} />
+        <Stack.Screen name="DriverIdCard" component={DriverIdCardScreen} />
         <Stack.Screen name="AshaRegister" component={AshaRegisterScreen} />
         <Stack.Screen name="AshaIdCard" component={AshaIdCardScreen} />
         <Stack.Screen name="SetPin" component={SetPinScreen} />
@@ -47,6 +55,17 @@ const PinStack = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="PinLogin" component={PinLoginScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+    </Stack.Navigator>
+);
+
+// Driver app stack
+const DriverAppStack = () => (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="DriverHome" component={DriverHomeScreen} />
+        <Stack.Screen name="DriverMyRides" component={DriverMyRidesScreen} />
+        <Stack.Screen name="DriverUpdateLocation" component={DriverUpdateLocationScreen} />
+        <Stack.Screen name="DriverProfile" component={DriverProfileScreen} />
+        <Stack.Screen name="DriverEmergencyTracking" component={DriverEmergencyTrackingScreen} />
     </Stack.Navigator>
 );
 
@@ -67,7 +86,7 @@ const AppStack = () => (
 
 const AppNavigator = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { isAuthenticated, sessionRestored, hasPinSet, pinVerified } = useSelector((s: RootState) => s.auth);
+    const { isAuthenticated, sessionRestored, hasPinSet, pinVerified, user } = useSelector((s: RootState) => s.auth);
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
@@ -95,6 +114,7 @@ const AppNavigator = () => {
     const getStack = () => {
         if (!isAuthenticated) return <AuthStack />;
         if (hasPinSet && !pinVerified) return <PinStack />;
+        if (user?.role === 'DRIVER') return <DriverAppStack />;
         return <AppStack />;
     };
 

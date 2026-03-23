@@ -174,6 +174,68 @@ export const registerASHA = async (registrationData: {
   }
 };
 
+// Register new District Officer via Cognito sign-up
+export const registerOfficer = async (data: {
+  name: string;
+  email: string;
+  phone: string;
+  district: string;
+  designation: string;
+  employee_id: string;
+  password: string;
+}): Promise<void> => {
+  const CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID;
+  const REGION = import.meta.env.VITE_AWS_REGION || 'ap-south-1';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+  const body = {
+    ClientId: CLIENT_ID,
+    Username: data.email,
+    Password: data.password,
+    UserAttributes: [
+      { Name: 'name', Value: data.name },
+      { Name: 'phone_number', Value: data.phone },
+      { Name: 'custom:role', Value: 'OFFICER' },
+      { Name: 'custom:district', Value: data.district },
+    ],
+  };
+
+  const res = await fetch(
+    `https://cognito-idp.${REGION}.amazonaws.com/`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-amz-json-1.1',
+        'X-Amz-Target': 'AWSCognitoIdentityProviderService.SignUp',
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    const msg = err.message || err.__type || 'Registration failed';
+    throw new Error(msg);
+  }
+
+  // Send welcome email via Lambda (non-blocking)
+  try {
+    await fetch(`${API_BASE}/officer/welcome-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        district: data.district,
+        designation: data.designation,
+        employee_id: data.employee_id,
+      }),
+    });
+  } catch {
+    // non-fatal — registration already succeeded
+  }
+};
+
 // Verify if user is authenticated
 export const isAuthenticated = (): boolean => {
   const token = getAuthToken();

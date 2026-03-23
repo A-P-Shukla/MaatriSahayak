@@ -6,7 +6,7 @@ import {
 import {
   Visibility, VisibilityOff, EmailOutlined, LockOutlined,
   FavoriteOutlined, VerifiedOutlined, TrendingUpOutlined,
-  LocalHospitalOutlined, PublicOutlined, SecurityOutlined,
+  PublicOutlined, SecurityOutlined,
   WorkspacePremiumOutlined,
 } from '@mui/icons-material';
 import { useAuth } from '@hooks/useAuth';
@@ -154,20 +154,20 @@ const Login: React.FC = () => {
                 Maatri<Box component="span" sx={{ color: C.pink }}>Sahayak</Box>
               </Typography>
               <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '2.5px', color: C.pink, textTransform: 'uppercase', mt: 0.3 }}>
-                Maternal Health Monitoring
+                District Officer Portal
               </Typography>
             </Box>
           </Box>
 
           {/* Tagline */}
           <Typography sx={{ fontSize: '1.18rem', fontWeight: 400, color: '#E9D5FF', lineHeight: 1.75, mb: 5, maxWidth: 360 }}>
-            Empowering <Box component="span" sx={{ color: C.pink, fontWeight: 600 }}>ASHA workers</Box> across India through real-time health monitoring and emergency response.
+            Approve <Box component="span" sx={{ color: C.pink, fontWeight: 600 }}>ASHA workers & drivers</Box>, monitor district health data and manage emergency response.
           </Typography>
 
           {/* Stat cards */}
           <Box sx={{ display: 'flex', gap: 1.5, mb: 5 }}>
-            <StatCard icon={<FavoriteOutlined sx={{ fontSize: 24 }} />} value="15,000+" label="Mothers Monitored" />
-            <StatCard icon={<VerifiedOutlined sx={{ fontSize: 24 }} />} value="99.2%" label="Success Rate" />
+            <StatCard icon={<FavoriteOutlined sx={{ fontSize: 24 }} />} value="15,000+" label="Mothers Covered" />
+            <StatCard icon={<VerifiedOutlined sx={{ fontSize: 24 }} />} value="500+" label="ASHA Workers" />
             <StatCard icon={<TrendingUpOutlined sx={{ fontSize: 24 }} />} value="45+" label="Districts" />
           </Box>
 
@@ -220,7 +220,7 @@ const Login: React.FC = () => {
             Maatri<Box component="span" sx={{ color: C.rose }}>Sahayak</Box>
           </Typography>
           <Typography sx={{ fontSize: '0.58rem', letterSpacing: '2px', textTransform: 'uppercase', color: C.textMid, fontWeight: 600 }}>
-            Maternal Health Monitoring
+            District Officer Portal
           </Typography>
         </Box>
 
@@ -254,8 +254,8 @@ const Login: React.FC = () => {
               Welcome Back
             </Typography>
             <Typography sx={{ fontSize: '0.92rem', color: C.textMid }}>
-              Sign in to access the{' '}
-              <Box component="span" sx={{ color: C.rose, fontWeight: 600 }}>MaatriSahayak</Box>{' '}
+              Sign in to the{' '}
+              <Box component="span" sx={{ color: C.rose, fontWeight: 600 }}>District Officer</Box>{' '}
               Dashboard
             </Typography>
           </Box>
@@ -328,7 +328,7 @@ const Login: React.FC = () => {
           </form>
 
           <Divider sx={{ my: 3, '&::before,&::after': { borderColor: 'rgba(160,41,74,0.12)' } }}>
-            <Typography sx={{ fontSize: '0.8rem', color: C.textLight, px: 1, fontWeight: 500 }}>New to MaatriSahayak?</Typography>
+            <Typography sx={{ fontSize: '0.8rem', color: C.textLight, px: 1, fontWeight: 500 }}>New here?</Typography>
           </Divider>
 
           <Button fullWidth variant="outlined"
@@ -340,7 +340,7 @@ const Login: React.FC = () => {
               '&:hover': { borderColor: C.purpleLight, bgcolor: 'rgba(45,10,78,0.04)', transform: 'translateY(-1px)' },
               transition: 'all 0.25s ease',
             }}>
-            Create New Account
+            Register as District Officer
           </Button>
 
           {/* Footer inside card */}
