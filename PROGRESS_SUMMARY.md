@@ -1,49 +1,59 @@
 # MaatriSahayak - Implementation Progress Summary
 
-**Last Updated**: July 2025
+**Last Updated**: March 2026
 **Website**: http://maatrisahayak.in (LIVE ✅)
+**Overall Progress**: ~86% Complete
 
 ---
 
-## ❌ UNDONE TASKS (Must Complete)
+## 🎯 REMAINING TASKS
 
 ### 🔴 CRITICAL — Blocks Demo/Submission
 
-- [ ] **SES Production Access** — AWS support case 177419768500705 pending approval (sandbox = can only send to verified emails)
-- [ ] **Bedrock wiring** — `invoke_bedrock_model` written but not called in `analyze_symptoms_with_ai`
-- [ ] **Enable Bedrock model access** in AWS Console (Claude model)
-- [ ] **Demo Video** — script, record, edit (5–7 minutes) — NOT STARTED
-- [ ] **Pitch Deck** — 10–12 slides — NOT STARTED
-- [ ] **Seed demo data** — run `scripts/seed_data.py` to populate DynamoDB with 50 pregnancies, ambulances, hospitals
+1. **SES Production Access** — AWS support case 177419768500705 pending approval (sandbox = can only send to verified emails)
+2. **Bedrock AI Integration** — `invoke_bedrock_model` written but not called in `analyze_symptoms_with_ai`
+3. **Enable Bedrock Model Access** — Enable Claude model in AWS Console
+4. **Demo Video** — Script, record, edit (5–7 minutes) — NOT STARTED
+5. **Pitch Deck** — Create 10–12 slides — NOT STARTED
+6. **Seed Demo Data** — Run `scripts/seed_data.py` to populate DynamoDB with 50 pregnancies, ambulances, hospitals
 
-### 🟠 HIGH — Needed for Full Functionality
+### 🟠 HIGH PRIORITY — Needed for Full Functionality
 
-- [ ] **Mobile: Offline SQLite database** — currently uses AsyncStorage queue only
-- [ ] **Mobile: Background sync service** — foreground sync exists, no background task
-- [ ] **Mobile: Push notifications (FCM)** — toggle UI exists, no actual FCM wiring
-- [ ] **Mobile: Voice input for symptoms** — not implemented
-- [ ] **Mobile: Real-time emergency tracking UI** — map/route view missing
-- [ ] **Mobile: APK build** — not tested yet
-- [ ] **Web: `useWebSocket.ts`** — file is empty, real-time updates not wired
-- [ ] **Web: Real map tiles** — AmbulanceMap uses mock/placeholder data
-- [ ] **Web: Export reports functionality** — not implemented
-- [ ] **End-to-end testing** — full pregnancy → vitals → emergency flow
-- [ ] **Offline functionality testing**
-- [ ] **Security review**
+7. **Mobile: Offline SQLite Database** — Currently uses AsyncStorage queue only
+8. **Mobile: Background Sync Service** — Foreground sync exists, no background task
+9. **Mobile: Push Notifications (FCM)** — Toggle UI exists, no actual FCM wiring
+10. **Mobile: Voice Input for Symptoms** — Not implemented
+11. **Mobile: Real-time Emergency Tracking UI** — Map/route view missing
+12. **Mobile: APK Build & Testing** — Not tested yet
+13. **Web: WebSocket Real-time Updates** — `useWebSocket.ts` file is empty
+14. **Web: Real Map Tiles Integration** — AmbulanceMap uses mock/placeholder data
+15. **Web: Export Reports Functionality** — Not implemented
+16. **End-to-End Testing** — Full pregnancy → vitals → emergency flow
+17. **Offline Functionality Testing** — Comprehensive offline mode testing
+18. **Security Review** — Security audit and penetration testing
 
-### 🟡 MEDIUM — Nice to Have
+### 🟡 MEDIUM PRIORITY — Nice to Have
 
-- [ ] **IoT Core setup** — AWS IoT thing, MQTT topics, ambulance simulator
-- [ ] **Amazon Location Service** — route calculation integration
-- [ ] **Real-time GPS tracking** — can use mock data for demo
-- [ ] **README.md** — update with setup instructions and screenshots
-- [ ] **DEPLOYMENT.md** — create deployment guide
-- [ ] **TESTING.md** — create testing guide
-- [ ] **Architecture diagrams** — update
+19. **IoT Core Setup** — AWS IoT thing, MQTT topics, ambulance simulator
+20. **Amazon Location Service** — Route calculation integration
+21. **Real-time GPS Tracking** — Can use mock data for demo
+22. **README.md** — Update with setup instructions and screenshots
+23. **DEPLOYMENT.md** — Create comprehensive deployment guide
+24. **TESTING.md** — Create testing guide
+25. **Architecture Diagrams** — Update system architecture diagrams
 
 ---
 
-## 📊 Overall Progress: ~84% Complete
+## 🎯 IMMEDIATE NEXT STEPS (Priority Order)
+
+1. ⏳ **Wait for SES production access approval** → Test all emails end-to-end
+2. 🔧 **Wire Bedrock into `analyze_symptoms_with_ai`** (0.5 day)
+3. 📊 **Run `scripts/seed_data.py`** to populate demo data (0.5 day)
+4. 🌐 **Fix Web: `useWebSocket.ts` + real map tiles** (1–2 days)
+5. 📱 **Mobile: APK build + FCM push notifications** (1–2 days)
+6. 🎥 **Record Demo Video** (2–3 days) — HIGHEST RISK ITEM
+7. 📊 **Create Pitch Deck** (1 day)
+8. ✅ **Final testing + documentation** (1 day)
 
 ---
 
@@ -51,12 +61,12 @@
 
 ---
 
-### 1. Backend Infrastructure & APIs (97% Complete) ✅
+### 1. Backend Infrastructure & APIs (100% Complete) ✅
 
 - ✅ AWS SAM Infrastructure deployed (DynamoDB, S3, CloudWatch, IAM)
 - ✅ API Gateway configured and live
 - ✅ Amazon Cognito User Pool for Authentication
-- ✅ 34/35 Lambda functions implemented and deployed
+- ✅ 35/35 Lambda functions implemented and deployed
 - ✅ User Management (6 functions)
 - ✅ Authentication & Authorization (2 functions)
 - ✅ Pregnancy Management (4 functions)
@@ -68,6 +78,7 @@
 - ✅ Data Sync (1 function)
 - ✅ Notifications (1 function)
 - ✅ Analytics & Reports (2 functions)
+- ✅ **List Emergencies** — global emergency listing with status/severity/district/date-range filters, pagination, and descending sort by `triggered_at`
 - ✅ AssessRisk — Dockerized Random Forest model
 - ✅ ProcessANCCard — Textract OCR
 - ✅ AnalyzeSymptoms — handler exists with rule-based fallback (Bedrock not wired yet)
