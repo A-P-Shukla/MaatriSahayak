@@ -54,6 +54,47 @@ export const login = async (credentials: LoginCredentials): Promise<{ user: User
   }
 };
 
+// Login as driver
+export const loginDriver = async (credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens }> => {
+  try {
+    const response = await apiClient.post<ApiResponse<{
+      access_token: string;
+      id_token: string;
+      refresh_token: string;
+      expires_in: number;
+      token_type: string;
+      user: User;
+    }>>(
+      '/driver/login',
+      {
+        email: credentials.email,
+        password: credentials.password,
+      }
+    );
+
+    if (!response.data.data) {
+      throw new Error('Login failed');
+    }
+
+    const { user, access_token, id_token, refresh_token, expires_in, token_type } = response.data.data;
+
+    const tokens: AuthTokens = {
+      access_token,
+      id_token,
+      refresh_token,
+      expires_in,
+      token_type,
+    };
+
+    storeTokens(tokens);
+    storeUser(user);
+
+    return { user, tokens };
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 // Logout user
 export const logout = async (): Promise<void> => {
   try {

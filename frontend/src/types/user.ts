@@ -2,7 +2,7 @@
  * User and authentication-related type definitions
  */
 
-export type UserRole = 'district_officer' | 'admin' | 'asha_worker' | 'anm';
+export type UserRole = 'district_officer' | 'admin' | 'asha_worker' | 'anm' | 'driver';
 
 export interface User {
   user_id: string;

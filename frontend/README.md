@@ -70,6 +70,29 @@ npm run dev
 
 The application will open at `http://localhost:3000`
 
+## Routes
+
+### Public
+- `/role-select` — Choose Officer or Driver portal
+- `/login` — District Officer login
+- `/register` — District Officer registration
+- `/driver/login` — Ambulance Driver login
+- `/drivers/register` — Ambulance Driver registration
+
+### Protected
+- `/dashboard`
+- `/pregnancies`
+- `/pregnancies/:id`
+- `/emergencies`
+- `/tracking`
+- `/analytics`
+- `/asha`
+- `/asha/:id`
+- `/drivers`
+- `/drivers/:id`
+- `/hospitals`
+- `/profile`
+
 ## Available Scripts
 
 - `npm run dev` - Start development server

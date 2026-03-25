@@ -26,6 +26,9 @@ import Drivers from '@pages/Drivers';
 import DriverDetails from '@pages/DriverDetails';
 import Hospitals from '@pages/Hospitals';
 import Profile from '@pages/Profile';
+import RoleSelect from '@pages/RoleSelect';
+import DriverLogin from '@pages/DriverLogin';
+import DriverRegister from '@pages/DriverRegister';
 
 
 const queryClient = new QueryClient({
@@ -183,11 +186,14 @@ const App: React.FC = () => (
         <AuthProvider>
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
+              <Route path="/role-select" element={<RoleSelect />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/driver/login" element={<DriverLogin />} />
               <Route path="/register" element={<OfficerRegister />} />
+              <Route path="/drivers/register" element={<DriverRegister />} />
               <Route path="/drivers" element={<ProtectedRoute><MainLayout><Drivers /></MainLayout></ProtectedRoute>} />
               <Route path="/drivers/:id" element={<ProtectedRoute><MainLayout><DriverDetails /></MainLayout></ProtectedRoute>} />
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/" element={<Navigate to="/role-select" replace />} />
               <Route path="/dashboard" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
               <Route path="/pregnancies" element={<ProtectedRoute><MainLayout><PregnanciesList /></MainLayout></ProtectedRoute>} />
               <Route path="/pregnancies/:id" element={<ProtectedRoute><MainLayout><PregnancyDetails /></MainLayout></ProtectedRoute>} />
