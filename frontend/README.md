@@ -74,6 +74,9 @@ The application will open at `http://localhost:3000`
 
 ### Public
 - `/role-select` — Choose Officer or Driver portal
+- `/home` — Public marketing homepage
+- `/about` — About the platform
+- `/contact` — Contact and partnerships
 - `/login` — District Officer login
 - `/register` — District Officer registration
 - `/driver/login` — Ambulance Driver login
