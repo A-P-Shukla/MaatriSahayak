@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet,
-    ScrollView, StatusBar, Alert,
+    ScrollView, StatusBar, Alert, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutThunk } from '../store/slices/authSlice';
 import { AppDispatch, RootState } from '../store';
+import api from '../services/api';
+import { Config } from '../config';
 
 const BG     = '#0D0A1F';
 const CARD   = '#1A1230';
@@ -20,6 +22,19 @@ const GOLD   = '#F59E0B';
 const DriverProfileScreen = ({ navigation }: any) => {
     const dispatch = useDispatch<AppDispatch>();
     const { user } = useSelector((s: RootState) => s.auth);
+    const [stats, setStats] = useState({ total: 0, completed: 0, rating: '—', kmCovered: '—' });
+
+    useEffect(() => {
+        api.get('/driver/profile').then(({ data }) => {
+            const d = data?.data;
+            if (d) setStats({
+                total:     d.total_rides     ?? 0,
+                completed: d.completed_rides ?? 0,
+                rating:    d.rating          ? String(d.rating) : '—',
+                kmCovered: d.km_covered      ? String(d.km_covered) : '—',
+            });
+        }).catch(() => {});
+    }, []);
 
     const handleLogout = () => {
         Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -29,10 +44,10 @@ const DriverProfileScreen = ({ navigation }: any) => {
     };
 
     const STATS = [
-        { label: 'Total Rides',   value: '5',    icon: '🚑', color: PURPLE_LIGHT },
-        { label: 'Completed',     value: '3',    icon: '✅', color: GREEN },
-        { label: 'Rating',        value: '5.0',  icon: '⭐', color: GOLD },
-        { label: 'Km Covered',    value: '46.2', icon: '📏', color: DIM },
+        { label: 'Total Rides',   value: String(stats.total),     icon: '🚑', color: PURPLE_LIGHT },
+        { label: 'Completed',     value: String(stats.completed), icon: '✅', color: GREEN },
+        { label: 'Rating',        value: stats.rating,            icon: '⭐', color: GOLD },
+        { label: 'Km Covered',    value: stats.kmCovered,         icon: '📏', color: DIM },
     ];
 
     const INFO = [
@@ -113,7 +128,10 @@ const DriverProfileScreen = ({ navigation }: any) => {
                         <Text style={styles.actionLabel}>Notifications</Text>
                         <Text style={styles.actionArrow}>›</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionRow} activeOpacity={0.75}>
+                    <TouchableOpacity
+                        style={styles.actionRow}
+                        activeOpacity={0.75}
+                        onPress={() => Linking.openURL(`mailto:${Config.SUPPORT_EMAIL}`)}>
                         <Text style={styles.actionIcon}>📞</Text>
                         <Text style={styles.actionLabel}>Contact Support</Text>
                         <Text style={styles.actionArrow}>›</Text>

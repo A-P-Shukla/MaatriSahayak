@@ -12,14 +12,14 @@ import { DatabaseService } from '../services/database';
 import { SyncService } from '../services/sync';
 import { PregnancyService } from '../services/pregnancyService';
 
-const BG     = '#0A1F1A';
-const CARD   = '#112920';
-const CARD2  = '#0F2318';
-const GREEN  = '#00E5A0';
-const RED    = '#FF5252';
+const BG = '#0A1F1A';
+const CARD = '#112920';
+const CARD2 = '#0F2318';
+const GREEN = '#00E5A0';
+const RED = '#FF5252';
 const ORANGE = '#FF9F43';
-const DIM    = '#7FA898';
-const WHITE  = '#FFFFFF';
+const DIM = '#7FA898';
+const WHITE = '#FFFFFF';
 const BORDER = '#1E3D30';
 
 const RISK_ORDER: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
@@ -27,10 +27,10 @@ const RISK_ORDER: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LO
 const getDueLabel = (edd: string): string | null => {
     if (!edd) return null;
     const diff = Math.ceil((new Date(edd).getTime() - Date.now()) / 86400000);
-    if (diff < 0)   return 'Overdue';
+    if (diff < 0) return 'Overdue';
     if (diff === 0) return 'Due Today';
     if (diff === 1) return 'Due Tomorrow';
-    if (diff <= 7)  return `Due in ${diff}d`;
+    if (diff <= 7) return `Due in ${diff}d`;
     return null;
 };
 
@@ -42,10 +42,10 @@ const getGreeting = () => {
 };
 
 const QUICK_ACTIONS = [
-    { key: 'Register',       icon: '✏️',  label: 'Register',  sub: 'New pregnancy'   },
-    { key: 'PregnancyList',  icon: '📋',  label: 'Patients',  sub: 'View all cases'  },
-    { key: 'NearbyPatients', icon: '📍',  label: 'Nearby',    sub: 'Area map'        },
-    { key: 'Alerts',         icon: '🔔',  label: 'Alerts',    sub: 'Notifications'   },
+    { key: 'Register', icon: '✏️', label: 'Register', sub: 'New pregnancy' },
+    { key: 'PregnancyList', icon: '📋', label: 'Patients', sub: 'View all cases' },
+    { key: 'NearbyPatients', icon: '📍', label: 'Nearby', sub: 'Area map' },
+    { key: 'Alerts', icon: '🔔', label: 'Alerts', sub: 'Notifications' },
 ];
 
 const HomeScreen = ({ navigation, route }: any) => {
@@ -115,7 +115,10 @@ const HomeScreen = ({ navigation, route }: any) => {
     // Poll emergency status every 8s when there's an active emergency
     useEffect(() => {
         if (!activeEmergency?.emergency_id) {
-            if (pollRef.current) clearInterval(pollRef.current);
+            if (pollRef.current) {
+                clearInterval(pollRef.current);
+                pollRef.current = null;
+            }
             return;
         }
         const poll = async () => {
@@ -125,13 +128,21 @@ const HomeScreen = ({ navigation, route }: any) => {
                     setActiveEmergency((prev: any) => ({ ...prev, ...status }));
                 } else if (status?.status === 'COMPLETED' || status?.status === 'CANCELLED') {
                     setActiveEmergency(null);
-                    if (pollRef.current) clearInterval(pollRef.current);
+                    if (pollRef.current) {
+                        clearInterval(pollRef.current);
+                        pollRef.current = null;
+                    }
                 }
             } catch { /* non-blocking */ }
         };
         poll();
         pollRef.current = setInterval(poll, 8000);
-        return () => { if (pollRef.current) clearInterval(pollRef.current); };
+        return () => {
+            if (pollRef.current) {
+                clearInterval(pollRef.current);
+                pollRef.current = null;
+            }
+        };
     }, [activeEmergency?.emergency_id]);
 
     const handleLogout = () => {
@@ -188,7 +199,7 @@ const HomeScreen = ({ navigation, route }: any) => {
                             </Text>
                         </View>
                         <Text style={styles.heroTitle}>Area{'\n'}Overview</Text>
-                        <Text style={styles.heroSub}>Sitapur District</Text>
+                        <Text style={styles.heroSub}>{user?.district || '—'}</Text>
                     </View>
                     <View style={styles.heroRight}>
                         <View style={styles.heroStatBox}>
@@ -379,10 +390,10 @@ const HomeScreen = ({ navigation, route }: any) => {
             {/* ── Bottom Tab Bar ── */}
             <View style={styles.tabBar}>
                 {[
-                    { key: 'home',         label: 'Home',     icon: '🏠', active: true  },
-                    { key: 'PregnancyList',label: 'Patients', icon: '🤰', active: false },
-                    { key: 'Alerts',       label: 'Alerts',   icon: '🔔', active: false },
-                    { key: 'Settings',     label: 'Settings', icon: '⚙️', active: false },
+                    { key: 'home', label: 'Home', icon: '🏠', active: true },
+                    { key: 'PregnancyList', label: 'Patients', icon: '🤰', active: false },
+                    { key: 'Alerts', label: 'Alerts', icon: '🔔', active: false },
+                    { key: 'Settings', label: 'Settings', icon: '⚙️', active: false },
                 ].map(tab => (
                     <TouchableOpacity
                         key={tab.key}
@@ -462,8 +473,8 @@ const styles = StyleSheet.create({
         alignItems: 'center', minWidth: 72,
         borderWidth: 1, borderColor: BORDER,
     },
-    heroStatBoxRed:    { borderColor: 'rgba(255,82,82,0.3)',   backgroundColor: 'rgba(255,82,82,0.06)'   },
-    heroStatBoxOrange: { borderColor: 'rgba(255,159,67,0.3)',  backgroundColor: 'rgba(255,159,67,0.06)'  },
+    heroStatBoxRed: { borderColor: 'rgba(255,82,82,0.3)', backgroundColor: 'rgba(255,82,82,0.06)' },
+    heroStatBoxOrange: { borderColor: 'rgba(255,159,67,0.3)', backgroundColor: 'rgba(255,159,67,0.06)' },
     heroStatNum: { fontSize: 22, fontWeight: '900', color: WHITE },
     heroStatLabel: { fontSize: 10, color: DIM, fontWeight: '600', marginTop: 1 },
 

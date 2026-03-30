@@ -7,18 +7,9 @@ import {
   useMediaQuery, useTheme, Snackbar,
 } from '@mui/material';
 import {
-  ArrowBack as BackIcon,
-  Phone as PhoneIcon,
-  Email as EmailIcon,
-  DriveEta as LicenseIcon,
-  LocalShipping as AmbulanceIcon,
-  Star as StarIcon,
-  DirectionsCar as CarIcon,
-  CheckCircle as CheckIcon,
-  AccessTime as TimeIcon,
-  ContactPhone as ContactIcon,
-  Circle as DotIcon,
-} from '@mui/icons-material';
+  ArrowLeft, Phone, Mail, CreditCard, Truck,
+  Star, Car, CheckCircle, Clock, Contact2, Circle,
+} from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getDriverProfile, updateDriverStatus, getAssignedEmergencies, type Driver } from '../services/driver';
 
@@ -97,22 +88,23 @@ const DriverDetails: React.FC = () => {
   }
 
   if (error || !driver) {
-    // Fallback to mock data for demo
-    const mock = {
-      id: id || 'drv_001', name: 'Ramesh Kumar', phone: '+919876543210',
-      email: 'ramesh@example.com', licenseNumber: 'UP32-2021-0012345',
-      ambulanceId: 'amb_001', status: 'AVAILABLE' as const,
-      rating: 4.8, totalRides: 42, emergencyContact: '+919876543299',
-      createdAt: '2024-01-15T10:00:00Z', updatedAt: '2024-03-10T14:22:00Z',
-      ambulance_details: { id: 'amb_001', vehicle_number: 'UP32-AB-1234', district: 'Lucknow', status: 'AVAILABLE', type: 'ALS' },
-    } as Driver;
-
-    return <DriverDetailsContent
-      driver={mock} isMobile={isMobile} emergencies={emergencies}
-      statusUpdating={statusUpdating} snack={snack}
-      onStatusChange={handleStatusChange} onSnackClose={() => setSnack(null)}
-      onBack={() => navigate('/drivers')}
-    />;
+    return (
+      <Box>
+        <Button startIcon={<ArrowLeft size={16} />} onClick={() => navigate('/drivers')}
+          sx={{ mb: 3, color: '#1B6B4A', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: '#f0faf7' } }}>
+          Back to Drivers
+        </Button>
+        <Card elevation={0} sx={{ border: '1px solid #fecaca', borderRadius: 3, bgcolor: '#fef2f2', p: 3, textAlign: 'center' }}>
+          <Car size={48} color="#fca5a5" />
+          <Typography fontWeight={700} color="#dc2626" mb={0.5}>Failed to load driver profile</Typography>
+          <Typography variant="body2" color="text.secondary" mb={2}>{error ?? 'Driver not found'}</Typography>
+          <Button variant="outlined" onClick={() => { setError(null); setLoading(true); if (id) getDriverProfile(id).then(setDriver).catch((e) => setError(e.message)).finally(() => setLoading(false)); }}
+            sx={{ borderColor: '#dc2626', color: '#dc2626', textTransform: 'none', fontWeight: 600, borderRadius: 2 }}>
+            Retry
+          </Button>
+        </Card>
+      </Box>
+    );
   }
 
   return (
@@ -158,7 +150,7 @@ const DriverDetailsContent: React.FC<ContentProps> = ({
   return (
     <Box>
       {/* Back */}
-      <Button startIcon={<BackIcon />} onClick={onBack}
+      <Button startIcon={<ArrowLeft size={16} />} onClick={onBack}
         sx={{ mb: 3, color: '#1B6B4A', fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: '#f0faf7' } }}>
         Back to Drivers
       </Button>
@@ -177,7 +169,7 @@ const DriverDetailsContent: React.FC<ContentProps> = ({
               <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap" mb={0.5}>
                 <Typography variant="h5" fontWeight={800} color="#0f172a">{driver.name}</Typography>
                 <Chip
-                  icon={<DotIcon sx={{ fontSize: '10px !important', color: `${STATUS_DOT[driver.status]} !important` }} />}
+                  icon={<Circle size={8} color={STATUS_DOT[driver.status]} fill={STATUS_DOT[driver.status]} />}
                   label={driver.status.replace('_', ' ')}
                   color={STATUS_COLORS[driver.status]}
                   size="small"
@@ -187,12 +179,12 @@ const DriverDetailsContent: React.FC<ContentProps> = ({
               <Typography variant="body2" color="text.secondary" mb={1}>Driver ID: {driver.id}</Typography>
               <Stack direction="row" spacing={3} flexWrap="wrap">
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <StarIcon sx={{ fontSize: 16, color: '#f59e0b' }} />
+                  <Star size={16} color="#f59e0b" />
                   <Typography variant="body2" fontWeight={700}>{driver.rating}</Typography>
                   <Typography variant="caption" color="text.secondary">rating</Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <CarIcon sx={{ fontSize: 16, color: '#0d9488' }} />
+                  <Car size={16} color="#0d9488" />
                   <Typography variant="body2" fontWeight={700}>{driver.totalRides}</Typography>
                   <Typography variant="caption" color="text.secondary">total rides</Typography>
                 </Stack>
@@ -232,12 +224,12 @@ const DriverDetailsContent: React.FC<ContentProps> = ({
             <CardContent sx={{ p: 3 }}>
               <Typography variant="subtitle1" fontWeight={700} color="#1B6B4A" mb={1}>Contact Information</Typography>
               <Divider sx={{ mb: 2, borderColor: '#d1fae5' }} />
-              <InfoRow icon={<PhoneIcon fontSize="small" />} label="Phone" value={driver.phone} />
-              <InfoRow icon={<EmailIcon fontSize="small" />} label="Email" value={driver.email} />
+              <InfoRow icon={<Phone size={16} />} label="Phone" value={driver.phone} />
+              <InfoRow icon={<Mail size={16} />} label="Email" value={driver.email} />
               {driver.emergencyContact && (
-                <InfoRow icon={<ContactIcon fontSize="small" />} label="Emergency Contact" value={driver.emergencyContact} />
+                <InfoRow icon={<Contact2 size={16} />} label="Emergency Contact" value={driver.emergencyContact} />
               )}
-              <InfoRow icon={<LicenseIcon fontSize="small" />} label="License Number" value={driver.licenseNumber} />
+              <InfoRow icon={<CreditCard size={16} />} label="License Number" value={driver.licenseNumber} />
             </CardContent>
           </Card>
         </Grid>
@@ -250,14 +242,14 @@ const DriverDetailsContent: React.FC<ContentProps> = ({
               <Divider sx={{ mb: 2, borderColor: '#d1fae5' }} />
               {driver.ambulance_details ? (
                 <>
-                  <InfoRow icon={<AmbulanceIcon fontSize="small" />} label="Vehicle Number" value={driver.ambulance_details.vehicle_number} />
-                  <InfoRow icon={<CarIcon fontSize="small" />} label="Ambulance ID" value={driver.ambulance_details.id} />
-                  <InfoRow icon={<CheckIcon fontSize="small" />} label="Type" value={driver.ambulance_details.type} />
-                  <InfoRow icon={<DotIcon fontSize="small" />} label="District" value={driver.ambulance_details.district} />
+                  <InfoRow icon={<Truck size={16} />} label="Vehicle Number" value={driver.ambulance_details.vehicle_number} />
+                  <InfoRow icon={<Car size={16} />} label="Ambulance ID" value={driver.ambulance_details.id} />
+                  <InfoRow icon={<CheckCircle size={16} />} label="Type" value={driver.ambulance_details.type} />
+                  <InfoRow icon={<Circle size={16} />} label="District" value={driver.ambulance_details.district} />
                 </>
               ) : (
                 <>
-                  <InfoRow icon={<AmbulanceIcon fontSize="small" />} label="Ambulance ID" value={driver.ambulanceId} />
+                  <InfoRow icon={<Truck size={16} />} label="Ambulance ID" value={driver.ambulanceId} />
                   <Typography variant="caption" color="text.secondary">Full ambulance details not available</Typography>
                 </>
               )}
@@ -305,7 +297,7 @@ const DriverDetailsContent: React.FC<ContentProps> = ({
                 </Box>
               ) : (
                 <Box sx={{ textAlign: 'center', py: 3 }}>
-                  <CheckIcon sx={{ fontSize: 40, color: '#d1fae5', mb: 1 }} />
+                  <CheckCircle size={40} color="#d1fae5" />
                   <Typography variant="body2" color="text.secondary">No active emergency</Typography>
                 </Box>
               )}
@@ -332,7 +324,7 @@ const DriverDetailsContent: React.FC<ContentProps> = ({
                   <Typography variant="caption" color="text.secondary" display="block">{e.event_type.replace(/_/g, ' ')}</Typography>
                   <Stack direction="row" spacing={2} mt={0.5}>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <TimeIcon sx={{ fontSize: 12, color: 'text.secondary' }} />
+                      <Clock size={12} color="#9e9e9e" />
                       <Typography variant="caption" color="text.secondary">{e.response_time_minutes} min</Typography>
                     </Stack>
                     <Typography variant="caption" color="text.secondary">{new Date(e.triggered_at).toLocaleDateString('en-IN')}</Typography>

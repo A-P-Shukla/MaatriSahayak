@@ -121,8 +121,8 @@ const SettingsScreen = ({ navigation }: any) => {
                     <Row
                         icon="📞"
                         label="Contact Support"
-                        sub="Krishnatripathi07042005@gmail.com"
-                        onPress={() => Linking.openURL('mailto:Krishnatripathi07042005@gmail.com')}
+                        sub="support@maatrisahayak.org"
+                        onPress={() => Linking.openURL('mailto:support@maatrisahayak.org')}
                         arrow
                     />
                     <Divider />

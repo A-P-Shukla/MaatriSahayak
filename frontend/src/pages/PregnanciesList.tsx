@@ -5,7 +5,7 @@ import {
   TableHead, TableRow, TablePagination, Chip, IconButton, Tooltip,
   Card, CardContent, Stack, useTheme, useMediaQuery, Grid,
 } from '@mui/material';
-import { Add as AddIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { Plus, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePregnancies } from '../hooks/usePregnancies';
 import FilterBar from '../components/FilterBar';
@@ -66,7 +66,7 @@ const PregnanciesList: React.FC = () => {
         </Box>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          startIcon={<Plus size={16} />}
           onClick={() => setRegisterModalOpen(true)}
           sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
         >
@@ -217,7 +217,7 @@ const PregnanciesList: React.FC = () => {
                     <TableCell align="center">
                       <Tooltip title="View details">
                         <IconButton size="small" onClick={(e) => { e.stopPropagation(); navigate(`/pregnancies/${p.pregnancy_id}`); }}>
-                          <VisibilityIcon fontSize="small" />
+                          <Eye size={16} />
                         </IconButton>
                       </Tooltip>
                     </TableCell>

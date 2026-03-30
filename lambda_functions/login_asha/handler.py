@@ -71,6 +71,23 @@ def lambda_handler(event, context):
         
         # Authenticate with Cognito
         try:
+            # Check if user exists and is enabled before attempting auth
+            try:
+                user_info = cognito_client.admin_get_user(
+                    UserPoolId=USER_POOL_ID,
+                    Username=email
+                )
+                if not user_info.get('Enabled', True):
+                    raise ValidationError(
+                        "Your registration is pending approval. You will receive an email once your account is activated by a District Officer.",
+                        field='credentials'
+                    )
+            except cognito_client.exceptions.UserNotFoundException:
+                raise ValidationError(
+                    "No account found with this email. Please register first.",
+                    field='email'
+                )
+
             response = cognito_client.initiate_auth(
                 ClientId=CLIENT_ID,
                 AuthFlow='USER_PASSWORD_AUTH',
@@ -120,19 +137,19 @@ def lambda_handler(event, context):
         
         except cognito_client.exceptions.NotAuthorizedException:
             raise ValidationError(
-                "Invalid email or password",
+                "Incorrect password. Please try again.",
                 field='credentials'
             )
         
         except cognito_client.exceptions.UserNotFoundException:
             raise ValidationError(
-                "User not found. Please register first.",
+                "No account found with this email. Please register first.",
                 field='email'
             )
         
         except cognito_client.exceptions.UserNotConfirmedException:
             raise ValidationError(
-                "User account not confirmed. Please verify your account.",
+                "Your registration is pending approval. You will receive an email once your account is activated.",
                 field='email'
             )
     

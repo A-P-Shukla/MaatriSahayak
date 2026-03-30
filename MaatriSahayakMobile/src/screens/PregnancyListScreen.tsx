@@ -101,7 +101,7 @@ const PregnancyListScreen = ({ navigation }: any) => {
                                 key={p.id}
                                 style={styles.card}
                                 activeOpacity={0.85}
-                                onPress={() => navigation.navigate('PregnancyDetails', { id: p.id })}>
+                                onPress={() => navigation.navigate('Vitals', { pregnancyId: p.id, patientName: p.patient_name })}>
 
                                 <View style={styles.cardTop}>
                                     <View style={styles.avatarCircle}>

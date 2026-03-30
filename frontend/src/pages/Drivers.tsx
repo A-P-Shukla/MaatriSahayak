@@ -6,12 +6,7 @@ import {
   useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent,
   DialogActions, DialogContentText,
 } from '@mui/material';
-import {
-  Search as SearchIcon,
-  DirectionsCar as CarIcon, Phone as PhoneIcon,
-  Star as StarIcon, LocalShipping as TruckIcon,
-  CheckCircle as ApproveIcon, Cancel as RejectIcon,
-} from '@mui/icons-material';
+import { Search, Car, Phone, Star, Truck, CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { listDrivers, verifyRegistration, Driver } from '../services/driver';
 
@@ -94,7 +89,7 @@ const Drivers: React.FC = () => {
         <Button
           size="small" variant="contained" color="success"
           disabled={busy}
-          startIcon={busy ? <CircularProgress size={12} color="inherit" /> : <ApproveIcon />}
+          startIcon={busy ? <CircularProgress size={12} color="inherit" /> : <CheckCircle size={14} />}
           onClick={() => setConfirm({ driver, action: 'APPROVE' })}
           sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.7rem', borderRadius: 1.5 }}
         >
@@ -103,7 +98,7 @@ const Drivers: React.FC = () => {
         <Button
           size="small" variant="outlined" color="error"
           disabled={busy}
-          startIcon={<RejectIcon />}
+          startIcon={<XCircle size={14} />}
           onClick={() => setConfirm({ driver, action: 'REJECT' })}
           sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.7rem', borderRadius: 1.5 }}
         >
@@ -135,15 +130,15 @@ const Drivers: React.FC = () => {
           </Stack>
           <Stack direction="row" spacing={2} flexWrap="wrap" mb={1.5}>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <PhoneIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <Phone size={14} color="#9e9e9e" />
               <Typography variant="caption" color="text.secondary">{driver.phone}</Typography>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <TruckIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <Truck size={14} color="#9e9e9e" />
               <Typography variant="caption" color="text.secondary">{driver.ambulanceId}</Typography>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <StarIcon sx={{ fontSize: 14, color: '#f59e0b' }} />
+              <Star size={14} color="#f59e0b" />
               <Typography variant="caption" color="text.secondary">{driver.rating} · {driver.totalRides} rides</Typography>
             </Stack>
           </Stack>
@@ -188,7 +183,7 @@ const Drivers: React.FC = () => {
       <TextField
         fullWidth placeholder="Search by name, phone or license..."
         value={search} onChange={(e) => setSearch(e.target.value)}
-        InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: '#0d9488' }} /></InputAdornment> }}
+        InputProps={{ startAdornment: <InputAdornment position="start"><Search size={18} color="#0d9488" /></InputAdornment> }}
         sx={{
           mb: 3,
           '& .MuiOutlinedInput-root': {
@@ -206,7 +201,7 @@ const Drivers: React.FC = () => {
         <Box display="flex" justifyContent="center" py={6}><CircularProgress sx={{ color: '#0d9488' }} /></Box>
       ) : filtered.length === 0 ? (
         <Box textAlign="center" py={6}>
-          <CarIcon sx={{ fontSize: 56, color: '#d1fae5', mb: 1 }} />
+          <Car size={56} color="#d1fae5" />
           <Typography color="text.secondary">No drivers found</Typography>
         </Box>
       ) : isMobile ? (
@@ -252,7 +247,7 @@ const Drivers: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <StarIcon sx={{ fontSize: 14, color: '#f59e0b' }} />
+                        <Star size={14} color="#f59e0b" />
                         <Typography fontSize="0.85rem">{driver.rating}</Typography>
                       </Stack>
                     </TableCell>

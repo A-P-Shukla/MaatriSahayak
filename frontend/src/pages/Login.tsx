@@ -281,7 +281,7 @@ const Login: React.FC = () => {
               <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: C.textDark }}>Password</Typography>
               <Typography
                 component="button" type="button"
-                onClick={() => {}}
+                onClick={() => navigate('/forgot-password')}
                 sx={{ fontSize: '0.78rem', color: C.rose, fontWeight: 500, cursor: 'pointer',
                       background: 'none', border: 'none', p: 0, '&:hover': { textDecoration: 'underline' } }}>
                 Forgot Password?

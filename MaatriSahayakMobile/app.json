@@ -9,28 +9,63 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#4F46E5"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.maatrisahayak.mobile"
+      "bundleIdentifier": "com.maatrisahayak.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "MaatriSahayak needs your location to help pregnant women in emergencies.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "MaatriSahayak needs your location to track ambulances and provide emergency services.",
+        "NSCameraUsageDescription": "MaatriSahayak needs camera access to scan ANC cards and capture photos.",
+        "NSPhotoLibraryUsageDescription": "MaatriSahayak needs photo library access to upload ANC card images."
+      },
+      "runtimeVersion": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#4F46E5"
       },
-      "package": "com.maatrisahayak.mobile"
+      "package": "com.maatrisahayak.mobile",
+      "versionCode": 1,
+      "googleMapsApiKey": "AIzaSyDz892JVODjD4Sb7GG0TG7z_kyrt3WAyQU",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-sqlite"
-    ]
+      "expo-sqlite",
+      "expo-notifications",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow MaatriSahayak to use your location."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f95e588d-14b6-44e9-a108-d4c0d7463d9b"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f95e588d-14b6-44e9-a108-d4c0d7463d9b"
+    }
   },
-  "name": "main"
+  "name": "MaatriSahayakMobile"
 }

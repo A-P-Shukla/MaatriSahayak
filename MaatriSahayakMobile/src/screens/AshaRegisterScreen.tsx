@@ -202,7 +202,7 @@ const AshaRegisterScreen = ({ navigation }: any) => {
 
     useEffect(() => {
         if (error) Alert.alert(S.failTitle, error, [{ text: S.ok, onPress: () => dispatch(clearError()) }]);
-    }, [error]);
+    }, [error, S.failTitle, S.ok]);
 
     const set = (key: keyof FormData) => (val: string) => {
         setForm(f => ({ ...f, [key]: val }));

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface WebSocketMessage {
-  type: 'emergency_update' | 'ambulance_location' | 'pregnancy_update' | 'stats_update';
+  type: 'emergency_update' | 'ambulance_location' | 'pregnancy_update' | 'stats_update' | 'new_registration';
   data: any;
 }
 
@@ -32,7 +32,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     try {
       // WebSocket URL from environment or default
       const wsUrl = import.meta.env.VITE_WS_URL || 'wss://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev';
-      
+
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -69,6 +69,11 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
             case 'stats_update':
               queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
               break;
+            case 'new_registration':
+              // Invalidate queries to refresh pending counts
+              queryClient.invalidateQueries({ queryKey: ['drivers'] });
+              queryClient.invalidateQueries({ queryKey: ['asha-workers'] });
+              break;
           }
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error);
@@ -88,7 +93,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
         if (enabled && reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current += 1;
           console.log(`Reconnecting... Attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`);
-          
+
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
           }, reconnectInterval);

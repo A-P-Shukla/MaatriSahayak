@@ -44,6 +44,15 @@ const VitalsScreen = ({ navigation, route }: any) => {
             Alert.alert('Missing Fields', 'Blood pressure (systolic and diastolic) is required.');
             return;
         }
+
+        // Validate BP values
+        const systolic = parseInt(vitals.bpSystolic, 10);
+        const diastolic = parseInt(vitals.bpDiastolic, 10);
+        if (isNaN(systolic) || isNaN(diastolic) || systolic < 50 || systolic > 250 || diastolic < 30 || diastolic > 150) {
+            Alert.alert('Invalid Values', 'Please enter valid blood pressure values.');
+            return;
+        }
+
         if (!pregnancyId) {
             Alert.alert('Error', 'No pregnancy selected. Please go back and select a patient.');
             return;
@@ -51,8 +60,8 @@ const VitalsScreen = ({ navigation, route }: any) => {
 
         const result = await dispatch(recordVitalsThunk({
             pregnancy_id: pregnancyId,
-            bp_systolic: parseInt(vitals.bpSystolic, 10) || undefined,
-            bp_diastolic: parseInt(vitals.bpDiastolic, 10) || undefined,
+            bp_systolic: systolic,
+            bp_diastolic: diastolic,
             heart_rate: vitals.heartRate ? parseInt(vitals.heartRate, 10) : undefined,
             temperature: vitals.temperature ? parseFloat(vitals.temperature) : undefined,
             oxygen_saturation: vitals.oxygenSaturation ? parseInt(vitals.oxygenSaturation, 10) : undefined,

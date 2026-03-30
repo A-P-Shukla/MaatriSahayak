@@ -16,11 +16,7 @@ import {
   MenuItem,
   Chip,
 } from '@mui/material';
-import {
-  Refresh as RefreshIcon,
-  Fullscreen as FullscreenIcon,
-  Close as CloseIcon,
-} from '@mui/icons-material';
+import { RefreshCw, Maximize2, X } from 'lucide-react';
 import { useAmbulances } from '../hooks/useAmbulances';
 import { useWebSocket } from '../hooks/useWebSocket';
 import AmbulanceMap from '../components/AmbulanceMap';
@@ -43,10 +39,10 @@ const LiveTracking: React.FC = () => {
 
   // Calculate ambulance counts by status
   const ambulanceCounts = {
-    available: ambulances.filter((a) => a.status === 'available').length,
-    dispatched: ambulances.filter((a) => a.status === 'dispatched').length,
-    busy: ambulances.filter((a) => a.status === 'busy').length,
-    maintenance: ambulances.filter((a) => a.status === 'maintenance').length,
+    available: ambulances.filter((a) => a.status?.toUpperCase() === 'AVAILABLE').length,
+    dispatched: ambulances.filter((a) => a.status?.toUpperCase() === 'DISPATCHED').length,
+    busy: ambulances.filter((a) => ['BUSY', 'ON_RIDE', 'IN_TRANSIT'].includes(a.status?.toUpperCase())).length,
+    maintenance: ambulances.filter((a) => a.status?.toUpperCase() === 'MAINTENANCE').length,
   };
 
   const handleRefresh = () => {
@@ -83,15 +79,15 @@ const LiveTracking: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value as AmbulanceStatus | '')}
             >
               <MenuItem value="">All</MenuItem>
-              <MenuItem value="available">Available</MenuItem>
-              <MenuItem value="dispatched">Dispatched</MenuItem>
-              <MenuItem value="busy">Busy</MenuItem>
-              <MenuItem value="maintenance">Maintenance</MenuItem>
+              <MenuItem value="AVAILABLE">Available</MenuItem>
+              <MenuItem value="DISPATCHED">Dispatched</MenuItem>
+              <MenuItem value="BUSY">Busy</MenuItem>
+              <MenuItem value="MAINTENANCE">Maintenance</MenuItem>
             </Select>
           </FormControl>
           <Button
             variant="outlined"
-            startIcon={<RefreshIcon />}
+            startIcon={<RefreshCw size={16} />}
             onClick={handleRefresh}
             disabled={isLoading}
           >
@@ -123,7 +119,7 @@ const LiveTracking: React.FC = () => {
           </Typography>
           <Button
             variant="contained"
-            startIcon={<FullscreenIcon />}
+            startIcon={<Maximize2 size={16} />}
             onClick={() => setFullscreenOpen(true)}
           >
             Full Screen Map
@@ -206,7 +202,7 @@ const LiveTracking: React.FC = () => {
               Live Ambulance Tracking - Full Screen
             </Typography>
             <IconButton onClick={() => setFullscreenOpen(false)} edge="end">
-              <CloseIcon />
+              <X size={20} />
             </IconButton>
           </Box>
         </DialogTitle>

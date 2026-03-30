@@ -3,12 +3,7 @@ import {
   AppBar, Toolbar, IconButton, Typography, Box,
   Avatar, Menu, MenuItem, Badge, Tooltip, useTheme, useMediaQuery, Divider,
 } from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Notifications as NotificationsIcon,
-  Logout as LogoutIcon,
-  AccountCircle as AccountCircleIcon,
-} from '@mui/icons-material';
+import { Menu as MenuIcon, Bell, LogOut, UserCircle } from 'lucide-react';
 import { useAuth } from '@hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
@@ -51,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, emergencyCount = 0 }) => {
         {/* Hamburger - mobile only */}
         {isMobile && (
           <IconButton edge="start" onClick={onMenuClick} size="small" sx={{ mr: 0.5 }}>
-            <MenuIcon />
+            <MenuIcon size={22} />
           </IconButton>
         )}
 
@@ -113,7 +108,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, emergencyCount = 0 }) => {
         <Tooltip title="Emergency Alerts">
           <IconButton size="small" onClick={() => navigate('/emergencies')}>
             <Badge badgeContent={emergencyCount} color="error" max={99} invisible={emergencyCount === 0}>
-              <NotificationsIcon sx={{ fontSize: { xs: '1.2rem', md: '1.4rem' } }} />
+              <Bell size={20} />
             </Badge>
           </IconButton>
         </Tooltip>
@@ -155,11 +150,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, emergencyCount = 0 }) => {
           </Box>
           <Divider />
           <MenuItem sx={{ gap: 1.5, py: 1 }}>
-            <AccountCircleIcon fontSize="small" sx={{ color: 'primary.main' }} />
+            <UserCircle size={18} color="#1B6B4A" />
             <Typography variant="body2">My Profile</Typography>
           </MenuItem>
-          <MenuItem onClick={async () => { await logout(); navigate('/role-select', { replace: true }); }} sx={{ gap: 1.5, py: 1, color: 'error.main' }}>
-            <LogoutIcon fontSize="small" />
+          <MenuItem onClick={async () => { await logout(); navigate('/login', { replace: true }); }} sx={{ gap: 1.5, py: 1, color: 'error.main' }}>
+            <LogOut size={18} />
             <Typography variant="body2">Logout</Typography>
           </MenuItem>
         </Menu>

@@ -21,6 +21,7 @@ import Analytics from '@pages/Analytics';
 import AshaWorkers from '@pages/AshaWorkers';
 import AshaWorkerDetails from '@pages/AshaWorkerDetails';
 import Login from '@pages/Login';
+import ForgotPassword from '@pages/ForgotPassword';
 import OfficerRegister from '@pages/OfficerRegister';
 import Drivers from '@pages/Drivers';
 import DriverDetails from '@pages/DriverDetails';
@@ -184,6 +185,7 @@ const App: React.FC = () => (
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/register" element={<OfficerRegister />} />
               <Route path="/drivers" element={<ProtectedRoute><MainLayout><Drivers /></MainLayout></ProtectedRoute>} />
               <Route path="/drivers/:id" element={<ProtectedRoute><MainLayout><DriverDetails /></MainLayout></ProtectedRoute>} />

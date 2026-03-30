@@ -69,6 +69,10 @@ Resources:
         - Name: district
           AttributeDataType: String
           Mutable: true
+      # EmailConfiguration:
+      #   EmailSendingAccount: DEVELOPER
+      #   SourceArn: !Sub arn:aws:ses:ap-south-1:${AWS::AccountId}:identity/noreply@maatrisahayak.in
+      #   From: MatriSahayak <noreply@maatrisahayak.in>
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -568,6 +572,29 @@ Resources:
             Path: /asha/register
             Method: POST
 
+  ListASHAWorkersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/list_asha_workers/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: List all ASHA workers with optional filters
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ASHAWorkersTable
+      Events:
+        ListASHAWorkers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /asha
+            Method: GET
+
   GetASHAProfileFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -988,6 +1015,29 @@ Resources:
             Path: /emergency/{emergency_id}/complete
             Method: POST
 
+  UpdateEmergencyStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/update_emergency_status/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Update emergency status
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          EMERGENCY_EVENTS_TABLE: !Ref EmergencyEventsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmergencyEventsTable
+      Events:
+        UpdateEmergencyStatus:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /emergency/{emergency_id}/status
+            Method: PUT
+
   GetEmergencyHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -1061,6 +1111,29 @@ Resources:
           Properties:
             RestApiId: !Ref MaatriSahayakApi
             Path: /ambulances/{id}/status
+            Method: GET
+
+  ListAmbulancesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/list_ambulances/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: List ambulances with optional filtering
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          AMBULANCES_TABLE: !Ref AmbulancesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref AmbulancesTable
+      Events:
+        ListAmbulances:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /ambulances
             Method: GET
 
   ListHospitalsFunction:
@@ -1489,6 +1562,7 @@ Resources:
       Environment:
         Variables:
           SES_SENDER_EMAIL: noreply@maatrisahayak.in
+          EMAIL_SUPPRESSION_TABLE: !Ref EmailSuppressionTable
       Policies:
         - Statement:
             - Effect: Allow
@@ -1496,6 +1570,8 @@ Resources:
                 - ses:SendEmail
                 - ses:SendRawEmail
               Resource: "*"
+        - DynamoDBReadPolicy:
+            TableName: !Ref EmailSuppressionTable
       Events:
         SendWelcomeEmail:
           Type: Api
@@ -1576,6 +1652,115 @@ Resources:
             RestApiId: !Ref MaatriSahayakApi
             Path: /driver/ride/{emergency_id}/complete
             Method: POST
+
+  PasswordResetsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub maatrisahayak-password-resets-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expires_at
+        Enabled: true
+
+  ForgotPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/forgot_password/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Custom forgot password flow via SES
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+          RESET_TABLE: !Ref PasswordResetsTable
+          SES_SENDER_EMAIL: MatriSahayak <noreply@maatrisahayak.in>
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PasswordResetsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+                - cognito-idp:AdminSetUserPassword
+              Resource: !GetAtt UserPool.Arn
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Events:
+        ForgotPasswordRequest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /auth/forgot-password
+            Method: POST
+
+  # ==================== SES Bounce/Complaint Handling ====================
+  EmailSuppressionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+
+  SESBouncesTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: MaatriSahayak SES Bounces
+      Subscription:
+        - Protocol: lambda
+          Endpoint: !GetAtt HandleSESNotificationsFunction.Arn
+
+  SESComplaintsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: MaatriSahayak SES Complaints
+      Subscription:
+        - Protocol: lambda
+          Endpoint: !GetAtt HandleSESNotificationsFunction.Arn
+
+  HandleSESNotificationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/handle_ses_notifications/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Suppress bounced/complained emails from SES notifications
+      Environment:
+        Variables:
+          EMAIL_SUPPRESSION_TABLE: !Ref EmailSuppressionTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EmailSuppressionTable
+
+  HandleSESNotificationsPermissionBounce:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt HandleSESNotificationsFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref SESBouncesTopic
+
+  HandleSESNotificationsPermissionComplaint:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt HandleSESNotificationsFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref SESComplaintsTopic
 
   EmergencyNotificationsTopic:
     Type: AWS::SNS::Topic
@@ -1663,6 +1848,24 @@ Outputs:
     Value: !Ref EmergencyNotificationsTopic
     Export:
       Name: !Sub ${AWS::StackName}-EmergencyNotificationsTopic
+
+  SESBouncesTopicArn:
+    Description: SES Bounces SNS Topic ARN
+    Value: !Ref SESBouncesTopic
+    Export:
+      Name: !Sub ${AWS::StackName}-SESBouncesTopic
+
+  SESComplaintsTopicArn:
+    Description: SES Complaints SNS Topic ARN
+    Value: !Ref SESComplaintsTopic
+    Export:
+      Name: !Sub ${AWS::StackName}-SESComplaintsTopic
+
+  EmailSuppressionTableName:
+    Description: Email Suppression DynamoDB Table Name
+    Value: !Ref EmailSuppressionTable
+    Export:
+      Name: !Sub ${AWS::StackName}-EmailSuppressionTable
 
   HospitalsTableName:
     Description: Hospitals DynamoDB Table Name

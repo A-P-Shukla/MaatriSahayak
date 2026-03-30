@@ -4,12 +4,9 @@ import {
   Box, Badge, useTheme, useMediaQuery, Typography,
 } from '@mui/material';
 import {
-  Dashboard as DashboardIcon, PregnantWoman as PregnancyIcon,
-  Warning as EmergencyIcon, LocationOn as TrackingIcon,
-  Analytics as AnalyticsIcon, People as PeopleIcon,
-  DirectionsCar as DriverIcon, LocalHospital as HospitalIcon,
-  AccountCircle as ProfileIcon,
-} from '@mui/icons-material';
+  LayoutDashboard, Baby, AlertTriangle, MapPin, BarChart2,
+  Users, Car, Hospital, UserCircle,
+} from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
@@ -27,15 +24,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, emergencyCount = 0 }) 
   const drawerWidth = 270;
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', badge: 0 },
-    { text: 'Pregnancies', icon: <PregnancyIcon />, path: '/pregnancies', badge: 0 },
-    { text: 'Emergency Alerts', icon: <EmergencyIcon />, path: '/emergencies', badge: emergencyCount },
-    { text: 'ASHA Workers', icon: <PeopleIcon />, path: '/asha', badge: 0 },
-    { text: 'Drivers', icon: <DriverIcon />, path: '/drivers', badge: 0 },
-    { text: 'Live Tracking', icon: <TrackingIcon />, path: '/tracking', badge: 0 },
-    { text: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics', badge: 0 },
-    { text: 'Hospitals', icon: <HospitalIcon />, path: '/hospitals', badge: 0 },
-    { text: 'My Profile', icon: <ProfileIcon />, path: '/profile', badge: 0 },
+    { text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard', badge: 0 },
+    { text: 'Pregnancies', icon: <Baby size={20} />, path: '/pregnancies', badge: 0 },
+    { text: 'Emergency Alerts', icon: <AlertTriangle size={20} />, path: '/emergencies', badge: emergencyCount },
+    { text: 'ASHA Workers', icon: <Users size={20} />, path: '/asha', badge: 0 },
+    { text: 'Drivers', icon: <Car size={20} />, path: '/drivers', badge: 0 },
+    { text: 'Live Tracking', icon: <MapPin size={20} />, path: '/tracking', badge: 0 },
+    { text: 'Analytics', icon: <BarChart2 size={20} />, path: '/analytics', badge: 0 },
+    { text: 'Hospitals', icon: <Hospital size={20} />, path: '/hospitals', badge: 0 },
+    { text: 'My Profile', icon: <UserCircle size={20} />, path: '/profile', badge: 0 },
   ];
 
   const handleNavigation = (path: string) => {

@@ -236,6 +236,30 @@ export const registerOfficer = async (data: {
   }
 };
 
+// Send forgot password code via our Lambda (uses SES directly)
+export const forgotPassword = async (email: string): Promise<void> => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'request', email }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.message || data.error || 'Failed to send reset code');
+};
+
+// Confirm new password with the code sent to email
+export const confirmForgotPassword = async (email: string, code: string, newPassword: string): Promise<void> => {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'confirm', email, code, new_password: newPassword }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.message || data.error || 'Failed to reset password');
+};
+
 // Verify if user is authenticated
 export const isAuthenticated = (): boolean => {
   const token = getAuthToken();

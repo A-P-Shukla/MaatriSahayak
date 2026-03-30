@@ -17,9 +17,20 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor for authentication tokens
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token');
+    // Prefer id_token (Cognito authorizer expects it), fall back to access_token
+    const token = localStorage.getItem('id_token') || localStorage.getItem('auth_token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Ensure token is a valid JWT format (3 parts separated by dots)
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        config.headers.Authorization = `Bearer ${token}`;
+      } else {
+        console.error('Invalid token format detected, clearing auth data');
+        localStorage.removeItem('id_token');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_data');
+      }
     }
     return config;
   },
@@ -42,10 +53,9 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Handle network errors and server errors with retry logic
+    // Handle network errors with retry logic (do NOT retry 500s — they are app errors)
     if (
       !error.response ||
-      (error.response.status >= 500 && error.response.status < 600) ||
       error.code === 'ECONNABORTED' ||
       error.code === 'ERR_NETWORK'
     ) {
@@ -89,10 +99,9 @@ export interface PaginatedResponse<T> {
 export const handleApiError = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
     if (error.response) {
-      // Server responded with error
-      return error.response.data?.message || error.response.data?.error || 'An error occurred';
+      const d = error.response.data;
+      return d?.message || d?.error || d?.detail || `Server error (${error.response.status})`;
     } else if (error.request) {
-      // Request made but no response
       return 'Unable to connect. Please check your internet connection.';
     }
   }

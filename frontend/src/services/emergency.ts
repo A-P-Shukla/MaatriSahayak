@@ -20,11 +20,12 @@ export const getEmergencies = async (
     if (filters.district) params.append('district', filters.district);
     if (filters.limit) params.append('limit', filters.limit.toString());
 
-    const response = await apiClient.get<ApiResponse<Emergency[]>>(
+    const response = await apiClient.get<ApiResponse<any>>(
       `/emergencies?${params.toString()}`
     );
 
-    return response.data.data || [];
+    const d = response.data.data;
+    return (d?.emergencies ?? d?.items ?? (Array.isArray(d) ? d : []));
   } catch (error) {
     throw new Error(handleApiError(error));
   }

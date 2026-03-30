@@ -1,62 +1,61 @@
 /**
- * Analytics and reporting type definitions
+ * Analytics type definitions — aligned with real cloud API responses
  */
 
-export interface ResponseTimeMetrics {
-  average: number; // in seconds
-  median: number; // P50
-  p95: number; // 95th percentile
-  p99: number; // 99th percentile
-  min: number;
-  max: number;
-}
-
-export interface EmergencyVolumeData {
-  date: string; // ISO 8601 date string
-  count: number;
-  successful: number;
-  delayed: number;
-  failed: number;
-}
-
-export interface ResponseTimeTrend {
-  date: string; // ISO 8601 date string
-  average_response_time: number; // in seconds
+// Shape returned by GET /analytics (generate_analytics lambda)
+export interface CloudAnalyticsData {
+  total_pregnancies: number;
+  active_pregnancies: number;
+  high_risk_count: number;
+  high_risk_percentage: number;
   emergency_count: number;
-}
-
-export interface OutcomeStats {
-  successful: number;
-  delayed: number;
-  failed: number;
-  total: number;
-  success_rate: number; // percentage
-}
-
-export interface DistrictMetrics {
-  district: string;
-  emergency_count: number;
-  average_response_time: number;
-  success_rate: number;
-}
-
-export interface AnalyticsData {
-  date_range: {
-    start: string;
-    end: string;
+  active_emergencies: number;
+  ambulance_stats: {
+    total: number;
+    busy: number;
+    available: number;
+    utilization_percentage: number;
   };
-  response_time_metrics: ResponseTimeMetrics;
-  emergency_volume: EmergencyVolumeData[];
-  response_time_trend: ResponseTimeTrend[];
-  outcomes: OutcomeStats;
-  by_district: DistrictMetrics[];
+  hospital_capacity: {
+    total_hospitals: number;
+    total_maternity_beds: number;
+    available_maternity_beds: number;
+    occupancy_percentage: number;
+  };
+  district?: string;
+}
+
+// Computed from real emergency records (GET /emergencies)
+export interface ComputedAnalytics {
+  outcomes: {
+    completed: number;
+    active: number;
+    total: number;
+    completion_rate: number;
+  };
+  by_severity: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+  by_status: {
+    initiated: number;
+    dispatched: number;
+    in_transit: number;
+    arrived: number;
+    completed: number;
+  };
+  avg_response_time_seconds: number;
+  response_time_trend: { date: string; count: number; avg_response_min: number }[];
+  volume_trend: { date: string; total: number; completed: number; active: number }[];
+  by_district: { district: string; count: number; completed: number; completion_rate: number }[];
 }
 
 export interface AnalyticsFilters {
   start_date: string;
   end_date: string;
   district?: string;
-  severity_level?: string;
 }
 
-export type DateRangePreset = 'last_7_days' | 'last_30_days' | 'last_90_days' | 'custom';
+export type DateRangePreset = 'last_7_days' | 'last_30_days' | 'last_90_days';

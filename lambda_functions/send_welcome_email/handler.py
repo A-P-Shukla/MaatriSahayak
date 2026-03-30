@@ -17,13 +17,25 @@ from shared import (
 from shared.constants import HTTP_STATUS
 
 ses_client = boto3.client('ses', region_name='ap-south-1')
+dynamodb = boto3.resource('dynamodb')
 SES_SENDER_EMAIL = os.environ.get('SES_SENDER_EMAIL', 'noreply.maatrisahayak@gmail.com')
+EMAIL_SUPPRESSION_TABLE = os.environ.get('EMAIL_SUPPRESSION_TABLE', 'EmailSuppressionList')
+
+
+def is_suppressed(email: str) -> bool:
+    table = dynamodb.Table(EMAIL_SUPPRESSION_TABLE)
+    resp = table.get_item(Key={'email': email.lower()})
+    return 'Item' in resp
 
 
 def lambda_handler(event, context):
     try:
         body = parse_event_body(event)
         validate_required_fields(body, ['name', 'email', 'district', 'designation', 'employee_id'])
+
+        if is_suppressed(body['email']):
+            log_info("Email suppressed, skipping", email=body['email'])
+            return create_success_response({}, "Email skipped (suppressed)")
 
         send_officer_welcome_email(
             email=body['email'],

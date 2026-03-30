@@ -159,6 +159,195 @@ def seed_pregnancies(dynamodb):
             'created_at': (datetime.now() - timedelta(days=252)).isoformat() + 'Z',
             'updated_at': datetime.now().isoformat() + 'Z'
         },
+        {
+            'id': 'preg_004',
+            'patient_name': 'Kavita Verma',
+            'age': 26,
+            'phone': '+919876543240',
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Khurd',
+            'latitude': Decimal('27.5650'),
+            'longitude': Decimal('80.2850'),
+            'lmp_date': (datetime.now() - timedelta(days=168)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=112)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 24,
+            'blood_type': 'AB+',
+            'gravida': 2,
+            'parity': 1,
+            'previous_complications': [],
+            'chronic_conditions': ['anemia'],
+            'risk_score': 45,
+            'risk_level': 'MEDIUM',
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_003',
+            'asha_worker_name': 'Meena Kumari',
+            'asha_worker_phone': '+919876543213',
+            'created_at': (datetime.now() - timedelta(days=168)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'preg_005',
+            'patient_name': 'Radha Gupta',
+            'age': 22,
+            'phone': '+919876543250',
+            'district': 'Sitapur',
+            'block': 'Mahmudabad',
+            'village': 'Madhubani',
+            'latitude': Decimal('27.5820'),
+            'longitude': Decimal('80.2920'),
+            'lmp_date': (datetime.now() - timedelta(days=84)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=196)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 12,
+            'blood_type': 'O-',
+            'gravida': 1,
+            'parity': 0,
+            'previous_complications': [],
+            'chronic_conditions': [],
+            'risk_score': 20,
+            'risk_level': 'LOW',
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_002',
+            'asha_worker_name': 'Rekha Devi',
+            'asha_worker_phone': '+919876543212',
+            'created_at': (datetime.now() - timedelta(days=84)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'preg_006',
+            'patient_name': 'Geeta Yadav',
+            'age': 31,
+            'phone': '+919876543260',
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Kalan',
+            'latitude': Decimal('27.5710'),
+            'longitude': Decimal('80.2800'),
+            'lmp_date': (datetime.now() - timedelta(days=196)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=84)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 28,
+            'blood_type': 'A-',
+            'gravida': 3,
+            'parity': 2,
+            'previous_complications': ['postpartum_hemorrhage'],
+            'chronic_conditions': ['gestational_diabetes'],
+            'risk_score': 68,
+            'risk_level': 'HIGH',
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_001',
+            'asha_worker_name': 'Sunita Devi',
+            'asha_worker_phone': '+919876543211',
+            'created_at': (datetime.now() - timedelta(days=196)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'preg_007',
+            'patient_name': 'Pooja Mishra',
+            'age': 29,
+            'phone': '+919876543270',
+            'district': 'Sitapur',
+            'block': 'Mahmudabad',
+            'village': 'Saraiya',
+            'latitude': Decimal('27.5900'),
+            'longitude': Decimal('80.3000'),
+            'lmp_date': (datetime.now() - timedelta(days=112)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=168)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 16,
+            'blood_type': 'B-',
+            'gravida': 1,
+            'parity': 0,
+            'previous_complications': [],
+            'chronic_conditions': [],
+            'risk_score': 30,
+            'risk_level': 'LOW',
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_004',
+            'asha_worker_name': 'Asha Devi',
+            'asha_worker_phone': '+919876543214',
+            'created_at': (datetime.now() - timedelta(days=112)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'preg_008',
+            'patient_name': 'Sita Pandey',
+            'age': 33,
+            'phone': '+919876543280',
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Khurd',
+            'latitude': Decimal('27.5660'),
+            'longitude': Decimal('80.2860'),
+            'lmp_date': (datetime.now() - timedelta(days=238)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=42)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 34,
+            'blood_type': 'O+',
+            'gravida': 4,
+            'parity': 3,
+            'previous_complications': ['previous_c_section', 'preterm_labor'],
+            'chronic_conditions': ['high_blood_pressure', 'anemia'],
+            'risk_score': 85,
+            'risk_level': 'CRITICAL',
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_003',
+            'asha_worker_name': 'Meena Kumari',
+            'asha_worker_phone': '+919876543213',
+            'created_at': (datetime.now() - timedelta(days=238)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'preg_009',
+            'patient_name': 'Lakshmi Tiwari',
+            'age': 27,
+            'phone': '+919876543290',
+            'district': 'Sitapur',
+            'block': 'Mahmudabad',
+            'village': 'Saraiya',
+            'latitude': Decimal('27.5910'),
+            'longitude': Decimal('80.3010'),
+            'lmp_date': (datetime.now() - timedelta(days=154)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=126)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 22,
+            'blood_type': 'A+',
+            'gravida': 2,
+            'parity': 1,
+            'previous_complications': [],
+            'chronic_conditions': [],
+            'risk_score': 35,
+            'risk_level': 'LOW',
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_004',
+            'asha_worker_name': 'Asha Devi',
+            'asha_worker_phone': '+919876543214',
+            'created_at': (datetime.now() - timedelta(days=154)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'preg_010',
+            'patient_name': 'Mamta Dubey',
+            'age': 30,
+            'phone': '+919876543300',
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Kalan',
+            'latitude': Decimal('27.5720'),
+            'longitude': Decimal('80.2810'),
+            'lmp_date': (datetime.now() - timedelta(days=210)).strftime('%Y-%m-%d'),
+            'edd': (datetime.now() + timedelta(days=70)).strftime('%Y-%m-%d'),
+            'gestational_age_weeks': 30,
+            'blood_type': 'B+',
+            'gravida': 3,
+            'parity': 2,
+            'previous_complications': ['gestational_diabetes'],
+            'chronic_conditions': ['high_blood_pressure'],
+            'risk_score': 72,
+            'risk_level': 'HIGH',
+            'status': 'ACTIVE',
+            'asha_worker_id': 'asha_001',
+            'asha_worker_name': 'Sunita Devi',
+            'asha_worker_phone': '+919876543211',
+            'created_at': (datetime.now() - timedelta(days=210)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
     ]
     
     for pregnancy in pregnancies:
@@ -173,28 +362,41 @@ def seed_vital_signs(dynamodb):
     
     print("  📝 Seeding vital signs...")
     
-    # Generate vital signs for preg_001 (last 7 days)
     vital_signs = []
     base_time = datetime.now()
     
-    for i in range(7):
-        recorded_at = (base_time - timedelta(days=i)).isoformat() + 'Z'
-        vital_signs.append({
-            'id': f'vital_{i+1:03d}',
-            'pregnancy_id': 'preg_001',
-            'bp_systolic': 130 + random.randint(-10, 20),
-            'bp_diastolic': 85 + random.randint(-5, 10),
-            'heart_rate': 80 + random.randint(-5, 10),
-            'temperature': Decimal('37.2'),
-            'oxygen_saturation': 98,
-            'fetal_heart_rate': 145 + random.randint(-10, 10),
-            'weight': Decimal('65.5'),
-            'symptoms': ['headache', 'dizziness'] if i < 2 else [],
-            'notes': 'Patient complaining of headache' if i < 2 else 'Normal checkup',
-            'recorded_by': 'asha_001',
-            'recorded_at': recorded_at,
-            'alerts': ['High Blood Pressure'] if i < 2 else []
-        })
+    # Generate vital signs for multiple pregnancies
+    pregnancy_vitals = [
+        ('preg_001', 'asha_001', 130, 85, 145, Decimal('65.5'), ['headache', 'dizziness']),
+        ('preg_002', 'asha_001', 115, 75, 140, Decimal('58.2'), []),
+        ('preg_003', 'asha_002', 145, 95, 150, Decimal('72.8'), ['swelling', 'headache']),
+        ('preg_004', 'asha_003', 120, 78, 142, Decimal('61.5'), []),
+        ('preg_006', 'asha_001', 135, 88, 148, Decimal('68.3'), ['fatigue']),
+    ]
+    
+    vital_id = 1
+    for preg_id, asha_id, bp_sys, bp_dia, fhr, weight, symptoms in pregnancy_vitals:
+        for i in range(5):  # 5 readings per pregnancy
+            recorded_at = (base_time - timedelta(days=i*7)).isoformat() + 'Z'
+            has_issues = i < 2 and len(symptoms) > 0
+            
+            vital_signs.append({
+                'id': f'vital_{vital_id:03d}',
+                'pregnancy_id': preg_id,
+                'bp_systolic': bp_sys + random.randint(-10, 15),
+                'bp_diastolic': bp_dia + random.randint(-5, 10),
+                'heart_rate': 80 + random.randint(-5, 10),
+                'temperature': Decimal(str(36.5 + random.uniform(0, 1.2))),
+                'oxygen_saturation': 97 + random.randint(0, 2),
+                'fetal_heart_rate': fhr + random.randint(-10, 10),
+                'weight': weight + Decimal(str(i * 0.5)),
+                'symptoms': symptoms if has_issues else [],
+                'notes': f'Patient showing symptoms: {", ".join(symptoms)}' if has_issues else 'Normal checkup, all vitals stable',
+                'recorded_by': asha_id,
+                'recorded_at': recorded_at,
+                'alerts': ['High Blood Pressure'] if bp_sys > 140 and has_issues else []
+            })
+            vital_id += 1
     
     for vital in vital_signs:
         table.put_item(Item=convert_floats_to_decimal(vital))
@@ -237,6 +439,90 @@ def seed_emergency_events(dynamodb):
                 {'status': 'COMPLETED', 'timestamp': (datetime.now() - timedelta(hours=1)).isoformat() + 'Z'}
             ]
         },
+        {
+            'id': 'emerg_002',
+            'pregnancy_id': 'preg_003',
+            'patient_name': 'Anita Singh',
+            'patient_phone': '+919876543230',
+            'event_type': 'SEVERE_PREECLAMPSIA',
+            'severity': 'CRITICAL',
+            'description': 'Patient with severe preeclampsia, high BP 180/110, severe headache and vision problems',
+            'latitude': Decimal('27.5800'),
+            'longitude': Decimal('80.2900'),
+            'location_address': 'Madhubani, Mahmudabad, Sitapur',
+            'status': 'IN_TRANSIT',
+            'ambulance_id': 'amb_002',
+            'hospital_id': 'hosp_001',
+            'estimated_arrival_time': (datetime.now() + timedelta(minutes=15)).isoformat() + 'Z',
+            'actual_arrival_time': None,
+            'completion_time': None,
+            'response_time_seconds': 420,
+            'triggered_by': 'asha_002',
+            'triggered_at': (datetime.now() - timedelta(minutes=25)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z',
+            'timeline': [
+                {'status': 'INITIATED', 'timestamp': (datetime.now() - timedelta(minutes=25)).isoformat() + 'Z'},
+                {'status': 'DISPATCHED', 'timestamp': (datetime.now() - timedelta(minutes=18)).isoformat() + 'Z'},
+                {'status': 'ARRIVED', 'timestamp': (datetime.now() - timedelta(minutes=10)).isoformat() + 'Z'},
+                {'status': 'IN_TRANSIT', 'timestamp': (datetime.now() - timedelta(minutes=5)).isoformat() + 'Z'}
+            ]
+        },
+        {
+            'id': 'emerg_003',
+            'pregnancy_id': 'preg_008',
+            'patient_name': 'Sita Pandey',
+            'patient_phone': '+919876543280',
+            'event_type': 'PRETERM_LABOR',
+            'severity': 'HIGH',
+            'description': 'Patient at 34 weeks experiencing regular contractions, possible preterm labor',
+            'latitude': Decimal('27.5660'),
+            'longitude': Decimal('80.2860'),
+            'location_address': 'Rampur Khurd, Biswan, Sitapur',
+            'status': 'COMPLETED',
+            'ambulance_id': 'amb_003',
+            'hospital_id': 'hosp_002',
+            'estimated_arrival_time': (datetime.now() - timedelta(days=2, hours=3, minutes=30)).isoformat() + 'Z',
+            'actual_arrival_time': (datetime.now() - timedelta(days=2, hours=3, minutes=25)).isoformat() + 'Z',
+            'completion_time': (datetime.now() - timedelta(days=2, hours=2, minutes=45)).isoformat() + 'Z',
+            'response_time_seconds': 540,
+            'triggered_by': 'asha_003',
+            'triggered_at': (datetime.now() - timedelta(days=2, hours=4)).isoformat() + 'Z',
+            'updated_at': (datetime.now() - timedelta(days=2, hours=2, minutes=45)).isoformat() + 'Z',
+            'timeline': [
+                {'status': 'INITIATED', 'timestamp': (datetime.now() - timedelta(days=2, hours=4)).isoformat() + 'Z'},
+                {'status': 'DISPATCHED', 'timestamp': (datetime.now() - timedelta(days=2, hours=3, minutes=51)).isoformat() + 'Z'},
+                {'status': 'ARRIVED', 'timestamp': (datetime.now() - timedelta(days=2, hours=3, minutes=25)).isoformat() + 'Z'},
+                {'status': 'COMPLETED', 'timestamp': (datetime.now() - timedelta(days=2, hours=2, minutes=45)).isoformat() + 'Z'}
+            ]
+        },
+        {
+            'id': 'emerg_004',
+            'pregnancy_id': 'preg_006',
+            'patient_name': 'Geeta Yadav',
+            'patient_phone': '+919876543260',
+            'event_type': 'SEVERE_ABDOMINAL_PAIN',
+            'severity': 'HIGH',
+            'description': 'Patient with gestational diabetes experiencing severe abdominal pain',
+            'latitude': Decimal('27.5710'),
+            'longitude': Decimal('80.2800'),
+            'location_address': 'Rampur Kalan, Biswan, Sitapur',
+            'status': 'COMPLETED',
+            'ambulance_id': 'amb_001',
+            'hospital_id': 'hosp_001',
+            'estimated_arrival_time': (datetime.now() - timedelta(days=5, hours=2, minutes=20)).isoformat() + 'Z',
+            'actual_arrival_time': (datetime.now() - timedelta(days=5, hours=2, minutes=18)).isoformat() + 'Z',
+            'completion_time': (datetime.now() - timedelta(days=5, hours=1, minutes=30)).isoformat() + 'Z',
+            'response_time_seconds': 480,
+            'triggered_by': 'asha_001',
+            'triggered_at': (datetime.now() - timedelta(days=5, hours=3)).isoformat() + 'Z',
+            'updated_at': (datetime.now() - timedelta(days=5, hours=1, minutes=30)).isoformat() + 'Z',
+            'timeline': [
+                {'status': 'INITIATED', 'timestamp': (datetime.now() - timedelta(days=5, hours=3)).isoformat() + 'Z'},
+                {'status': 'DISPATCHED', 'timestamp': (datetime.now() - timedelta(days=5, hours=2, minutes=52)).isoformat() + 'Z'},
+                {'status': 'ARRIVED', 'timestamp': (datetime.now() - timedelta(days=5, hours=2, minutes=18)).isoformat() + 'Z'},
+                {'status': 'COMPLETED', 'timestamp': (datetime.now() - timedelta(days=5, hours=1, minutes=30)).isoformat() + 'Z'}
+            ]
+        },
     ]
     
     for event in events:
@@ -269,24 +555,50 @@ def seed_ambulances(dynamodb):
             'id': 'amb_002',
             'vehicle_number': 'UP80AB5678',
             'district': 'Sitapur',
-            'status': 'AVAILABLE',
-            'latitude': Decimal('27.5800'),
-            'longitude': Decimal('80.2900'),
+            'status': 'IN_USE',
+            'latitude': Decimal('27.5750'),
+            'longitude': Decimal('80.2850'),
             'driver_name': 'Suresh Singh',
             'driver_phone': '+919876543221',
             'equipment': ['OXYGEN', 'DEFIBRILLATOR', 'OBSTETRIC_KIT', 'STRETCHER', 'VENTILATOR'],
-            'current_emergency_id': None,
+            'current_emergency_id': 'emerg_002',
             'last_updated': datetime.now().isoformat() + 'Z'
         },
         {
             'id': 'amb_003',
             'vehicle_number': 'UP80AB9012',
             'district': 'Sitapur',
+            'status': 'AVAILABLE',
+            'latitude': Decimal('27.5650'),
+            'longitude': Decimal('80.2870'),
+            'driver_name': 'Dinesh Yadav',
+            'driver_phone': '+919876543222',
+            'equipment': ['OXYGEN', 'STRETCHER', 'OBSTETRIC_KIT'],
+            'current_emergency_id': None,
+            'last_updated': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'amb_004',
+            'vehicle_number': 'UP80AB3456',
+            'district': 'Sitapur',
+            'status': 'AVAILABLE',
+            'latitude': Decimal('27.5900'),
+            'longitude': Decimal('80.3000'),
+            'driver_name': 'Vijay Sharma',
+            'driver_phone': '+919876543223',
+            'equipment': ['OXYGEN', 'DEFIBRILLATOR', 'OBSTETRIC_KIT', 'STRETCHER', 'VENTILATOR', 'INCUBATOR'],
+            'current_emergency_id': None,
+            'last_updated': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'amb_005',
+            'vehicle_number': 'UP80AB7890',
+            'district': 'Sitapur',
             'status': 'MAINTENANCE',
             'latitude': Decimal('27.5706'),
             'longitude': Decimal('80.2792'),
-            'driver_name': 'Dinesh Yadav',
-            'driver_phone': '+919876543222',
+            'driver_name': 'Anil Verma',
+            'driver_phone': '+919876543224',
             'equipment': ['OXYGEN', 'STRETCHER'],
             'current_emergency_id': None,
             'last_updated': datetime.now().isoformat() + 'Z'
@@ -344,6 +656,46 @@ def seed_hospitals(dynamodb):
             'has_blood_bank': False,
             'has_operation_theater': True,
             'specializations': ['MATERNITY', 'EMERGENCY'],
+            'last_updated': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'hosp_003',
+            'name': 'Primary Health Center Mahmudabad',
+            'type': 'PHC',
+            'district': 'Sitapur',
+            'address': 'Mahmudabad, Sitapur, Uttar Pradesh',
+            'latitude': Decimal('27.5800'),
+            'longitude': Decimal('80.2900'),
+            'phone': '+915862267890',
+            'total_beds': 30,
+            'available_beds': 12,
+            'maternity_beds': 10,
+            'available_maternity_beds': 4,
+            'nicu_beds': 2,
+            'available_nicu_beds': 1,
+            'has_blood_bank': False,
+            'has_operation_theater': False,
+            'specializations': ['MATERNITY', 'EMERGENCY'],
+            'last_updated': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'hosp_004',
+            'name': 'Sub-District Hospital Laharpur',
+            'type': 'SUB_DISTRICT',
+            'district': 'Sitapur',
+            'address': 'Laharpur, Sitapur, Uttar Pradesh',
+            'latitude': Decimal('27.6200'),
+            'longitude': Decimal('80.3200'),
+            'phone': '+915862289012',
+            'total_beds': 60,
+            'available_beds': 18,
+            'maternity_beds': 15,
+            'available_maternity_beds': 5,
+            'nicu_beds': 4,
+            'available_nicu_beds': 2,
+            'has_blood_bank': True,
+            'has_operation_theater': True,
+            'specializations': ['MATERNITY', 'EMERGENCY', 'SURGERY'],
             'last_updated': datetime.now().isoformat() + 'Z'
         },
     ]
@@ -415,6 +767,42 @@ def seed_asha_workers(dynamodb):
             'created_at': (datetime.now() - timedelta(days=365*7)).isoformat() + 'Z',
             'updated_at': datetime.now().isoformat() + 'Z'
         },
+        {
+            'id': 'asha_004',
+            'name': 'Asha Devi',
+            'phone': '+919876543214',
+            'email': 'asha.devi@example.com',
+            'age': 30,
+            'district': 'Sitapur',
+            'block': 'Mahmudabad',
+            'village': 'Saraiya',
+            'qualification': 'Class 12',
+            'experience_years': 4,
+            'languages': ['Hindi', 'Awadhi'],
+            'status': 'ACTIVE',
+            'pregnancies_managed': 38,
+            'emergencies_handled': 6,
+            'created_at': (datetime.now() - timedelta(days=365*4)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
+        {
+            'id': 'asha_005',
+            'name': 'Poonam Singh',
+            'phone': '+919876543215',
+            'email': 'poonam.singh@example.com',
+            'age': 26,
+            'district': 'Sitapur',
+            'block': 'Biswan',
+            'village': 'Rampur Kalan',
+            'qualification': 'Class 10',
+            'experience_years': 2,
+            'languages': ['Hindi'],
+            'status': 'ACTIVE',
+            'pregnancies_managed': 22,
+            'emergencies_handled': 3,
+            'created_at': (datetime.now() - timedelta(days=365*2)).isoformat() + 'Z',
+            'updated_at': datetime.now().isoformat() + 'Z'
+        },
     ]
     
     for asha in asha_workers:
@@ -458,12 +846,12 @@ def main():
         print("=" * 70)
         print()
         print("📊 Seeded Data Summary:")
-        print("   ✓ 3 Pregnancies")
-        print("   ✓ 7 Vital Signs records")
-        print("   ✓ 1 Emergency Event")
-        print("   ✓ 3 Ambulances")
-        print("   ✓ 2 Hospitals")
-        print("   ✓ 3 ASHA Workers")
+        print("   ✓ 10 Pregnancies (various risk levels)")
+        print("   ✓ 25 Vital Signs records (across multiple pregnancies)")
+        print("   ✓ 4 Emergency Events (completed and in-progress)")
+        print("   ✓ 5 Ambulances (various statuses)")
+        print("   ✓ 4 Hospitals (different types and capacities)")
+        print("   ✓ 5 ASHA Workers (different experience levels)")
         print()
         print("=" * 70)
         

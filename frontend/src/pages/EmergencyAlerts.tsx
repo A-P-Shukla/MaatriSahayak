@@ -5,7 +5,7 @@ import {
   TableHead, TableRow, IconButton, Tooltip, Card, CardContent,
   Stack, Grid, useTheme, useMediaQuery,
 } from '@mui/material';
-import { Refresh as RefreshIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { RefreshCw, Eye } from 'lucide-react';
 import { useEmergencies } from '../hooks/useEmergencies';
 import EmergencyDetailsModal from '../components/EmergencyDetailsModal';
 import FilterBar from '../components/FilterBar';
@@ -38,7 +38,8 @@ const EmergencyAlerts: React.FC = () => {
     return 'default';
   };
 
-  const getSeverityColor = (s: SeverityLevel): 'default' | 'info' | 'warning' | 'error' => {
+  const getSeverityColor = (s?: SeverityLevel): 'default' | 'info' | 'warning' | 'error' => {
+    if (!s) return 'default';
     if (s === 'low') return 'info';
     if (s === 'medium' || s === 'high') return 'warning';
     if (s === 'critical') return 'error';
@@ -74,7 +75,7 @@ const EmergencyAlerts: React.FC = () => {
         </Box>
         <Tooltip title="Refresh">
           <IconButton onClick={() => refetch()} color="primary" sx={{ border: '1px solid', borderColor: 'divider' }}>
-            <RefreshIcon />
+            <RefreshCw size={18} />
           </IconButton>
         </Tooltip>
       </Box>
@@ -185,7 +186,7 @@ const EmergencyAlerts: React.FC = () => {
                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                         <Typography variant="subtitle1" fontWeight={600}>{e.patient_name}</Typography>
-                        <Chip label={e.severity_level.toUpperCase()} color={getSeverityColor(e.severity_level)} size="small" />
+                        <Chip label={e.severity_level?.toUpperCase() || 'N/A'} color={getSeverityColor(e.severity_level)} size="small" />
                       </Box>
                       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
                         <Chip label={e.status.replace('_', ' ').toUpperCase()} color={getStatusColor(e.status)} size="small" />
@@ -224,7 +225,7 @@ const EmergencyAlerts: React.FC = () => {
                       <Typography variant="body2" fontWeight={500}>{e.patient_name}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Chip label={e.severity_level.toUpperCase()} color={getSeverityColor(e.severity_level)} size="small" />
+                      <Chip label={e.severity_level?.toUpperCase() || 'N/A'} color={getSeverityColor(e.severity_level)} size="small" />
                     </TableCell>
                     <TableCell>
                       <Chip label={e.status.replace('_', ' ').toUpperCase()} color={getStatusColor(e.status)} size="small" />
@@ -235,7 +236,7 @@ const EmergencyAlerts: React.FC = () => {
                     <TableCell align="center">
                       <Tooltip title="View details">
                         <IconButton size="small" onClick={() => { setSelectedEmergencyId(e.event_id); setModalOpen(true); }}>
-                          <VisibilityIcon fontSize="small" />
+                          <Eye size={16} />
                         </IconButton>
                       </Tooltip>
                     </TableCell>

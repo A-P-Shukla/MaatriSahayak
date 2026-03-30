@@ -11,21 +11,21 @@ import { PregnancyService } from '../services/pregnancyService';
 import api from '../services/api';
 import { AppDispatch, RootState } from '../store';
 
-const BG      = '#0A1F1A';
-const CARD    = '#112920';
-const GREEN   = '#00E5A0';
-const RED     = '#FF6B6B';
-const ORANGE  = '#FFA040';
-const DIM     = '#B8D4CC';
-const WHITE   = '#FFFFFF';
-const BORDER  = '#3A6B58';
+const BG = '#0A1F1A';
+const CARD = '#112920';
+const GREEN = '#00E5A0';
+const RED = '#FF6B6B';
+const ORANGE = '#FFA040';
+const DIM = '#B8D4CC';
+const WHITE = '#FFFFFF';
+const BORDER = '#3A6B58';
 const PLACEHOLDER = '#7AADA0';
-const DANGER  = '#C62828';
+const DANGER = '#C62828';
 
 const severityOptions = [
     { label: 'Critical', value: 'CRITICAL', color: '#C62828' },
-    { label: 'High',     value: 'HIGH',     color: RED },
-    { label: 'Medium',   value: 'MEDIUM',   color: ORANGE },
+    { label: 'High', value: 'HIGH', color: RED },
+    { label: 'Medium', value: 'MEDIUM', color: ORANGE },
 ];
 
 const eventTypes = [
@@ -258,18 +258,18 @@ const EmergencyScreen = ({ navigation, route }: any) => {
                         const ownership = (h.ownership_type || h.ownership || '').toUpperCase();
                         const ownershipLabel =
                             ownership.includes('GOVT') || ownership.includes('GOVERNMENT') || ownership.includes('PUBLIC') ? 'GOVT'
-                            : ownership.includes('MUNIC') ? 'MUNICIPAL'
-                            : ownership ? ownership
-                            : h.type === 'PHC' || h.type === 'CHC' || h.type === 'DISTRICT' || h.type === 'MEDICAL_COLLEGE' ? 'GOVT'
-                            : 'PRIVATE';
+                                : ownership.includes('MUNIC') ? 'MUNICIPAL'
+                                    : ownership ? ownership
+                                        : h.type === 'PHC' || h.type === 'CHC' || h.type === 'DISTRICT' || h.type === 'MEDICAL_COLLEGE' ? 'GOVT'
+                                            : 'PRIVATE';
                         const ownershipColor =
                             ownershipLabel === 'GOVT' ? GREEN
-                            : ownershipLabel === 'MUNICIPAL' ? ORANGE
-                            : '#A78BFA';
+                                : ownershipLabel === 'MUNICIPAL' ? ORANGE
+                                    : '#A78BFA';
                         const ownershipBg =
                             ownershipLabel === 'GOVT' ? 'rgba(0,229,160,0.12)'
-                            : ownershipLabel === 'MUNICIPAL' ? 'rgba(255,160,64,0.12)'
-                            : 'rgba(167,139,250,0.12)';
+                                : ownershipLabel === 'MUNICIPAL' ? 'rgba(255,160,64,0.12)'
+                                    : 'rgba(167,139,250,0.12)';
                         return (
                             <TouchableOpacity
                                 key={h.id || idx}
@@ -287,20 +287,20 @@ const EmergencyScreen = ({ navigation, route }: any) => {
                                             <View style={[styles.ownershipBadge, { backgroundColor: ownershipBg }]}>
                                                 <Text style={[styles.ownershipBadgeText, { color: ownershipColor }]}>{ownershipLabel}</Text>
                                             </View>
-                                            <Text style={styles.hospitalType}>{typeLabel[h.type] || h.type}</Text>
+                                            <Text style={styles.hospitalType} numberOfLines={1}>{typeLabel[h.type] || h.type}</Text>
                                         </View>
                                         {h.address && (
                                             <Text style={styles.hospitalAddress} numberOfLines={1}>{h.address}</Text>
                                         )}
                                         <View style={styles.hospitalTags}>
                                             {h.has_blood_bank && (
-                                                <View style={styles.tag}><Text style={styles.tagText}>\ud83e\ude78 Blood Bank</Text></View>
+                                                <View style={styles.tag}><Text style={styles.tagText}>🩸 Blood Bank</Text></View>
                                             )}
                                             {h.nicu_beds > 0 && (
-                                                <View style={styles.tag}><Text style={styles.tagText}>\ud83d\udc76 NICU</Text></View>
+                                                <View style={styles.tag}><Text style={styles.tagText}>👶 NICU</Text></View>
                                             )}
                                             {h.available_maternity_beds > 0 && (
-                                                <View style={styles.tag}><Text style={styles.tagText}>\ud83d\udecc {h.available_maternity_beds} beds</Text></View>
+                                                <View style={styles.tag}><Text style={styles.tagText}>🛌 {h.available_maternity_beds} beds</Text></View>
                                             )}
                                         </View>
                                     </View>
@@ -411,7 +411,7 @@ const EmergencyScreen = ({ navigation, route }: any) => {
                             : location
                                 ? <Text style={styles.locationValue}>
                                     {location.latitude.toFixed(4)}°N, {location.longitude.toFixed(4)}°E
-                                  </Text>
+                                </Text>
                                 : <Text style={styles.locationMissing}>Location unavailable</Text>
                         }
                     </View>
@@ -494,7 +494,10 @@ const styles = StyleSheet.create({
     hospitalIcon: { fontSize: 20 },
     hospitalInfo: { flex: 1 },
     hospitalName: { fontSize: 14, fontWeight: '800', color: WHITE, marginBottom: 2 },
-    hospitalType: { fontSize: 11, color: GREEN, fontWeight: '600', marginBottom: 3 },
+    hospitalBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' },
+    ownershipBadge: { borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
+    ownershipBadgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
+    hospitalType: { fontSize: 11, color: GREEN, fontWeight: '600', flex: 1 },
     hospitalAddress: { fontSize: 11, color: DIM, marginBottom: 6 },
     hospitalTags: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
     tag: { backgroundColor: 'rgba(0,229,160,0.1)', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(0,229,160,0.2)' },

@@ -103,13 +103,24 @@ const RegisterScreen = ({ navigation }: any) => {
     }, [error]);
 
     const handleSubmit = async () => {
-        const { name, age, phone, village, district, lmp, bloodGroup } = form;
+        const { name, age, phone, village, district, lmp, bloodGroup, edd } = form;
         if (!name.trim() || !age.trim() || !phone.trim() || !village.trim() || !district.trim() || !lmp.trim() || !bloodGroup.trim()) {
             Alert.alert('', S.errRequired); return;
         }
-        if (phone.length !== 10) { Alert.alert('', S.errPhone); return; }
+        if (phone.length !== 10 || !/^\d{10}$/.test(phone)) {
+            Alert.alert('', S.errPhone); return;
+        }
         const ageNum = parseInt(age, 10);
         if (isNaN(ageNum) || ageNum < 15 || ageNum > 50) { Alert.alert('', S.errAge); return; }
+
+        // Validate date formats if provided
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (lmp.trim() && !dateRegex.test(lmp.trim())) {
+            Alert.alert('', 'LMP date must be in YYYY-MM-DD format'); return;
+        }
+        if (edd.trim() && !dateRegex.test(edd.trim())) {
+            Alert.alert('', 'EDD date must be in YYYY-MM-DD format'); return;
+        }
 
         const result = await dispatch(registerPregnancyThunk({
             patient_name: name.trim(),
@@ -118,7 +129,7 @@ const RegisterScreen = ({ navigation }: any) => {
             village: village.trim(),
             district: district.trim(),
             lmp_date: lmp.trim(),
-            edd: form.edd.trim() || '',
+            edd: edd.trim() || '',
             blood_type: bloodGroup.trim().toUpperCase(),
             gravida: form.gravida ? parseInt(form.gravida, 10) : undefined,
             asha_worker_id: user?.id || '',

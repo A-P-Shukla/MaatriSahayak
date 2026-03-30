@@ -50,8 +50,9 @@ export const AuthService = {
         return { token: data.data.access_token, user: data.data.user };
     },
 
-    async register(payload: RegisterPayload): Promise<void> {
+    async register(payload: RegisterPayload): Promise<{ success: true }> {
         await publicApi.post(ENDPOINTS.REGISTER, payload);
+        return { success: true };
     },
 
     async registerDriver(payload: DriverRegisterPayload): Promise<{ id: string; ambulanceId: string }> {

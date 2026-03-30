@@ -1,4 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
+
+const hashPin = async (pin: string): Promise<string> =>
+    Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pin);
+
+const AUTH_KEYS = ['authToken', 'userData', 'userPin', 'userPhoto', 'ashaProfile'];
 
 export const StorageService = {
     // Auth
@@ -40,12 +46,16 @@ export const StorageService = {
         await AsyncStorage.setItem('syncQueue', JSON.stringify([]));
     },
 
-    // PIN
+    // PIN — stored as SHA-256 hash
     async setPin(pin: string): Promise<void> {
-        await AsyncStorage.setItem('userPin', pin);
+        await AsyncStorage.setItem('userPin', await hashPin(pin));
     },
     async getPin(): Promise<string | null> {
         return await AsyncStorage.getItem('userPin');
+    },
+    async verifyPin(pin: string): Promise<boolean> {
+        const stored = await AsyncStorage.getItem('userPin');
+        return stored === await hashPin(pin);
     },
     async removePin(): Promise<void> {
         await AsyncStorage.removeItem('userPin');
@@ -68,8 +78,8 @@ export const StorageService = {
         return data ? JSON.parse(data) : null;
     },
 
-    // Clear all data
+    // Clear only auth-related keys — preserves offline sync queue
     async clearAll(): Promise<void> {
-        await AsyncStorage.clear();
+        await AsyncStorage.multiRemove(AUTH_KEYS);
     },
 };

@@ -169,12 +169,13 @@ const DriverRegisterScreen = ({ navigation }: any) => {
     const emailRef      = useRef<RNTextInput>(null);
     const licenseRef    = useRef<RNTextInput>(null);
     const vehicleRef    = useRef<RNTextInput>(null);
-    const experienceRef = useRef<RNTextInput>(null);    const passwordRef   = useRef<RNTextInput>(null);
+    const experienceRef = useRef<RNTextInput>(null);
+    const passwordRef   = useRef<RNTextInput>(null);
     const confirmRef    = useRef<RNTextInput>(null);
 
     useEffect(() => {
         if (error) Alert.alert(S.failTitle, error, [{ text: S.ok, onPress: () => dispatch(clearError()) }]);
-    }, [error]);
+    }, [error, S.failTitle, S.ok]);
 
     const set = (key: keyof FormData) => (val: string) => {
         setForm(f => ({ ...f, [key]: val }));
@@ -208,14 +209,24 @@ const DriverRegisterScreen = ({ navigation }: any) => {
         }));
         if (driverRegisterThunk.fulfilled.match(result)) {
             const { id, ambulanceId } = result.payload as { id: string; ambulanceId: string };
-            navigation.navigate('DriverIdCard', {
-                fullName: form.fullName,
-                phone: `+91${form.phone}`,
-                email: form.email,
-                licenseNumber: form.license,
-                ambulanceId: ambulanceId === 'UNASSIGNED' ? 'Not Assigned' : ambulanceId,
-                driverId: id,
-            });
+            Alert.alert(
+                '✅ Registration Successful!',
+                `Welcome ${form.fullName}!\n\nYour driver account has been created. You will be notified once your account is activated by the district coordinator.`,
+                [
+                    {
+                        text: 'View ID Card',
+                        onPress: () => navigation.navigate('DriverIdCard', {
+                            fullName: form.fullName,
+                            phone: `+91${form.phone}`,
+                            email: form.email,
+                            licenseNumber: form.license,
+                            ambulanceId: ambulanceId === 'UNASSIGNED' ? 'Not Assigned' : ambulanceId,
+                            driverId: id,
+                        }),
+                    },
+                ],
+                { cancelable: false }
+            );
         }
     };
 

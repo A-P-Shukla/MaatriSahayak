@@ -12,7 +12,7 @@ export const ENDPOINTS = {
     // Auth
     LOGIN: '/asha/login',
     REGISTER: '/asha/register',
-    DRIVER_LOGIN: '/asha/login',
+    DRIVER_LOGIN: '/driver/login',
     DRIVER_REGISTER: '/driver/register',
     REFRESH_TOKEN: '/auth/refresh',
 

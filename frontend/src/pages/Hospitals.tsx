@@ -1,22 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box, Typography, Button, Chip, Card, CardContent,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Stack, TextField, InputAdornment, CircularProgress, Alert,
   useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent,
-  DialogActions, Grid,
+  DialogActions, Grid, Divider, Tooltip, MenuItem,
 } from '@mui/material';
 import {
-  Search as SearchIcon, LocalHospital as HospitalIcon,
-  Bed as BedIcon, Phone as PhoneIcon, LocationOn as LocationIcon,
-  Edit as EditIcon, Add as AddIcon,
-} from '@mui/icons-material';
+  Search, Building2, BedDouble, Phone, MapPin,
+  Pencil, Plus, Navigation, Clock, LocateFixed, Star,
+} from 'lucide-react';
 import { getHospitals, updateHospitalCapacity, registerHospital, type Hospital } from '../services/hospital';
+import useAuth from '../hooks/useAuth';
 
 const Hospitals: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [search, setSearch] = useState('');
+  const [districtFilter, setDistrictFilter] = useState<string>('all');
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +32,13 @@ const Hospitals: React.FC = () => {
     name: '', district: '', type: 'CHC', maternity_beds: '',
     contact_number: '', latitude: '', longitude: '',
   });
+  const { user } = useAuth();
+  const [nearbyLat, setNearbyLat] = useState('');
+  const [nearbyLng, setNearbyLng] = useState('');
+  const [nearbyHospitals, setNearbyHospitals] = useState<(Hospital & { distance_km?: number; estimated_time_minutes?: number })[]>([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyError, setNearbyError] = useState<string | null>(null);
+  const [nearbySearched, setNearbySearched] = useState(false);
 
   const fetchHospitals = useCallback(async () => {
     try {
@@ -46,6 +54,34 @@ const Hospitals: React.FC = () => {
   }, []);
 
   useEffect(() => { fetchHospitals(); }, [fetchHospitals]);
+
+  const handleFindNearby = async () => {
+    const lat = parseFloat(nearbyLat);
+    const lng = parseFloat(nearbyLng);
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      setNearbyError('Enter valid latitude (-90 to 90) and longitude (-180 to 180)');
+      return;
+    }
+    setNearbyLoading(true);
+    setNearbyError(null);
+    setNearbySearched(true);
+    try {
+      const data = await getHospitals({ latitude: lat, longitude: lng });
+      setNearbyHospitals(data as any);
+    } catch (e: any) {
+      setNearbyError(e.message ?? 'Failed to fetch nearby hospitals');
+    } finally {
+      setNearbyLoading(false);
+    }
+  };
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) { setNearbyError('Geolocation not supported by your browser'); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setNearbyLat(String(pos.coords.latitude)); setNearbyLng(String(pos.coords.longitude)); setNearbyError(null); },
+      () => setNearbyError('Unable to retrieve your location')
+    );
+  };
 
   const handleUpdateCapacity = async () => {
     if (!editHospital) return;
@@ -93,10 +129,29 @@ const Hospitals: React.FC = () => {
     }
   };
 
-  const filtered = hospitals.filter((h) =>
-    h.name.toLowerCase().includes(search.toLowerCase()) ||
-    h.district.toLowerCase().includes(search.toLowerCase())
-  );
+  const isGovtHospital = (h: Hospital) => ['District', 'Medical_College', 'CHC', 'PHC'].includes(h.type);
+
+  const districts = useMemo(() => {
+    const unique = Array.from(new Set(hospitals.map(h => h.district))).sort();
+    return unique;
+  }, [hospitals]);
+
+  const sortedHospitals = useMemo(() => {
+    const userDistrict = user?.district;
+    if (!userDistrict) return hospitals;
+
+    const govtInDistrict = hospitals.filter(h => isGovtHospital(h) && h.district === userDistrict);
+    const others = hospitals.filter(h => !(isGovtHospital(h) && h.district === userDistrict));
+    
+    return [...govtInDistrict, ...others];
+  }, [hospitals, user?.district]);
+
+  const filtered = sortedHospitals.filter((h) => {
+    const matchesSearch = h.name.toLowerCase().includes(search.toLowerCase()) ||
+      h.district.toLowerCase().includes(search.toLowerCase());
+    const matchesDistrict = districtFilter === 'all' || h.district === districtFilter;
+    return matchesSearch && matchesDistrict;
+  });
 
   const stats = {
     total: hospitals.length,
@@ -122,47 +177,155 @@ const Hospitals: React.FC = () => {
     '& .MuiInputLabel-root.Mui-focused': { color: '#0d9488' },
   };
 
-  const HospitalCard = ({ h }: { h: Hospital }) => (
-    <Card elevation={0} sx={{ border: '1px solid #d1fae5', borderRadius: 3, mb: 2 }}>
-      <CardContent sx={{ p: 2.5 }}>
-        <Stack direction="row" alignItems="flex-start" spacing={1.5} mb={1.5}>
-          <HospitalIcon sx={{ color: '#1B6B4A', mt: 0.3 }} />
-          <Box flex={1} minWidth={0}>
-            <Typography fontWeight={700} noWrap>{h.name}</Typography>
-            <Typography variant="caption" color="text.secondary">{h.type}</Typography>
-          </Box>
-          <Chip
-            label={`${h.available_maternity_beds}/${h.maternity_beds} beds`}
-            color={getBedColor(h)} size="small" sx={{ fontWeight: 700, fontSize: '0.65rem' }}
-          />
-        </Stack>
+  const HospitalCard = ({ h }: { h: Hospital }) => {
+    const isGovt = isGovtHospital(h);
+    const isOfficerDistrict = user?.district === h.district;
+    const isPriority = isGovt && isOfficerDistrict;
+    
+    return (
+      <Card elevation={0} sx={{ 
+        border: isPriority ? '2px solid #1B6B4A' : '1px solid #d1fae5', 
+        borderRadius: 3, 
+        mb: 2,
+        bgcolor: isPriority ? '#f0faf7' : '#fff'
+      }}>
+        <CardContent sx={{ p: 2.5 }}>
+          <Stack direction="row" alignItems="flex-start" spacing={1.5} mb={1.5}>
+            <Building2 size={20} color="#1B6B4A" />
+            <Box flex={1} minWidth={0}>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Typography fontWeight={700} noWrap>{h.name}</Typography>
+                {isPriority && <Star size={14} color="#1B6B4A" fill="#1B6B4A" />}
+              </Stack>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Typography variant="caption" color="text.secondary">{h.type}</Typography>
+                {isGovt && <Chip label="Govt" size="small" sx={{ bgcolor: '#dcfce7', color: '#16a34a', fontWeight: 700, fontSize: '0.6rem', height: 16 }} />}
+              </Stack>
+            </Box>
+            <Chip
+              label={`${h.available_maternity_beds}/${h.maternity_beds} beds`}
+              color={getBedColor(h)} size="small" sx={{ fontWeight: 700, fontSize: '0.65rem' }}
+            />
+          </Stack>
         <Stack direction="row" spacing={2} flexWrap="wrap" mb={1.5}>
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <LocationIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+            <MapPin size={14} color="#9e9e9e" />
             <Typography variant="caption" color="text.secondary">{h.district}</Typography>
           </Stack>
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <PhoneIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+            <Phone size={14} color="#9e9e9e" />
             <Typography variant="caption" color="text.secondary">{h.contact_number}</Typography>
           </Stack>
         </Stack>
-        <Button size="small" variant="outlined" startIcon={<EditIcon />}
+        <Button size="small" variant="outlined" startIcon={<Pencil size={14} />}
           onClick={() => { setEditHospital(h); setNewBeds(String(h.available_maternity_beds)); setEditError(null); }}
           sx={{ borderColor: '#0d9488', color: '#0d9488', borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>
           Update Beds
         </Button>
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   return (
     <Box>
+      {/* Nearby Hospitals Section */}
+      <Card elevation={0} sx={{ border: '1px solid #d1fae5', borderRadius: 3, mb: 3, bgcolor: '#f0faf7' }}>
+        <CardContent sx={{ p: 2.5 }}>
+          <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+            <Navigation size={20} color="#1B6B4A" />
+            <Box>
+              <Typography fontWeight={700} color="#0f172a">Find Nearby Hospitals</Typography>
+              <Typography variant="caption" color="text.secondary">Enter your location to see hospitals sorted by distance</Typography>
+            </Box>
+          </Stack>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
+            <TextField
+              label="Latitude" size="small" value={nearbyLat}
+              onChange={(e) => setNearbyLat(e.target.value)}
+              placeholder={user?.district ? `e.g. 23.2599` : '23.2599'}
+              sx={{ ...fldSx, minWidth: 150 }}
+            />
+            <TextField
+              label="Longitude" size="small" value={nearbyLng}
+              onChange={(e) => setNearbyLng(e.target.value)}
+              placeholder="e.g. 77.4126"
+              sx={{ ...fldSx, minWidth: 150 }}
+            />
+            <Tooltip title="Use my current GPS location">
+              <Button variant="outlined" size="small" startIcon={<LocateFixed size={14} />} onClick={handleUseMyLocation}
+                sx={{ borderColor: '#0d9488', color: '#0d9488', textTransform: 'none', fontWeight: 600, borderRadius: 2, height: 40 }}>
+                Use My Location
+              </Button>
+            </Tooltip>
+            <Button variant="contained" size="small" startIcon={nearbyLoading ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : <Navigation size={14} />}
+              onClick={handleFindNearby} disabled={nearbyLoading}
+              sx={{ bgcolor: '#1B6B4A', '&:hover': { bgcolor: '#0F4A32' }, textTransform: 'none', fontWeight: 700, borderRadius: 2, height: 40 }}>
+              Find Nearby
+            </Button>
+          </Stack>
+          {nearbyError && <Alert severity="error" sx={{ mt: 1.5, borderRadius: 2 }} onClose={() => setNearbyError(null)}>{nearbyError}</Alert>}
+
+          {nearbySearched && !nearbyLoading && (
+            <Box mt={2}>
+              <Divider sx={{ mb: 2, borderColor: '#d1fae5' }} />
+              {nearbyHospitals.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>No hospitals found</Typography>
+              ) : (
+                <Stack spacing={1.5}>
+                  {nearbyHospitals.map((h: any, idx: number) => (
+                    <Card key={h.id} elevation={0} sx={{ border: '1px solid #d1fae5', borderRadius: 2.5, bgcolor: '#fff' }}>
+                      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+                          <Box sx={{ minWidth: 28, height: 28, borderRadius: '50%', bgcolor: '#1B6B4A', display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 0.2 }}>
+                            <Typography variant="caption" fontWeight={800} color="#fff">{idx + 1}</Typography>
+                          </Box>
+                          <Box flex={1} minWidth={0}>
+                            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                              <Typography fontWeight={700} fontSize="0.9rem">{h.name}</Typography>
+                              <Chip label={h.type} size="small" sx={{ bgcolor: '#f0faf7', color: '#1B6B4A', fontWeight: 600, fontSize: '0.65rem' }} />
+                              <Chip label={`${h.available_maternity_beds}/${h.maternity_beds} beds`} color={getBedColor(h)} size="small" sx={{ fontWeight: 700, fontSize: '0.65rem' }} />
+                            </Stack>
+                            <Stack direction="row" spacing={2} mt={0.5} flexWrap="wrap">
+                              <Stack direction="row" alignItems="center" spacing={0.5}>
+                                <MapPin size={13} color="#9e9e9e" />
+                                <Typography variant="caption" color="text.secondary">{h.district}</Typography>
+                              </Stack>
+                              <Stack direction="row" alignItems="center" spacing={0.5}>
+                                <Phone size={13} color="#9e9e9e" />
+                                <Typography variant="caption" color="text.secondary">{h.contact_number}</Typography>
+                              </Stack>
+                              {h.distance_km != null && (
+                                <Stack direction="row" alignItems="center" spacing={0.5}>
+                                  <Navigation size={13} color="#0d9488" />
+                                  <Typography variant="caption" fontWeight={700} color="#0d9488">{h.distance_km} km away</Typography>
+                                </Stack>
+                              )}
+                              {h.estimated_time_minutes != null && (
+                                <Stack direction="row" alignItems="center" spacing={0.5}>
+                                  <Clock size={13} color="#0d9488" />
+                                  <Typography variant="caption" fontWeight={700} color="#0d9488">~{h.estimated_time_minutes} min</Typography>
+                                </Stack>
+                              )}
+                            </Stack>
+                          </Box>
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2} mb={3}>
         <Box>
           <Typography variant="h5" fontWeight={800} color="#0f172a">Hospitals</Typography>
           <Typography variant="body2" color="text.secondary">Manage hospital capacity and registrations</Typography>
         </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setAddOpen(true); setAddError(null); }}
+        <Button variant="contained" startIcon={<Plus size={18} />} onClick={() => { setAddOpen(true); setAddError(null); }}
           sx={{ bgcolor: '#1B6B4A', '&:hover': { bgcolor: '#0F4A32' }, textTransform: 'none', fontWeight: 700, borderRadius: 2 }}>
           Add Hospital
         </Button>
@@ -185,11 +348,23 @@ const Hospitals: React.FC = () => {
         ))}
       </Stack>
 
-      <TextField fullWidth placeholder="Search by name or district..."
-        value={search} onChange={(e) => setSearch(e.target.value)}
-        InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: '#0d9488' }} /></InputAdornment> }}
-        sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f8fafc', '& fieldset': { borderColor: '#d1fae5' }, '&:hover fieldset': { borderColor: '#0d9488' }, '&.Mui-focused fieldset': { borderColor: '#0d9488' } } }}
-      />
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={3}>
+        <TextField fullWidth placeholder="Search by name or district..."
+          value={search} onChange={(e) => setSearch(e.target.value)}
+          InputProps={{ startAdornment: <InputAdornment position="start"><Search size={18} color="#0d9488" /></InputAdornment> }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f8fafc', '& fieldset': { borderColor: '#d1fae5' }, '&:hover fieldset': { borderColor: '#0d9488' }, '&.Mui-focused fieldset': { borderColor: '#0d9488' } } }}
+        />
+        <TextField
+          select
+          value={districtFilter}
+          onChange={(e) => setDistrictFilter(e.target.value)}
+          sx={{ minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f8fafc', '& fieldset': { borderColor: '#d1fae5' }, '&:hover fieldset': { borderColor: '#0d9488' }, '&.Mui-focused fieldset': { borderColor: '#0d9488' } } }}
+        >
+          <MenuItem value="all">All Districts</MenuItem>
+          {user?.district && <MenuItem value={user.district}>{user.district} (My District)</MenuItem>}
+          {districts.filter(d => d !== user?.district).map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}
+        </TextField>
+      </Stack>
 
       {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setError(null)}>{error}</Alert>}
 
@@ -197,7 +372,7 @@ const Hospitals: React.FC = () => {
         <Box display="flex" justifyContent="center" py={6}><CircularProgress sx={{ color: '#0d9488' }} /></Box>
       ) : filtered.length === 0 ? (
         <Box textAlign="center" py={6}>
-          <HospitalIcon sx={{ fontSize: 56, color: '#d1fae5', mb: 1 }} />
+          <Building2 size={56} color="#d1fae5" />
           <Typography color="text.secondary">No hospitals found</Typography>
         </Box>
       ) : isMobile ? (
@@ -213,32 +388,44 @@ const Hospitals: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filtered.map((h) => (
-                <TableRow key={h.id} hover sx={{ '&:hover': { bgcolor: '#f0faf7' } }}>
-                  <TableCell>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <HospitalIcon sx={{ fontSize: 18, color: '#1B6B4A' }} />
-                      <Typography fontWeight={600} fontSize="0.9rem">{h.name}</Typography>
-                    </Stack>
-                  </TableCell>
-                  <TableCell sx={{ fontSize: '0.85rem' }}>{h.district}</TableCell>
-                  <TableCell><Chip label={h.type} size="small" sx={{ bgcolor: '#f0faf7', color: '#1B6B4A', fontWeight: 600, fontSize: '0.7rem' }} /></TableCell>
+              {filtered.map((h) => {
+                const isGovt = isGovtHospital(h);
+                const isOfficerDistrict = user?.district === h.district;
+                const isPriority = isGovt && isOfficerDistrict;
+                
+                return (
+                  <TableRow key={h.id} hover sx={{ '&:hover': { bgcolor: '#f0faf7' }, bgcolor: isPriority ? '#f0faf7' : 'transparent' }}>
+                    <TableCell>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Building2 size={18} color="#1B6B4A" />
+                        <Typography fontWeight={600} fontSize="0.9rem">{h.name}</Typography>
+                        {isPriority && <Star size={14} color="#1B6B4A" fill="#1B6B4A" />}
+                      </Stack>
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.85rem' }}>{h.district}</TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Chip label={h.type} size="small" sx={{ bgcolor: '#f0faf7', color: '#1B6B4A', fontWeight: 600, fontSize: '0.7rem' }} />
+                        {isGovt && <Chip label="Govt" size="small" sx={{ bgcolor: '#dcfce7', color: '#16a34a', fontWeight: 700, fontSize: '0.65rem' }} />}
+                      </Stack>
+                    </TableCell>
                   <TableCell sx={{ fontSize: '0.85rem' }}>{h.contact_number}</TableCell>
                   <TableCell sx={{ fontSize: '0.85rem', fontWeight: 600 }}>{h.maternity_beds}</TableCell>
                   <TableCell>
                     <Chip label={h.available_maternity_beds} color={getBedColor(h)} size="small"
-                      icon={<BedIcon sx={{ fontSize: '14px !important' }} />}
+                      icon={<BedDouble size={12} />}
                       sx={{ fontWeight: 700, fontSize: '0.75rem' }} />
                   </TableCell>
                   <TableCell>
-                    <Button size="small" variant="outlined" startIcon={<EditIcon />}
+                    <Button size="small" variant="outlined" startIcon={<Pencil size={13} />}
                       onClick={() => { setEditHospital(h); setNewBeds(String(h.available_maternity_beds)); setEditError(null); }}
                       sx={{ borderColor: '#0d9488', color: '#0d9488', borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.75rem' }}>
                       Update Beds
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>

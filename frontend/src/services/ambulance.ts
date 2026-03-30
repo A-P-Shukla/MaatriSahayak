@@ -16,11 +16,12 @@ export const getAmbulances = async (
     if (filters.status) params.append('status', filters.status);
     if (filters.district) params.append('district', filters.district);
 
-    const response = await apiClient.get<ApiResponse<Ambulance[]>>(
+    const response = await apiClient.get<ApiResponse<any>>(
       `/ambulances?${params.toString()}`
     );
 
-    return response.data.data || [];
+    const raw = response.data.data as any;
+    return (Array.isArray(raw) ? raw : raw?.ambulances ?? raw?.items ?? []) as Ambulance[];
   } catch (error) {
     throw new Error(handleApiError(error));
   }

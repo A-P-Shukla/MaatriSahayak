@@ -8,7 +8,7 @@ import json
 from shared import (
     ValidationError,
     DatabaseError,
-    NotFoundError,
+    ResourceNotFoundError,
     create_success_response,
     create_error_response,
     parse_event_body,
@@ -60,7 +60,7 @@ def lambda_handler(event, context):
         driver = get_item(table_name, {'id': driver_id})
         
         if not driver:
-            raise NotFoundError(f"Driver with ID {driver_id} not found")
+            raise ResourceNotFoundError('Driver', driver_id)
         
         # Get ambulance details if assigned
         ambulance_details = None
@@ -116,7 +116,7 @@ def lambda_handler(event, context):
             e.details
         )
     
-    except NotFoundError as e:
+    except ResourceNotFoundError as e:
         log_error("Driver not found", e)
         return create_error_response(
             e.status_code,

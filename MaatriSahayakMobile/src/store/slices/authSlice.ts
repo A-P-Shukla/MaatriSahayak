@@ -1,6 +1,8 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { AuthService, LoginPayload, RegisterPayload, DriverRegisterPayload, AuthUser } from '../../services/authService';
 import { StorageService } from '../../services/storage';
+
+const PIN_MAX_ATTEMPTS = 5;
 
 interface AuthState {
     isAuthenticated: boolean;
@@ -11,6 +13,8 @@ interface AuthState {
     sessionRestored: boolean;
     hasPinSet: boolean;
     pinVerified: boolean;
+    pinAttempts: number;
+    pinLocked: boolean;
 }
 
 const initialState: AuthState = {
@@ -22,6 +26,8 @@ const initialState: AuthState = {
     sessionRestored: false,
     hasPinSet: false,
     pinVerified: false,
+    pinAttempts: 0,
+    pinLocked: false,
 };
 
 export const loginThunk = createAsyncThunk(
@@ -40,7 +46,7 @@ export const registerThunk = createAsyncThunk(
     'auth/register',
     async (payload: RegisterPayload, { rejectWithValue }) => {
         try {
-            await AuthService.register(payload);
+            return await AuthService.register(payload);
         } catch (err: any) {
             const msg = err.response?.data?.message || 'Registration failed. Please try again.';
             return rejectWithValue(msg);
@@ -78,9 +84,11 @@ export const checkPinThunk = createAsyncThunk('auth/checkPin', async () => {
 
 export const verifyPinThunk = createAsyncThunk(
     'auth/verifyPin',
-    async (pin: string, { rejectWithValue }) => {
-        const stored = await StorageService.getPin();
-        if (stored === pin) return true;
+    async (pin: string, { getState, rejectWithValue }) => {
+        const { auth } = getState() as { auth: AuthState };
+        if (auth.pinLocked) return rejectWithValue('Too many attempts. Please log in with your password.');
+        const match = await StorageService.verifyPin(pin);
+        if (match) return true;
         return rejectWithValue('Incorrect PIN');
     }
 );
@@ -153,6 +161,8 @@ const authSlice = createSlice({
         builder.addCase(logoutThunk.fulfilled, (state) => {
             state.isAuthenticated = false;
             state.pinVerified = false;
+            state.pinAttempts = 0;
+            state.pinLocked = false;
             state.user = null;
             state.token = null;
             state.error = null;
@@ -171,10 +181,16 @@ const authSlice = createSlice({
         builder.addCase(verifyPinThunk.fulfilled, (state) => {
             state.loading = false;
             state.pinVerified = true;
+            state.pinAttempts = 0;
+            state.pinLocked = false;
         });
         builder.addCase(verifyPinThunk.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload as string;
+            if (!state.pinLocked) state.pinAttempts += 1;
+            if (state.pinAttempts >= PIN_MAX_ATTEMPTS) state.pinLocked = true;
+            state.error = state.pinLocked
+                ? 'Too many attempts. Please log in with your password.'
+                : action.payload as string;
         });
 
         // Set PIN

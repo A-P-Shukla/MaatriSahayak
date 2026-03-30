@@ -43,7 +43,7 @@ export const getAshaWorkers = async (filters: AshaFilters = {}): Promise<AshaWor
       district: item.district,
       village: item.village,
       location: item.location,
-      assigned_patients_count: item.assigned_patients_count || item.patient_count || 0,
+      assigned_patients_count: item.assigned_patients_count || item.pregnancies_managed || item.patient_count || 0,
       active_pregnancies: item.active_pregnancies || 0,
       high_risk_cases: item.high_risk_cases || 0,
       total_emergencies_handled: item.total_emergencies_handled || item.emergencies_handled || 0,
@@ -70,7 +70,8 @@ export const getAshaWorkerById = async (ashaId: string): Promise<AshaWorker> => 
       throw new Error('ASHA worker not found');
     }
 
-    const item = response.data.data;
+    const raw = response.data.data;
+    const item = raw?.asha ?? raw;
 
     return {
       asha_id: item.asha_id || item.id,
@@ -80,7 +81,7 @@ export const getAshaWorkerById = async (ashaId: string): Promise<AshaWorker> => 
       district: item.district,
       village: item.village,
       location: item.location,
-      assigned_patients_count: item.assigned_patients_count || item.patient_count || 0,
+      assigned_patients_count: item.assigned_patients_count || item.pregnancies_managed || item.patient_count || 0,
       active_pregnancies: item.active_pregnancies || 0,
       high_risk_cases: item.high_risk_cases || 0,
       total_emergencies_handled: item.total_emergencies_handled || item.emergencies_handled || 0,

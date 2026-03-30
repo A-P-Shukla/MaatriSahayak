@@ -4,6 +4,10 @@ import {
     ScrollView, StatusBar, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import api from '../services/api';
 
 const BG     = '#0D0A1F';
 const CARD   = '#1A1230';
@@ -22,36 +26,54 @@ const STATUS_OPTIONS = [
 ];
 
 const DriverUpdateLocationScreen = ({ navigation }: any) => {
+    const { user } = useSelector((s: RootState) => s.auth);
     const [locating, setLocating]     = useState(false);
     const [updating, setUpdating]     = useState(false);
     const [status, setStatus]         = useState('AVAILABLE');
     const [location, setLocation]     = useState<{ lat: number; lng: number; address: string } | null>(null);
     const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-    const getLocation = () => {
+    const getLocation = async () => {
         setLocating(true);
-        // Simulate GPS fetch (replace with real Geolocation in production)
-        setTimeout(() => {
-            setLocation({
-                lat: 26.8467 + (Math.random() - 0.5) * 0.01,
-                lng: 80.9462 + (Math.random() - 0.5) * 0.01,
-                address: 'Hazratganj, Lucknow, Uttar Pradesh',
-            });
-            setLocating(false);
-        }, 1500);
+        try {
+            const { status: perm } = await Location.requestForegroundPermissionsAsync();
+            if (perm !== 'granted') {
+                Alert.alert('Permission Required', 'Location access is needed to update your position.');
+                setLocating(false);
+                return;
+            }
+            const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+            const [geo] = await Location.reverseGeocodeAsync(loc.coords);
+            const address = geo
+                ? [geo.street, geo.city, geo.region].filter(Boolean).join(', ')
+                : `${loc.coords.latitude.toFixed(4)}, ${loc.coords.longitude.toFixed(4)}`;
+            setLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude, address });
+        } catch {
+            Alert.alert('Error', 'Failed to get location. Please try again.');
+        }
+        setLocating(false);
     };
 
     useEffect(() => { getLocation(); }, []);
 
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
         if (!location) { Alert.alert('', 'Please fetch your location first.'); return; }
+        if (!user?.id) { Alert.alert('', 'Session expired. Please log in again.'); return; }
         setUpdating(true);
-        setTimeout(() => {
-            setUpdating(false);
+        try {
+            await api.post('/ambulances/location', {
+                driver_id: user.id,
+                latitude: location.lat,
+                longitude: location.lng,
+                status,
+            });
             const now = new Date();
             setLastUpdated(now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
             Alert.alert('✅ Updated', 'Your location and status have been updated successfully.');
-        }, 1200);
+        } catch {
+            Alert.alert('Error', 'Failed to update location. Please try again.');
+        }
+        setUpdating(false);
     };
 
     const currentStatus = STATUS_OPTIONS.find(s => s.key === status)!;

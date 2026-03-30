@@ -36,6 +36,11 @@ const DriverLoginScreen = ({ navigation }: any) => {
     const handleLogin = () => {
         if (!email.trim()) { Alert.alert('', 'Please enter your email address.'); return; }
         if (!password.trim()) { Alert.alert('', 'Please enter your password.'); return; }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            Alert.alert('', 'Please enter a valid email address.');
+            return;
+        }
         dispatch(loginThunk({ email: email.trim(), password, role: 'driver' }));
     };
 

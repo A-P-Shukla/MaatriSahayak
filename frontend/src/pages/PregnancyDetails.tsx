@@ -5,11 +5,7 @@ import {
   TableHead, TableRow, Dialog, DialogTitle, DialogContent,
   DialogActions, TextField, MenuItem, Stack,
 } from '@mui/material';
-import {
-  ArrowBack as BackIcon, Warning as WarningIcon,
-  Phone as PhoneIcon, LocationOn as LocationIcon,
-  MonitorHeart as VitalsIcon,
-} from '@mui/icons-material';
+import { ArrowLeft, AlertTriangle, Phone, MapPin, Activity } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -178,7 +174,7 @@ const PregnancyDetails: React.FC = () => {
   if (isErrorPregnancy || !pregnancy) {
     return (
       <Box>
-        <Button startIcon={<BackIcon />} onClick={() => navigate('/pregnancies')} sx={{ mb: 3 }}>
+        <Button startIcon={<ArrowLeft size={16} />} onClick={() => navigate('/pregnancies')} sx={{ mb: 3 }}>
           Back to List
         </Button>
         <Alert severity="error">
@@ -194,7 +190,7 @@ const PregnancyDetails: React.FC = () => {
       {/* Header with back button */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Button startIcon={<BackIcon />} onClick={() => navigate('/pregnancies')} sx={{ mr: 2 }}>
+          <Button startIcon={<ArrowLeft size={16} />} onClick={() => navigate('/pregnancies')} sx={{ mr: 2 }}>
             Back to List
           </Button>
           <Box>
@@ -210,7 +206,7 @@ const PregnancyDetails: React.FC = () => {
           label={`${(pregnancy.risk_category || 'unknown').toUpperCase()} RISK`}
           color={getRiskColor(pregnancy.risk_category)}
           size="medium"
-          icon={<WarningIcon />}
+          icon={<AlertTriangle size={16} />}
         />
       </Box>
 
@@ -239,7 +235,7 @@ const PregnancyDetails: React.FC = () => {
               </Typography>
             </Box>
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-              <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+              <Phone size={16} style={{ marginRight: 8, color: '#9e9e9e' }} />
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Phone
@@ -252,7 +248,7 @@ const PregnancyDetails: React.FC = () => {
           </Grid>
           <Grid item xs={12} md={6}>
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-              <LocationIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+              <MapPin size={16} style={{ marginRight: 8, color: '#9e9e9e' }} />
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Location
@@ -422,11 +418,11 @@ const PregnancyDetails: React.FC = () => {
 
       {/* Action Buttons */}
       <Box sx={{ display: 'flex', gap: 2 }}>
-        <Button variant="outlined" startIcon={<VitalsIcon />} onClick={() => { setVitalsOpen(true); setActionError(null); }}>
+        <Button variant="outlined" startIcon={<Activity size={16} />} onClick={() => { setVitalsOpen(true); setActionError(null); }}>
           Record Vitals
         </Button>
         {(pregnancy.risk_category === 'high' || pregnancy.risk_category === 'critical') && (
-          <Button variant="contained" color="error" startIcon={<WarningIcon />}
+          <Button variant="contained" color="error" startIcon={<AlertTriangle size={16} />}
             onClick={() => { setEmergencyOpen(true); setActionError(null); }}>
             Trigger Emergency
           </Button>

@@ -9,11 +9,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginThunk, clearError } from '../store/slices/authSlice';
 import { AppDispatch, RootState } from '../store';
 
-const BG     = '#0A1F1A';
-const CARD   = '#112920';
-const GREEN  = '#00E5A0';
-const DIM    = '#B8D4CC';
-const WHITE  = '#FFFFFF';
+const BG = '#0A1F1A';
+const CARD = '#112920';
+const GREEN = '#00E5A0';
+const DIM = '#B8D4CC';
+const WHITE = '#FFFFFF';
 const BORDER = '#3A6B58';
 const PLACEHOLDER = '#7AADA0';
 
@@ -69,6 +69,14 @@ const LoginScreen = ({ navigation }: any) => {
     const handleLogin = () => {
         if (!email.trim()) { Alert.alert('', t.missingEmail); return; }
         if (!password.trim()) { Alert.alert('', t.missingPassword); return; }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            Alert.alert('', 'Please enter a valid email address.');
+            return;
+        }
+
         dispatch(loginThunk({ email: email.trim(), password }));
     };
 
@@ -181,9 +189,9 @@ const LoginScreen = ({ navigation }: any) => {
                     <View style={styles.helpBox}>
                         <Text style={styles.helpTitle}>{t.helpTitle}</Text>
                         <Text style={styles.helpText}>{t.helpText}</Text>
-                        <TouchableOpacity onPress={() => Linking.openURL('mailto:Krishnatripathi07042005@gmail.com')}>
-                            <Text style={styles.helpName}>Krishna Tripathi</Text>
-                            <Text style={styles.helpEmail}>Krishnatripathi07042005@gmail.com</Text>
+                        <TouchableOpacity onPress={() => Linking.openURL('mailto:support@maatrisahayak.org')}>
+                            <Text style={styles.helpName}>MaatriSahayak Support</Text>
+                            <Text style={styles.helpEmail}>support@maatrisahayak.org</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

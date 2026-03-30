@@ -53,9 +53,7 @@ const DriverHomeScreen = ({ navigation }: any) => {
     const firstName   = displayName.split(' ')[0];
 
     useEffect(() => {
-        registerForPushNotifications().then(token => {
-            if (token) console.log('Push token:', token);
-        });
+        registerForPushNotifications();
 
         notifListener.current = addNotificationListener((notification) => {
             const data  = notification.request.content.data as any;
@@ -125,7 +123,7 @@ const DriverHomeScreen = ({ navigation }: any) => {
                             </Text>
                         </View>
                         <Text style={styles.heroTitle}>Ambulance{'\n'}Driver</Text>
-                        <Text style={styles.heroSub}>🚑 {user?.vehicle_number || 'UP80AB1234'}</Text>
+                        <Text style={styles.heroSub}>🚑 {user?.vehicle_number || '—'}</Text>
                     </View>
                     <View style={styles.heroRight}>
                         <View style={styles.heroStatBox}>
@@ -202,11 +200,11 @@ const DriverHomeScreen = ({ navigation }: any) => {
                         <View style={styles.infoRow}>
                             <View style={styles.infoItem}>
                                 <Text style={styles.infoLabel}>Vehicle</Text>
-                                <Text style={styles.infoValue}>{user?.vehicle_number || 'UP80AB1234'}</Text>
+                                <Text style={styles.infoValue}>{user?.vehicle_number || '—'}</Text>
                             </View>
                             <View style={styles.infoItem}>
                                 <Text style={styles.infoLabel}>District</Text>
-                                <Text style={styles.infoValue}>{user?.district || 'Sitapur'}</Text>
+                                <Text style={styles.infoValue}>{user?.district || '—'}</Text>
                             </View>
                         </View>
                     </View>

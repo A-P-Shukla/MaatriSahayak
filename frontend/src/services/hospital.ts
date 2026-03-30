@@ -23,6 +23,8 @@ export interface Hospital {
 export interface HospitalFilters {
   district?: string;
   type?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 // Register a new hospital
@@ -63,12 +65,15 @@ export const getHospitals = async (
     
     if (filters.district) params.append('district', filters.district);
     if (filters.type) params.append('type', filters.type);
+    if (filters.latitude != null) params.append('latitude', String(filters.latitude));
+    if (filters.longitude != null) params.append('longitude', String(filters.longitude));
 
     const response = await apiClient.get<ApiResponse<Hospital[]>>(
       `/hospitals?${params.toString()}`
     );
 
-    return response.data.data || [];
+    const data = response.data.data as any;
+    return (Array.isArray(data) ? data : data?.hospitals) || [];
   } catch (error) {
     throw new Error(handleApiError(error));
   }

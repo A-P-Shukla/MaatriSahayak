@@ -20,7 +20,7 @@ const KEYS = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
 
 const PinLoginScreen = ({ navigation, route }: any) => {
     const dispatch = useDispatch<AppDispatch>();
-    const { loading, error, pinVerified } = useSelector((s: RootState) => s.auth);
+    const { loading, error, pinVerified, pinLocked } = useSelector((s: RootState) => s.auth);
     const fromSetup = route.params?.fromSetup;
 
     const [pin, setPin] = useState('');
@@ -48,6 +48,7 @@ const PinLoginScreen = ({ navigation, route }: any) => {
     }, [error]);
 
     const handleKey = (key: string) => {
+        if (pinLocked) return;
         if (key === '') return;
         if (key === '⌫') { setPin(p => p.slice(0, -1)); return; }
         const next = pin + key;
@@ -109,7 +110,9 @@ const PinLoginScreen = ({ navigation, route }: any) => {
                 </View>
 
                 {wrongAttempts > 0 && pin.length === 0 && (
-                    <Text style={styles.errorText}>Incorrect PIN. Try again.</Text>
+                    <Text style={styles.errorText}>
+                        {pinLocked ? 'Account locked. Use password to sign in.' : 'Incorrect PIN. Try again.'}
+                    </Text>
                 )}
 
                 {/* Keypad */}

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet,
-    ScrollView, StatusBar,
+    ScrollView, StatusBar, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import api from '../services/api';
 
 const BG     = '#0D0A1F';
 const CARD   = '#1A1230';
@@ -17,79 +20,63 @@ const GOLD   = '#F59E0B';
 
 const TABS = ['All', 'Completed', 'Active', 'Cancelled'];
 
-const RIDES = [
-    {
-        id: 'RD-001',
-        patient: 'Smt. Kavita Devi',
-        from: 'Village Rampur, Lucknow',
-        to: 'KGMU Hospital, Lucknow',
-        date: '20 Mar 2026',
-        time: '10:32 AM',
-        distance: '12.4 km',
-        duration: '28 min',
-        status: 'Completed',
-        emergency: 'Labour Pain',
-    },
-    {
-        id: 'RD-002',
-        patient: 'Smt. Rekha Singh',
-        from: 'Mohalla Shivaji Nagar',
-        to: 'District Hospital, Kanpur',
-        date: '19 Mar 2026',
-        time: '02:15 PM',
-        distance: '8.7 km',
-        duration: '19 min',
-        status: 'Completed',
-        emergency: 'High BP',
-    },
-    {
-        id: 'RD-003',
-        patient: 'Smt. Anita Kumari',
-        from: 'Village Bhatpur',
-        to: 'PHC Sarojini Nagar',
-        date: '18 Mar 2026',
-        time: '07:45 AM',
-        distance: '5.2 km',
-        duration: '14 min',
-        status: 'Completed',
-        emergency: 'Bleeding',
-    },
-    {
-        id: 'RD-004',
-        patient: 'Smt. Pushpa Yadav',
-        from: 'Colony Indira Nagar',
-        to: 'Ram Manohar Lohia Hospital',
-        date: '21 Mar 2026',
-        time: '09:10 AM',
-        distance: '3.1 km',
-        duration: '—',
-        status: 'Active',
-        emergency: 'Premature Labour',
-    },
-    {
-        id: 'RD-005',
-        patient: 'Smt. Geeta Mishra',
-        from: 'Village Chinhat',
-        to: 'Balrampur Hospital',
-        date: '17 Mar 2026',
-        time: '11:00 PM',
-        distance: '15.8 km',
-        duration: '—',
-        status: 'Cancelled',
-        emergency: 'False Alarm',
-    },
-];
-
 const statusColor = (s: string) => {
-    if (s === 'Completed') return GREEN;
-    if (s === 'Active') return GOLD;
+    if (s === 'Completed' || s === 'COMPLETED') return GREEN;
+    if (s === 'Active'    || s === 'IN_TRANSIT' || s === 'DISPATCHED') return GOLD;
     return RED;
 };
 
-const DriverMyRidesScreen = ({ navigation }: any) => {
-    const [tab, setTab] = useState('All');
+const statusLabel = (s: string) => {
+    if (s === 'COMPLETED') return 'Completed';
+    if (s === 'IN_TRANSIT' || s === 'DISPATCHED') return 'Active';
+    if (s === 'CANCELLED') return 'Cancelled';
+    return s;
+};
 
-    const filtered = tab === 'All' ? RIDES : RIDES.filter(r => r.status === tab);
+const DriverMyRidesScreen = ({ navigation }: any) => {
+    const { user } = useSelector((s: RootState) => s.auth);
+    const [tab, setTab] = useState('All');
+    const [rides, setRides] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const fetchRides = async () => {
+        try {
+            const { data } = await api.get('/driver/emergencies');
+            const list = data?.data?.emergencies || data?.data || [];
+            setRides(Array.isArray(list) ? list : []);
+        } catch {
+            setRides([]);
+        }
+    };
+
+    useEffect(() => {
+        fetchRides().finally(() => setLoading(false));
+    }, []);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchRides();
+        setRefreshing(false);
+    };
+
+    const normalised = rides.map(r => ({
+        id: r.id || r.emergency_id,
+        patient: r.patient_name || r.patientName || 'Patient',
+        from: r.pickup_address || r.village || '—',
+        to: r.hospital_name || r.hospitalName || '—',
+        date: r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN') : '—',
+        time: r.created_at ? new Date(r.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—',
+        distance: r.distance_km ? `${r.distance_km} km` : '—',
+        duration: r.duration_minutes ? `${r.duration_minutes} min` : '—',
+        status: statusLabel(r.status || ''),
+        emergency: (r.event_type || 'EMERGENCY').replace(/_/g, ' '),
+    }));
+
+    const filtered = tab === 'All' ? normalised : normalised.filter(r => r.status === tab);
+    const completed = normalised.filter(r => r.status === 'Completed').length;
+    const active    = normalised.filter(r => r.status === 'Active').length;
+    const cancelled = normalised.filter(r => r.status === 'Cancelled').length;
 
     return (
         <SafeAreaView style={styles.root}>
@@ -118,26 +105,32 @@ const DriverMyRidesScreen = ({ navigation }: any) => {
             {/* Stats Row */}
             <View style={styles.statsRow}>
                 <View style={styles.statBox}>
-                    <Text style={styles.statNum}>{RIDES.filter(r => r.status === 'Completed').length}</Text>
+                    <Text style={styles.statNum}>{completed}</Text>
                     <Text style={styles.statLabel}>Completed</Text>
                 </View>
                 <View style={[styles.statBox, { borderColor: GOLD }]}>
-                    <Text style={[styles.statNum, { color: GOLD }]}>{RIDES.filter(r => r.status === 'Active').length}</Text>
+                    <Text style={[styles.statNum, { color: GOLD }]}>{active}</Text>
                     <Text style={styles.statLabel}>Active</Text>
                 </View>
                 <View style={[styles.statBox, { borderColor: RED }]}>
-                    <Text style={[styles.statNum, { color: RED }]}>{RIDES.filter(r => r.status === 'Cancelled').length}</Text>
+                    <Text style={[styles.statNum, { color: RED }]}>{cancelled}</Text>
                     <Text style={styles.statLabel}>Cancelled</Text>
                 </View>
                 <View style={[styles.statBox, { borderColor: PURPLE_LIGHT }]}>
-                    <Text style={[styles.statNum, { color: PURPLE_LIGHT }]}>46.2</Text>
-                    <Text style={styles.statLabel}>Total km</Text>
+                    <Text style={[styles.statNum, { color: PURPLE_LIGHT }]}>{normalised.length}</Text>
+                    <Text style={styles.statLabel}>Total</Text>
                 </View>
             </View>
 
             {/* Ride List */}
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
-                {filtered.length === 0 && (
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.list}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={GREEN} />}>
+                {loading && (
+                    <ActivityIndicator color={GREEN} size="large" style={{ marginTop: 40 }} />
+                )}
+                {!loading && filtered.length === 0 && (
                     <View style={styles.empty}>
                         <Text style={styles.emptyText}>No rides found</Text>
                     </View>
