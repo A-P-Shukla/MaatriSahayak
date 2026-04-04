@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode, createElement } from 'react';
 import {
   login as loginService,
+  loginDriver as loginDriverService,
   logout as logoutService,
   getCurrentUser,
   isAuthenticated as checkAuth,
@@ -17,6 +18,7 @@ import type { LoginCredentials, AuthState } from '../types';
 // Create Auth Context
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
+  loginDriver: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -114,6 +116,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Login as driver
+  const loginDriver = useCallback(async (credentials: LoginCredentials) => {
+    try {
+      setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      const { user, tokens } = await loginDriverService(credentials);
+
+      setAuthState({
+        user,
+        tokens,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      setAuthState({
+        user: null,
+        tokens: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: errorMessage,
+      });
+      throw error;
+    }
+  }, []);
+
   // Logout function
   const logout = useCallback(async () => {
     try {
@@ -148,6 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value: AuthContextType = {
     ...authState,
     login,
+    loginDriver,
     logout,
     refreshUser,
   };

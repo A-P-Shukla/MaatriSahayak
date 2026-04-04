@@ -321,3 +321,15 @@ npm run lint
 
 **Last Updated**: January 2025
 **Version**: 1.0.0
+
+---
+
+## Routes (Public)
+- `/role-select` — Choose Officer or Driver portal
+- `/home` — Public marketing homepage
+- `/about` — About the platform
+- `/contact` — Contact and partnerships
+- `/login` — District Officer login
+- `/register` — District Officer registration
+- `/driver/login` — Ambulance Driver login
+- `/drivers/register` — Ambulance Driver registration
