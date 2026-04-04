@@ -1,1746 +1,896 @@
-# MaatriSahayak - 24-Day Implementation Roadmap
-## February 17 - March 13, 2026
+# MaatriSahayak Implementation Roadmap
+## Completing Missing Key Features
 
-> **Goal**: Build a working MVP with core features, comprehensive documentation, and compelling demo for AWS AI Hackathon submission by March 13, 2026.
-
-## 📅 Timeline Overview
-
-**Total Time**: 24 days (3.5 weeks)
-**Submission Deadline**: March 13, 2026
-**Strategy**: Focus on core features that demonstrate AWS AI capabilities and social impact
-
-## 🎯 Success Criteria
-
-By March 13, we must have:
-- ✅ Working mobile app (Android) with core features
-- ✅ Backend APIs deployed on AWS
-- ✅ AI/ML models integrated (Bedrock + SageMaker)
-- ✅ Basic web dashboard
-- ✅ Emergency workflow functional
-- ✅ Demo video (5-7 minutes)
-- ✅ Pitch deck (10-12 slides)
-- ✅ Complete documentation
-- ✅ GitHub repository ready
-
-## 📊 Week-by-Week Breakdown
-
-### Week 1: Foundation & Setup (Feb 17-23)
-**Focus**: AWS infrastructure, backend APIs, database setup
-
-### Week 2: Core Features & AI Integration (Feb 24 - Mar 2)
-**Focus**: Mobile app, AI models, emergency workflow
-
-### Week 3: Integration & Testing (Mar 3-9)
-**Focus**: End-to-end integration, testing, bug fixes
-
-### Week 4: Polish & Submission (Mar 10-13)
-**Focus**: Demo video, pitch deck, final testing, submission
+**Date:** April 4, 2026  
+**Status:** Implementation Plan  
+**Priority:** Critical Features Identified
 
 ---
 
-## 🗓️ Detailed Daily Plan
+## Executive Summary
 
-## WEEK 1: FOUNDATION (Feb 17-23)
+This roadmap addresses critical gaps between claimed capabilities and actual implementation in the MaatriSahayak platform. Based on comprehensive codebase analysis, we've identified 5 major feature areas requiring implementation to deliver on the platform's key value propositions.
 
-### Day 1 - Monday, Feb 17: AWS Setup & Planning
-**Time**: 6-8 hours
-
-**Morning (3-4 hours)**:
-- [✅] Create AWS account (if not exists)
-- [ ✅] Enable AWS Free Tier services
-- [✅] Install AWS CLI and configure credentials
-- [✅] Set up IAM roles and policies
-- [✅] Create S3 buckets (data storage, backups)
-- [✅] Set up GitHub repository with proper structure
-
-**Afternoon (3-4 hours)**:
-- [✅] Create DynamoDB tables:
-  - Pregnancies table with GSIs
-  - VitalSigns table
-  - EmergencyEvents table
-  - Ambulances table
-  - Hospitals table
-- [✅] Test DynamoDB with sample data
-- [✅] Set up CloudWatch logging
-- [✅] Document AWS setup process
-
-**Deliverables**: AWS infrastructure ready, GitHub repo initialized
+**Current State:** Solid foundation with 60% of core features implemented  
+**Target State:** Fully functional AI-powered maternal emergency response platform  
+**Estimated Timeline:** 12-16 weeks for complete implementation
 
 ---
 
-### Day 2 - Tuesday, Feb 18: Backend APIs - Part 1
-**Time**: 8-10 hours
+## Critical Gaps Identified
 
-**Morning (4-5 hours)**:
-- [✅] Set up API Gateway (REST API)
-- [✅] Create Lambda functions for User Management:
-  - [✅] RegisterASHA - Register ASHA worker account
-  - [✅] GetASHAProfile - Get ASHA worker details
-  - [✅] RegisterAmbulance - Register ambulance in system
-  - [✅] RegisterHospital - Register hospital in system
-- [ ] Create Lambda functions for Authentication:
-  - [ ] LoginASHA - Handle ASHA worker login with Cognito
-  - [ ] RefreshToken - Refresh authentication tokens
-- [✅] Create Lambda function: `RegisterPregnancy`
-  - Input validation
-  - DynamoDB write
-  - Error handling
-- [✅] Create Lambda function: `RecordVitals`
-  - Store vital signs
-  - Timestamp handling
-- [✅] Test APIs with Postman
-- [✅] Create Postman collection for all APIs
+### 🔴 CRITICAL (Blocking Core Value Proposition)
+1. ML Risk Assessment Model Integration - Model exists but not deployed/integrated
+2. Hindi Language Support - Completely missing for ASHA workers
 
-**Afternoon (4-5 hours)**:
-- [✅] Create Lambda function: `GetPregnancyDetails`
-- [✅] Create Lambda function: `ListPregnancies`
-  - Pagination support
-  - Filter by ASHA worker
-- [ ] Create Lambda function: `UpdatePregnancy`
-  - Update pregnancy information
-- [ ] Create Lambda functions for ANC Management:
-  - [ ] RecordANCVisit - Record ANC visit details
-  - [ ] GetANCHistory - Get ANC visit history
-- [ ] Create Lambda function: `GetVitalsHistory`
-  - Get vitals timeline for a pregnancy
-- [ ] Create Lambda function: `ListHospitals`
-  - Get hospitals by district/type
-- [✅] Set up Amazon Cognito User Pool
-  - ASHA worker authentication
-  - API key generation
-- [✅] Test authentication flow
+### 🟡 HIGH PRIORITY (Claimed but Not Implemented)
+3. Parallel Emergency Orchestration - Step Functions workflow disabled
+4. Enhanced Offline-First Architecture - Basic implementation only
 
-**Deliverables**: 10/14 Lambda functions complete (6 user mgmt + 0 auth + 3 pregnancy + 0 ANC + 1 vitals), API Gateway configured, authentication working
+### 🟢 MEDIUM PRIORITY (Nice to Have)
+5. AWS SageMaker Integration - For advanced ML capabilities
+6. AWS IoT Core Integration - For real-time device tracking
 
 ---
 
-### Day 3 - Wednesday, Feb 19: Backend APIs - Part 2
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [✅] Create Lambda function: `TriggerEmergency`
-  - Validate emergency request
-  - Create emergency event
-  - Initiate Step Functions workflow
-- [✅] Create Lambda function: `FindNearestAmbulance`
-  - Geospatial query (haversine distance)
-  - Filter by availability
-- [✅] Create Lambda function: `UpdateAmbulanceLocation`
-  - Update DynamoDB
-  - Store in Timestream
-- [✅] Create Lambda function: `CheckHospitalCapacity`
-  - Query hospital bed availability
-  - Filter by district and type
-- [ ] Create Lambda function: `GetAmbulanceStatus`
-  - Get ambulance availability and location
-- [ ] Create Lambda function: `GetEmergencyHistory`
-  - Get emergency event history for pregnancy/ambulance
-
-**Afternoon (4-5 hours)**:  
-- [ ] Set up AWS Step Functions
-  - Emergency workflow state machine
-  - Parallel execution branches
-  - Error handling and retries
-- [ ] Create Lambda functions for Step Functions workflow:
-  - [ ] ValidateEmergency - Validate emergency request
-  - [ ] DispatchAmbulance - Assign ambulance to emergency
-  - [ ] AlertHospital - Notify hospital of incoming patient
-  - [ ] MonitorEmergency - Track emergency progress
-  - [ ] CompleteEmergency - Close emergency event
-- [✅] Create Lambda function: `SendNotifications`
-  - Amazon SNS integration
-  - SMS notifications
-  - Push notifications (FCM)
-- [ ] Test emergency workflow end-to-end
-
-**Deliverables**: 5/12 emergency functions complete, emergency workflow partially functional
-
-**Complete Lambda Functions List (35 Total)**:
-
-**1. User Management (6 functions)**: ✅ COMPLETE
-- ✅ RegisterASHA - Register ASHA worker account
-- ✅ GetASHAProfile - Get ASHA worker details
-- ✅ UpdateASHAProfile - Update ASHA worker info
-- ✅ RegisterAmbulance - Register ambulance in system
-- ✅ RegisterHospital - Register hospital in system
-- ✅ UpdateHospitalCapacity - Update bed availability
-
-**2. Authentication & Authorization (2 functions)**: ✅ COMPLETE
-- ✅ LoginASHA - Handle ASHA worker login with Cognito
-- ✅ RefreshToken - Refresh authentication tokens
-
-**3. Pregnancy Management (4 functions)**: ✅ COMPLETE
-- ✅ RegisterPregnancy - Create new pregnancy record
-- ✅ GetPregnancyDetails - Get specific pregnancy info
-- ✅ ListPregnancies - List pregnancies with filters
-- ✅ UpdatePregnancy - Update pregnancy information
-
-**4. ANC Visit Management (2 functions)**: ✅ COMPLETE
-- ✅ RecordANCVisit - Record ANC visit details (FR1.3)
-- ✅ GetANCHistory - Get ANC visit history for pregnancy
-
-**5. Vitals & Monitoring (3 functions)**: ✅ COMPLETE
-- ✅ RecordVitals - Store vital signs and symptoms
-- ✅ GetVitalsHistory - Get vitals timeline
-- ✅ GetRiskTrends - Time-series risk analysis
-
-**6. AI/ML Services (3 functions)**: ⚠️ 2/3 COMPLETE
-- ✅ AssessRisk - Dockerized Random Forest risk prediction
-- ⚠️ AnalyzeSymptoms - Bedrock symptom analysis (PENDING - requires Bedrock setup)
-- ✅ ProcessANCCard - Textract OCR for ANC cards
-
-**7. Emergency Workflow (8 functions)**: ✅ COMPLETE
-- ✅ TriggerEmergency - Initiate emergency response
-- ✅ ValidateEmergency - Validate emergency request
-- ✅ FindNearestAmbulance - Geospatial ambulance search
-- ✅ DispatchAmbulance - Assign ambulance to emergency
-- ✅ CheckHospitalCapacity - Query bed availability
-- ✅ AlertHospital - Notify hospital of incoming patient
-- ✅ MonitorEmergency - Track emergency progress
-- ✅ CompleteEmergency - Close emergency event
-
-**8. Emergency History (1 function)**: ✅ COMPLETE
-- ✅ GetEmergencyHistory - Get emergency event history
-
-**9. Ambulance & Location (3 functions)**: ✅ COMPLETE
-- ✅ UpdateAmbulanceLocation - Process IoT GPS updates
-- ✅ GetAmbulanceRoute - Calculate route and ETA
-- ✅ GetAmbulanceStatus - Get ambulance availability
-
-**10. Hospital Management (1 function)**: ✅ COMPLETE
-- ✅ ListHospitals - Get list of hospitals by district/type
-
-**11. Data Sync (1 function)**: ✅ COMPLETE
-- ✅ SyncOfflineData - Handle bulk sync from mobile offline queue
-
-**12. Notifications (1 function)**: ✅ COMPLETE
-- ✅ SendNotifications - SMS/push/voice alerts
-
-**13. Analytics & Reports (2 functions)**: ✅ COMPLETE
-- ✅ GenerateAnalytics - Dashboard metrics and KPIs
-- ✅ ExportReports - Generate PDF/Excel reports
-
-**Summary by Status**:
-- ✅ Implemented: 34 functions
-- ⚠️ Remaining: 1 function (AnalyzeSymptoms - pending Bedrock setup)
-- **Total: 35 Lambda Functions**
-- **Progress: 97% Complete** 🎯✨
-
-**Note**: AssessRisk is complete with Dockerized Random Forest model. AnalyzeSymptoms requires Bedrock setup. All infrastructure and business logic functions are complete!
-
----
-
-### Day 4 - Thursday, Feb 20: AI/ML Setup - SageMaker
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ✅] Prepare training data for risk prediction
-  - Create synthetic dataset (1000+ records)
-  - Features: age, BP, symptoms, medical history
-  - Labels: risk categories (low/medium/high/critical)
-- [ ] Set up SageMaker notebook instance
-- [ ] Data preprocessing and feature engineering
-- [ ] Split data (train/validation/test)
-
-**Afternoon (4-5 hours)**:
-- [ ] Train XGBoost model in SageMaker
-  - Hyperparameter tuning
-  - Cross-validation
-  - Evaluate performance (precision, recall, F1)
-- [ ] Deploy model to SageMaker endpoint
-- [ ] Create Lambda function: `AssessRisk`
-  - Call SageMaker endpoint
-  - Parse predictions
-  - Store risk score in DynamoDB
-- [ ] Create Lambda function: `GetRiskTrends`
-  - Query time-series risk data
-  - Calculate trends and patterns
-- [ ] Test risk assessment API
-
-**Deliverables**: SageMaker model trained and deployed, risk assessment working (28 Lambda functions total)
-
----
-
-### Day 5 - Friday, Feb 21: AI/ML Setup - Bedrock & Textract
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Set up Amazon Bedrock
-  - Enable Claude 3 Haiku model
-  - Test API access
-- [ ] Create Lambda function: `AnalyzeSymptoms`
-  - Bedrock integration for symptom analysis
-  - Hindi to English translation
-  - Severity assessment
-  - Recommended actions
-- [ ] Create prompt templates for Bedrock
-- [ ] Test with various symptom inputs
-
-**Afternoon (4-5 hours)**:
-- [ ] Set up Amazon Textract
-- [✅] Create Lambda function: `ProcessANCCard`
-  - Upload image to S3
-  - Call Textract AnalyzeDocument
-  - Extract key-value pairs
-  - Validate extracted data
-  - Store in DynamoDB
-- [ ] Create sample ANC card images for testing
-- [ ] Test OCR accuracy
-
-**Deliverables**: Bedrock symptom analysis working (pending), Textract OCR functional (1/3 AI functions complete)
-
----
-
-### Day 6 - Saturday, Feb 22: Mobile App - Setup & UI
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Initialize React Native project
-  - Set up Android development environment
-  - Install dependencies (Redux, SQLite, Axios)
-- [ ] Create app structure:
-  - screens/ (Login, Home, Register, Vitals, Emergency)
-  - components/ (Button, Input, Card)
-  - services/ (API, Storage, Sync)
-  - store/ (Redux setup)
-- [ ] Design UI mockups (Figma or paper)
-- [ ] Set up navigation (React Navigation)
-
-**Afternoon (4-5 hours)**:
-- [ ] Build Login screen
-  - Phone number input
-  - OTP verification (Cognito)
-- [ ] Build Home screen
-  - List of pregnancies
-  - Search and filter
-  - Add new pregnancy button
-- [ ] Build Register Pregnancy screen
-  - Form fields (name, age, LMP, etc.)
-  - Camera integration for ANC card
-  - Save to local SQLite
-- [ ] Test on Android emulator
-
-**Deliverables**: Mobile app structure ready, 3 screens built
-
----
-
-### Day 7 - Sunday, Feb 23: Mobile App - Core Features
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Build Record Vitals screen
-  - Input fields (BP, pulse, temperature, weight)
-  - Symptoms text area (with voice input button)
-  - Photo attachment
-  - Save to SQLite
-- [ ] Build Emergency screen
-  - Large red emergency button
-  - Confirmation dialog
-  - Show emergency status
-- [ ] Build Pregnancy Details screen
-  - View patient information
-  - Vitals history
-  - Risk score display
-  - Emergency button
-
-**Afternoon (4-5 hours)**:
-- [ ] Implement SQLite database
-  - Tables: pregnancies, vitals, sync_queue
-  - CRUD operations
-  - Encryption (SQLCipher)
-- [ ] Implement API service layer
-  - Axios configuration
-  - API endpoints
-  - Error handling
-  - Retry logic
-- [ ] Test offline functionality
-
-**Deliverables**: Mobile app core features complete, offline storage working
-
----
-
-## WEEK 2: CORE FEATURES & AI (Feb 24 - Mar 2)
-
-### Day 8 - Monday, Feb 24: Mobile App - Sync & Integration
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Implement background sync service
-  - Check connectivity every 30 seconds
-  - Sync queued operations (FIFO)
-  - Conflict resolution (server wins)
-  - Update local database
-- [ ] Create Lambda function: `SyncOfflineData`
-  - Handle bulk sync from mobile offline queue
-  - Process multiple operations in batch
-  - Return sync status and conflicts
-- [ ] Implement push notifications
-  - Amazon SNS integration
-  - FCM setup
-  - Notification handling
-- [ ] Test sync with backend APIs
-
-**Afternoon (4-5 hours)**:
-- [ ] Integrate risk assessment
-  - Call AssessRisk API after recording vitals
-  - Display risk score and category
-  - Show recommendations
-- [ ] Integrate symptom analysis
-  - Voice input using device speech-to-text
-  - Call AnalyzeSymptoms API
-  - Display AI insights
-- [ ] Test AI features in app
-
-**Deliverables**: Mobile app fully integrated with backend and AI (31 Lambda functions total)
-
----
-
-### Day 9 - Tuesday, Feb 25: Mobile App - Emergency & Polish
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Implement emergency workflow in app
-  - One-tap emergency trigger
-  - Call TriggerEmergency API
-  - Show ambulance tracking (mock for now)
-  - Display ETA and status updates
-- [ ] Implement real-time updates
-  - AWS AppSync setup (optional, or polling)
-  - Subscribe to emergency events
-  - Update UI in real-time
-
-**Afternoon (4-5 hours)**:
-- [ ] UI/UX polish
-  - Consistent styling
-  - Loading states
-  - Error messages
-  - Success feedback
-- [ ] Hindi language support
-  - Translate UI text
-  - Test with Hindi input
-- [ ] Build APK for testing
-- [ ] Test on physical Android device
-
-**Deliverables**: Mobile app complete and polished, APK ready
-
----
-
-### Day 10 - Wednesday, Feb 26: IoT & Location Services
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Set up AWS IoT Core
-  - Create IoT thing for ambulance
-  - Generate certificates
-  - Configure MQTT topic
-- [ ] Create IoT simulator script
-  - Simulate ambulance GPS updates
-  - Publish to MQTT topic every 30 seconds
-  - Mock route from point A to B
-- [ ] Create IoT Rule
-  - Forward messages to Lambda
-  - Store in Timestream
-
-**Afternoon (4-5 hours)**:
-- [ ] Set up Amazon Location Service
-  - Create map resource
-  - Create place index
-  - Create route calculator
-- [ ] Update FindNearestAmbulance Lambda
-  - Use Location Service for distance calculation
-  - Calculate route and ETA
-- [✅] Create Lambda: `GetAmbulanceRoute`
-  - Return route coordinates
-  - Calculate ETA
-- [✅] Create Lambda: `UpdateASHAProfile`
-  - Update ASHA worker information
-- [✅] Create Lambda: `UpdateHospitalCapacity`
-  - Real-time bed availability updates
-- [ ] Test ambulance tracking end-to-end
-
-**Deliverables**: IoT tracking working (pending), Location Service integrated, 3 more Lambda functions complete (17 total implemented)
-
----
-
-### Day 11 - Thursday, Feb 27: Web Dashboard - Setup & UI
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Initialize React web app
-  - Create React app with TypeScript
-  - Install dependencies (Material-UI, Recharts, Mapbox)
-- [ ] Set up routing and layout
-  - Sidebar navigation
-  - Header with user info
-  - Main content area
-- [ ] Build Login page
-  - Cognito authentication
-  - Redirect to dashboard
-
-**Afternoon (4-5 hours)**:
-- [ ] Build Dashboard Overview page
-  - KPI cards (total pregnancies, high-risk, emergencies today)
-  - Recent emergencies list
-  - Quick stats
-- [ ] Build Pregnancies List page
-  - Table with pagination
-  - Filters (risk level, district, ASHA worker)
-  - Search functionality
-  - Click to view details
-- [ ] Connect to backend APIs
-  - API service layer
-  - Error handling
-
-**Deliverables**: Web dashboard structure ready, 2 pages built
-
----
-
-### Day 12 - Friday, Feb 28: Web Dashboard - Maps & Analytics
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Build Live Tracking page
-  - Map component (Mapbox or Google Maps)
-  - Show ambulance locations (real-time)
-  - Show high-risk pregnancy locations
-  - Show hospitals
-  - Click markers for details
-- [ ] Implement real-time updates
-  - Polling or WebSocket
-  - Update ambulance positions
-  - Show emergency alerts
-
-**Afternoon (4-5 hours)**:
-- [ ] Build Analytics page
-  - Response time chart (line chart)
-  - Risk distribution (pie chart)
-  - Emergencies by district (bar chart)
-  - Outcome metrics
-- [ ] Create Lambda: `GenerateAnalytics`
-  - Calculate dashboard KPIs and metrics
-  - Aggregate data from DynamoDB
-- [ ] Create Lambda: `ExportReports`
-  - Generate PDF/Excel reports
-  - Export analytics data
-- [ ] Build Pregnancy Details page
-  - Patient information
-  - Vitals history (line chart)
-  - Risk score trend
-  - Emergency history
-- [ ] Polish dashboard UI
-
-**Deliverables**: Web dashboard complete with maps and analytics (37 Lambda functions total - COMPLETE! 🎉)
-
----
-
-### Day 13 - Saturday, Mar 1: Integration Testing
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] End-to-end testing: Pregnancy registration flow
-  - Register on mobile app
-  - Verify in DynamoDB
-  - Check web dashboard
-- [ ] End-to-end testing: Vitals recording flow
-  - Record vitals on mobile
-  - AI risk assessment
-  - View on dashboard
-- [ ] End-to-end testing: Emergency flow
-  - Trigger emergency on mobile
-  - Step Functions execution
-  - Ambulance dispatch
-  - Notifications sent
-  - Track on dashboard
-
-**Afternoon (4-5 hours)**:
-- [ ] Test offline functionality
-  - Disable network on mobile
-  - Record data offline
-  - Enable network
-  - Verify sync
-- [ ] Test error scenarios
-  - Invalid inputs
-  - Network failures
-  - API errors
-- [ ] Performance testing
-  - API response times
-  - Mobile app responsiveness
-- [ ] Fix critical bugs
-
-**Deliverables**: All major flows tested and working
-
----
-
-### Day 14 - Sunday, Mar 2: Bug Fixes & Optimization
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Fix bugs found during testing
-- [ ] Optimize Lambda functions
-  - Reduce cold start times
-  - Optimize database queries
-- [ ] Optimize mobile app
-  - Reduce APK size
-  - Improve loading times
-  - Fix UI issues
-
-**Afternoon (4-5 hours)**:
-- [ ] Add error logging
-  - CloudWatch Logs
-  - Mobile app crash reporting
-- [ ] Add monitoring
-  - CloudWatch dashboards
-  - API Gateway metrics
-  - Lambda metrics
-- [ ] Security review
-  - Check IAM permissions
-  - Verify encryption
-  - Test authentication
-- [ ] Code cleanup and documentation
-
-**Deliverables**: Stable, optimized system ready for demo
-
----
-
-## WEEK 3: POLISH & DEMO (Mar 3-9)
-
-### Day 15 - Monday, Mar 3: Demo Data & Scenarios
-**Time**: 6-8 hours
-
-**Morning (3-4 hours)**:
-- [ ] Create realistic demo data
-  - 50 pregnancies with varied risk levels
-  - 10 high-risk cases
-  - 5 ambulances with locations
-  - 3 hospitals with capacity
-  - Historical vitals data
-- [ ] Populate DynamoDB with demo data
-- [ ] Test all features with demo data
-
-**Afternoon (3-4 hours)**:
-- [ ] Create demo scenarios
-  - Scenario 1: Register new pregnancy
-  - Scenario 2: Record vitals, AI shows high risk
-  - Scenario 3: Trigger emergency, track ambulance
-  - Scenario 4: View analytics on dashboard
-- [ ] Practice demo flow
-- [ ] Time each scenario
-- [ ] Refine for smooth presentation
-
-**Deliverables**: Demo data ready, scenarios practiced
-
----
-
-### Day 16 - Tuesday, Mar 4: Documentation - Technical
-**Time**: 6-8 hours
-
-**Morning (3-4 hours)**:
-- [ ] Update README.md
-  - Add setup instructions
-  - Add screenshots
-  - Add demo video link (placeholder)
-- [ ] Create API_DOCUMENTATION.md
-  - Document all API endpoints
-  - Request/response examples
-  - Error codes
-- [ ] Create DEPLOYMENT.md
-  - Step-by-step deployment guide
-  - AWS service configuration
-  - Environment variables
-
-**Afternoon (3-4 hours)**:
-- [ ] Update DESIGN.md
-  - Add actual implementation details
-  - Update architecture diagrams
-  - Add code snippets
-- [ ] Create TESTING.md
-  - Test cases
-  - Test results
-  - Known issues
-- [ ] Code comments and inline documentation
-- [ ] GitHub repository cleanup
-
-**Deliverables**: Complete technical documentation
-
----
-
-### Day 17 - Wednesday, Mar 5: Demo Video - Recording
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Write demo video script
-  - Hook (15 sec)
-  - Problem (45 sec)
-  - Solution demo (3 min)
-  - Technology (1 min)
-  - Impact (45 sec)
-  - Closing (15 sec)
-- [ ] Create storyboard
-- [ ] Prepare screen recordings
-  - Mobile app demo
-  - Web dashboard demo
-  - Architecture diagrams
-  - Code snippets
-
-**Afternoon (4-5 hours)**:
-- [ ] Record screen captures
-  - Use OBS Studio or similar
-  - High resolution (1080p)
-  - Smooth transitions
-- [ ] Record voiceover
-  - Clear narration
-  - Enthusiastic tone
-  - Multiple takes if needed
-- [ ] Gather supporting visuals
-  - Statistics graphics
-  - Maps of India
-  - Icons and illustrations
-
-**Deliverables**: All video assets recorded
-
----
-
-### Day 18 - Thursday, Mar 6: Demo Video - Editing
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Video editing (use DaVinci Resolve, iMovie, or similar)
-  - Import all clips
-  - Arrange according to script
-  - Add transitions
-  - Sync voiceover
-- [ ] Add text overlays
-  - Key statistics
-  - Feature highlights
-  - AWS service logos
-
-**Afternoon (4-5 hours)**:
-- [ ] Add background music
-  - Subtle, emotional track
-  - Adjust volume levels
-- [ ] Add subtitles
-  - For accessibility
-  - Key points emphasized
-- [ ] Color correction and polish
-- [ ] Export video (MP4, 1080p)
-- [ ] Upload to YouTube (unlisted)
-- [ ] Test playback
-
-**Deliverables**: Demo video complete (5-7 minutes)
-
----
-
-### Day 19 - Friday, Mar 7: Pitch Deck Creation
-**Time**: 6-8 hours
-
-**Morning (3-4 hours)**:
-- [ ] Create pitch deck structure (10-12 slides)
-  1. Title + Team
-  2. Problem: The Crisis
-  3. Solution: MaatriSahayak
-  4. How It Works
-  5. User Journey
-  6. Technology: AWS AI
-  7. Architecture
-  8. AI/ML Deep Dive
-  9. Impact Metrics
-  10. Roadmap
-  11. Business Model
-  12. Thank You + Call to Action
-
-**Afternoon (3-4 hours)**:
-- [ ] Design slides (use Canva, PowerPoint, or Google Slides)
-  - Professional template
-  - Consistent branding
-  - AWS colors (orange + blue)
-  - High-quality images
-- [ ] Add content to each slide
-  - Minimal text
-  - Strong visuals
-  - Data visualizations
-- [ ] Add speaker notes
-- [ ] Export as PDF
-
-**Deliverables**: Pitch deck complete (PDF)
-
----
-
-### Day 20 - Saturday, Mar 8: Final Testing & Polish
-**Time**: 8-10 hours
-
-**Morning (4-5 hours)**:
-- [ ] Complete system test
-  - Test every feature
-  - Test on different devices
-  - Test with different data
-- [ ] User acceptance testing
-  - Get feedback from 2-3 people
-  - Note usability issues
-  - Fix critical issues
-
-**Afternoon (4-5 hours)**:
-- [ ] Final polish
-  - UI tweaks
-  - Fix minor bugs
-  - Improve error messages
-- [ ] Performance optimization
-  - Check API response times
-  - Optimize slow queries
-- [ ] Security final check
-  - Review IAM policies
-  - Check for exposed secrets
-  - Verify encryption
-- [ ] Create final APK build
-- [ ] Deploy final version to AWS
-
-**Deliverables**: Production-ready system
-
----
-
-### Day 21 - Sunday, Mar 9: Backup & Contingency
-**Time**: 4-6 hours
-
-**Morning (2-3 hours)**:
-- [ ] Create backup plan
-  - Export all code to GitHub
-  - Backup DynamoDB data
-  - Save all documentation
-  - Download demo video
-  - Save pitch deck
-- [ ] Create contingency demos
-  - Screenshots if live demo fails
-  - Backup video if internet fails
-  - Printed slides if needed
-
-**Afternoon (2-3 hours)**:
-- [ ] Practice presentation
-  - Time yourself (7 minutes max)
-  - Practice with pitch deck
-  - Practice Q&A responses
-- [ ] Rest and prepare mentally
-- [ ] Review winning strategy document
-
-**Deliverables**: Backup plan ready, presentation practiced
-
----
-
-## WEEK 4: SUBMISSION (Mar 10-13)
-
-### Day 22 - Monday, Mar 10: Pre-Submission Review
-**Time**: 6-8 hours
-
-**Morning (3-4 hours)**:
-- [ ] Review submission requirements
-  - Check hackathon guidelines
-  - Verify all required fields
-  - Prepare all links
-- [ ] Final documentation review
-  - Check for typos
-  - Verify all links work
-  - Update README with final info
-- [ ] Test all public links
-  - GitHub repository
-  - Demo video (YouTube)
-  - Live demo (if applicable)
-
-**Afternoon (3-4 hours)**:
-- [ ] Create submission materials
-  - Project title
-  - One-liner description
-  - Detailed description
-  - List of AWS services used
-  - Team information
-  - Links (GitHub, video, demo)
-- [ ] Screenshot everything
-  - Mobile app screens
-  - Web dashboard
-  - Architecture diagrams
-  - Code snippets
-- [ ] Prepare for submission
-
-**Deliverables**: All submission materials ready
-
----
-
-### Day 23 - Tuesday, Mar 11: Submission Draft
-**Time**: 4-6 hours
-
-**Morning (2-3 hours)**:
-- [ ] Fill out submission form (DRAFT)
-  - Don't submit yet
-  - Fill all required fields
-  - Add all links
-  - Upload all files
-- [ ] Review submission
-  - Check for completeness
-  - Verify accuracy
-  - Fix any issues
-
-**Afternoon (2-3 hours)**:
-- [ ] Get feedback on submission
-  - Ask friend/colleague to review
-  - Check for clarity
-  - Improve descriptions
-- [ ] Make final improvements
-  - Update based on feedback
-  - Polish descriptions
-  - Verify links one more time
-- [ ] Save draft
-
-**Deliverables**: Submission draft complete
-
----
-
-### Day 24 - Wednesday, Mar 12: Final Checks
-**Time**: 4-6 hours
-
-**Morning (2-3 hours)**:
-- [ ] Final system test
-  - Test mobile app
-  - Test web dashboard
-  - Test all APIs
-  - Verify demo data
-- [ ] Final documentation check
-  - README.md
-  - All links
-  - Video playback
-  - GitHub repository
-
-**Afternoon (2-3 hours)**:
-- [ ] Review submission one last time
-  - Read through entire submission
-  - Check all fields
-  - Verify all links
-  - Test video playback
-- [ ] Make any last-minute fixes
-- [ ] Prepare for submission tomorrow
-
-**Deliverables**: Everything ready for submission
-
----
-
-### Day 25 - Thursday, Mar 13: SUBMISSION DAY 🚀
-**Time**: 2-4 hours
-
-**Morning (1-2 hours)**:
-- [ ] Final confidence check
-  - Test demo one more time
-  - Verify all links work
-  - Check video plays correctly
-- [ ] Review submission form
-  - Read through everything
-  - Make sure nothing is missing
-
-**Afternoon (1-2 hours)**:
-- [ ] **SUBMIT THE PROJECT** 🎉
-- [ ] Verify submission received
-  - Check confirmation email
-  - Verify submission appears in portal
-- [ ] Celebrate! 🎊
-- [ ] Share on social media
-- [ ] Thank your team
-
-**Deliverables**: PROJECT SUBMITTED! ✅
-
----
-
-## 📋 Daily Checklist Template
-
-Use this for each day:
-
-```
-Date: ___________
-Day: ___________
-
-Morning Tasks:
-[ ] Task 1
-[ ] Task 2
-[ ] Task 3
-
-Afternoon Tasks:
-[ ] Task 1
-[ ] Task 2
-[ ] Task 3
-
-Blockers/Issues:
-- 
-
-Notes:
-- 
-
-Tomorrow's Priority:
-- 
+## Phase 1: ML Risk Assessment Integration (Weeks 1-3)
+**Priority:** CRITICAL  
+**Effort:** 3 weeks  
+**Dependencies:** None
+
+### Objective
+Integrate the existing Random Forest ML model into the application workflow to enable continuous risk monitoring.
+
+
+### Current State
+- ✅ ML model exists: `assess_risk/maatrisahyak.pkl` (Random Forest with 11 features)
+- ✅ Lambda function code complete: `assess_risk/handler.py`
+- ❌ No API Gateway endpoint in `template.yaml`
+- ❌ No Lambda invocations from `register_pregnancy` or `record_vitals`
+- ❌ Frontend/Mobile apps don't call risk assessment API
+
+### Implementation Tasks
+
+#### Week 1: Infrastructure Setup
+**Task 1.1: Add AssessRisk Lambda to CloudFormation**
+- File: `infrastructure/template.yaml`
+- Add Lambda function definition after line 880 (after GetRiskTrendsFunction)
+- Configure API Gateway endpoint: `POST /risk/assess`
+- Set up DynamoDB permissions for Pregnancies and VitalSigns tables
+- Add Lambda invoke permissions for other functions
+
+```yaml
+AssessRiskFunction:
+  Type: AWS::Serverless::Function
+  Properties:
+    CodeUri: ../lambda_functions/assess_risk/
+    Handler: handler.lambda_handler
+    Runtime: python3.12
+    Timeout: 60
+    MemorySize: 1024
+    Events:
+      AssessRisk:
+        Type: Api
+        Properties:
+          RestApiId: !Ref MaatriSahayakApi
+          Path: /risk/assess
+          Method: POST
 ```
 
-## 🎯 Critical Path Items
+**Task 1.2: Deploy Infrastructure**
+- Run: `sam build && sam deploy`
+- Verify API endpoint is accessible
+- Test with sample pregnancy data
 
-These MUST be completed for submission:
 
-**Week 1 (Must Have)**:
-- ✅ AWS infrastructure setup
-- ✅ Backend APIs (37 Lambda functions total)
-  - User Management (6): RegisterASHA, GetASHAProfile, UpdateASHAProfile, RegisterAmbulance, RegisterHospital, UpdateHospitalCapacity
-  - Authentication (2): LoginASHA, RefreshToken
-  - Pregnancy Management (4): RegisterPregnancy, GetPregnancyDetails, ListPregnancies, UpdatePregnancy
-  - ANC Visit Management (2): RecordANCVisit, GetANCHistory
-  - Vitals & Monitoring (3): RecordVitals, GetVitalsHistory, GetRiskTrends
-  - AI/ML Services (3): AssessRisk, AnalyzeSymptoms, ProcessANCCard
-  - Emergency Workflow (8): TriggerEmergency, ValidateEmergency, FindNearestAmbulance, DispatchAmbulance, CheckHospitalCapacity, AlertHospital, MonitorEmergency, CompleteEmergency
-  - Emergency History (1): GetEmergencyHistory
-  - Ambulance & Location (3): UpdateAmbulanceLocation, GetAmbulanceRoute, GetAmbulanceStatus
-  - Hospital Management (1): ListHospitals
-  - Data Sync (1): SyncOfflineData
-  - Notifications (1): SendNotifications
-  - Analytics & Reports (2): GenerateAnalytics, ExportReports
-- ✅ DynamoDB tables
-- ✅ Basic authentication
+#### Week 2: Backend Integration
+**Task 2.1: Integrate with Register Pregnancy**
+- File: `lambda_functions/register_pregnancy/handler.py`
+- After saving pregnancy data (line 115), invoke assess_risk Lambda
+- Update pregnancy record with returned risk_score and risk_level
+- Handle errors gracefully (don't fail registration if risk assessment fails)
 
-**Week 2 (Must Have)**:
-- ✅ Mobile app with core features
-- ✅ AI integration (Bedrock + SageMaker)
-- ✅ Emergency workflow
-- ✅ Basic web dashboard
-
-**Week 3 (Must Have)**:
-- ✅ Demo video (5-7 minutes)
-- ✅ Pitch deck (10-12 slides)
-- ✅ Complete documentation
-- ✅ Working end-to-end demo
-
-**Week 4 (Must Have)**:
-- ✅ Final testing
-- ✅ Submission materials
-- ✅ SUBMIT!
-
-## 🚨 Risk Mitigation
-
-### If You Fall Behind
-
-**Priority 1 (Must Have)**:
-- Mobile app with emergency button
-- Backend emergency workflow
-- Bedrock symptom analysis
-- Demo video
-- Submission
-
-**Priority 2 (Should Have)**:
-- SageMaker risk prediction
-- Web dashboard
-- IoT tracking
-- Complete documentation
-
-**Priority 3 (Nice to Have)**:
-- Textract OCR
-- Advanced analytics
-- Real-time updates
-- Polish and animations
-
-### Time-Saving Strategies
-
-1. **Use Templates**: Don't design from scratch
-2. **Mock Data**: Use synthetic data instead of real data
-3. **Simplify**: Focus on core features, skip nice-to-haves
-4. **Reuse Code**: Use existing libraries and components
-5. **Parallel Work**: If team, divide tasks
-6. **Skip Perfection**: Good enough is better than perfect but late
-
-## 💪 Motivation Boosters
-
-**Week 1**: "Foundation is everything. Build it right."
-**Week 2**: "This is where the magic happens. Keep pushing!"
-**Week 3**: "The finish line is in sight. Don't stop now!"
-**Week 4**: "You've got this. Time to shine!"
-
-## 📞 Support Resources
-
-**AWS Documentation**:
-- Bedrock: https://docs.aws.amazon.com/bedrock/
-- SageMaker: https://docs.aws.amazon.com/sagemaker/
-- Lambda: https://docs.aws.amazon.com/lambda/
-
-**Community**:
-- AWS Discord/Slack
-- Stack Overflow
-- GitHub Issues
-
-**Emergency Contact**:
-- AWS Support (if critical issue)
-- Hackathon organizers (for submission questions)
-
-## 🎊 Final Thoughts
-
-**24 days is tight but doable!**
-
-Focus on:
-- ✅ Core features that work
-- ✅ AWS AI integration (Bedrock is key!)
-- ✅ Compelling demo
-- ✅ Clear impact story
-
-Remember:
-- **Done is better than perfect**
-- **Demo what works, not what's planned**
-- **Impact matters more than features**
-- **Your passion will shine through**
-
-**You've got this! Let's build something amazing and save lives!** 🚀💙
-
----
-
-## 🚑 UNIFIED APP: ASHA + DRIVER IMPLEMENTATION (3-4 Days)
-
-### Overview
-**Goal**: Extend mobile app to support both ASHA workers AND ambulance drivers with role-based navigation
-**Priority**: HIGH - Critical for complete emergency workflow demonstration
-**Timeline**: 3-4 days
-
-### Why This Matters
-- **Complete Emergency Workflow**: ASHA triggers → Driver accepts → Patient transported → Hospital receives
-- **Real-Time Coordination**: Live tracking, instant notifications between stakeholders
-- **Demo Impact**: Show end-to-end emergency response in action
-- **Scalable Architecture**: Role-based system supports future roles (Hospital Staff, Admin)
-
----
-
-### 📋 PHASE 1: Backend Changes (Day 1)
-**Time**: 8-10 hours
-
-#### New Lambda Functions (6 functions)
-
-**1. register_driver**
 ```python
-# Registers ambulance driver with vehicle assignment
-# Input: name, phone, license_number, license_photo, ambulance_id
-# Output: driver_id, user credentials
-# DynamoDB: Drivers table
+# Add after line 115 in register_pregnancy/handler.py
+try:
+    lambda_client = boto3.client('lambda')
+    risk_response = lambda_client.invoke(
+        FunctionName=LAMBDA_FUNCTIONS['ASSESS_RISK'],
+        InvocationType='RequestResponse',
+        Payload=json.dumps({'pregnancy_id': pregnancy_id})
+    )
+    risk_data = json.loads(risk_response['Payload'].read())
+    if risk_data.get('success'):
+        pregnancy_data['risk_score'] = risk_data['data']['risk_score']
+        pregnancy_data['risk_level'] = risk_data['data']['risk_level']
+        put_item(TABLE_NAMES['PREGNANCIES'], pregnancy_data)
+except Exception as e:
+    log_warning("Risk assessment failed during registration", e)
 ```
 
-**2. get_driver_profile**
-```python
-# Fetches driver profile and assigned ambulance
-# Input: driver_id
-# Output: driver details, ambulance info, stats (rating, total_rides)
+**Task 2.2: Integrate with Record Vitals**
+- File: `lambda_functions/record_vitals/handler.py`
+- After recording vitals (line 120), invoke assess_risk Lambda
+- Update pregnancy record with new risk assessment
+- Trigger emergency workflow if risk level escalates to HIGH/CRITICAL
+
+
+**Task 2.3: Add Scheduled Risk Assessment**
+- Create new Lambda: `scheduled_risk_assessment/handler.py`
+- Use EventBridge rule to run daily at 6 AM IST
+- Assess all ACTIVE pregnancies with recent vitals
+- Send notifications for risk level changes
+
+#### Week 3: Frontend & Mobile Integration
+**Task 3.1: Frontend API Integration**
+- File: `frontend/src/services/api.ts`
+- Add `assessRisk(pregnancyId)` API method
+- Display risk score and level on pregnancy details page
+- Add risk trend visualization on dashboard
+
+**Task 3.2: Mobile App Integration**
+- File: `MaatriSahayakMobile/src/services/api.ts`
+- Add risk assessment API call
+- Display risk indicators on pregnancy list and details screens
+- Add offline queue support for risk assessment requests
+
+**Task 3.3: Testing & Validation**
+- Unit tests for assess_risk Lambda function
+- Integration tests for pregnancy registration + risk assessment
+- End-to-end tests from mobile app to backend
+- Validate ML model predictions against test dataset
+
+### Success Criteria
+- ✅ Risk assessment API endpoint deployed and accessible
+- ✅ Automatic risk calculation on pregnancy registration
+- ✅ Risk recalculation after vitals recording
+- ✅ Risk scores visible in frontend and mobile apps
+- ✅ Daily scheduled risk assessment running
+- ✅ 92% recall and 87% precision maintained (validate with test data)
+
+---
+
+
+## Phase 2: Hindi Language Support (Weeks 4-6)
+**Priority:** CRITICAL  
+**Effort:** 3 weeks  
+**Dependencies:** None
+
+### Objective
+Implement comprehensive Hindi language support for ASHA workers in the mobile application.
+
+### Current State
+- ❌ No i18n library installed
+- ❌ No translation files
+- ❌ All UI text hardcoded in English
+- ❌ No language switcher in settings
+
+### Implementation Tasks
+
+#### Week 4: i18n Infrastructure Setup
+**Task 4.1: Install i18n Libraries**
+- Mobile: Install `react-i18next` and `i18next`
+- Frontend: Install `react-i18next` (for consistency)
+- Configure language detection and fallback
+
+```bash
+cd MaatriSahayakMobile
+npm install react-i18next i18next i18next-react-native-language-detector
 ```
 
-**3. update_driver_status**
-```python
-# Updates driver availability
-# Input: driver_id, status (AVAILABLE/ON_RIDE/OFFLINE)
-# Output: updated status
-```
+**Task 4.2: Create Translation Files**
+- Create `MaatriSahayakMobile/src/locales/en.json`
+- Create `MaatriSahayakMobile/src/locales/hi.json`
+- Extract all hardcoded strings from screens and components
+- Organize translations by feature/screen
 
-**4. get_assigned_emergencies**
-```python
-# Gets emergencies assigned to driver's ambulance
-# Input: ambulance_id, status filter
-# Output: list of emergency events with patient details
-```
+**Task 4.3: Configure i18n**
+- File: `MaatriSahayakMobile/src/i18n/config.ts`
+- Set up language detection (AsyncStorage for persistence)
+- Configure fallback to English
+- Set Hindi as default for ASHA worker role
 
-**5. accept_emergency**
-```python
-# Driver accepts emergency request
-# Input: emergency_id, driver_id
-# Output: patient details, navigation route, hospital info
-# Updates: EmergencyEvents status, Ambulance status
-```
 
-**6. complete_ride**
-```python
-# Marks emergency as completed
-# Input: emergency_id, outcome, notes, hospital_reached_at
-# Output: ride summary, duration, distance
-# Updates: Driver stats, Ambulance availability
-```
+#### Week 5: Mobile App Translation
+**Task 5.1: Translate Core Screens (Priority 1)**
+- LoginScreen.tsx - Login form, error messages
+- HomeScreen.tsx - Dashboard, quick actions
+- PregnancyListScreen.tsx - List headers, filters
+- VitalsScreen.tsx - Form labels, validation messages
+- EmergencyScreen.tsx - Emergency triggers, confirmations
 
-#### DynamoDB Schema Updates
+**Task 5.2: Translate Secondary Screens (Priority 2)**
+- RegisterScreen.tsx - Registration form
+- PregnancyDetailsScreen.tsx - Patient information
+- SettingsScreen.tsx - Settings options
+- ProfileScreen.tsx - Profile fields
 
-**New Table: Drivers**
+**Task 5.3: Add Language Switcher**
+- Add language toggle in Settings screen
+- Store preference in AsyncStorage
+- Restart app or reload screens on language change
+- Show current language in header/settings
+
+#### Week 6: Translation Quality & Testing
+**Task 6.1: Professional Translation Review**
+- Hire native Hindi speaker for translation review
+- Focus on medical terminology accuracy
+- Ensure cultural appropriateness
+- Test with actual ASHA workers for feedback
+
+**Task 6.2: Dynamic Content Translation**
+- Translate API error messages (backend)
+- Translate notification messages
+- Translate date/time formats (use Hindi numerals option)
+- Translate validation messages
+
+**Task 6.3: Testing**
+- Test all screens in both languages
+- Verify text doesn't overflow UI elements
+- Test language switching without app restart
+- Validate AsyncStorage persistence
+
+### Success Criteria
+- ✅ Complete Hindi translations for all mobile screens
+- ✅ Language switcher functional in settings
+- ✅ Language preference persists across app restarts
+- ✅ Medical terminology reviewed by healthcare professional
+- ✅ Tested with 5+ ASHA workers for usability
+
+---
+
+
+## Phase 3: Parallel Emergency Orchestration (Weeks 7-9)
+**Priority:** HIGH  
+**Effort:** 3 weeks  
+**Dependencies:** None
+
+### Objective
+Enable Step Functions workflow for parallel emergency response orchestration to reduce response time from 134 minutes to <30 minutes.
+
+### Current State
+- ⚠️ Step Functions workflow defined but commented out (lines 1806-1831 in template.yaml)
+- ✅ Sequential emergency workflow exists in `trigger_emergency/handler.py`
+- ❌ No parallel execution of ambulance dispatch, hospital alert, notifications
+
+### Implementation Tasks
+
+#### Week 7: Step Functions Workflow Design
+**Task 7.1: Uncomment and Update Step Functions Definition**
+- File: `infrastructure/template.yaml`
+- Uncomment `EmergencyWorkflowStateMachine` (lines 1806-1831)
+- Update state machine definition file: `step_functions/emergency_workflow.asl.json`
+
+**Task 7.2: Design Parallel Workflow**
+Create ASL (Amazon States Language) workflow:
 ```json
 {
-  "driverId": "drv_xxx",
-  "userId": "cognito_sub",
-  "name": "string",
-  "phone": "string",
-  "photo": "s3://...",
-  "licenseNumber": "string",
-  "licensePhotoUrl": "s3://...",
-  "ambulanceId": "amb_xxx",
-  "status": "AVAILABLE | ON_RIDE | OFFLINE",
-  "currentLocation": {
-    "latitude": 0.0,
-    "longitude": 0.0,
-    "lastUpdated": "timestamp"
-  },
-  "rating": 4.5,
-  "totalRides": 0,
-  "createdAt": "timestamp"
-}
-```
-
-**Update Table: Ambulances**
-```json
-{
-  // Existing fields...
-  "assignedDriverId": "drv_xxx",
-  "driverName": "string",
-  "driverPhone": "string"
-}
-```
-
-**Update Table: EmergencyEvents**
-```json
-{
-  // Existing fields...
-  "driverAcceptedAt": "timestamp",
-  "driverArrivedAt": "timestamp",
-  "patientPickedAt": "timestamp",
-  "hospitalReachedAt": "timestamp"
-}
-```
-
-#### Cognito User Pool Updates
-```
-custom:role → "ASHA" | "DRIVER" | "HOSPITAL"
-custom:ashaId → "asha_xxx" (if ASHA)
-custom:driverId → "drv_xxx" (if DRIVER)
-custom:ambulanceId → "amb_xxx" (if DRIVER)
-```
-
-**Day 1 Checklist**:
-- [ ] Create 6 new Lambda functions
-- [ ] Create Drivers DynamoDB table
-- [ ] Update Ambulances table schema
-- [ ] Update EmergencyEvents table schema
-- [ ] Add Cognito custom attributes
-- [ ] Deploy all Lambda functions
-- [ ] Test APIs with Postman
-- [ ] Update API Gateway routes
-
----
-
-### 📱 PHASE 2: Mobile App - Auth & Navigation (Day 2)
-**Time**: 8-10 hours
-
-#### Type Definitions Update
-**File**: `src/types/index.ts`
-```typescript
-export type UserRole = 'ASHA' | 'DRIVER' | 'HOSPITAL';
-
-export interface User {
-    id: string;
-    username: string;
-    name: string;
-    role: UserRole;  // NEW
-    phone: string;
-    ashaId?: string;
-    driverId?: string;
-    ambulanceId?: string;
-}
-
-export interface Driver {
-    id: string;
-    userId: string;
-    name: string;
-    phone: string;
-    licenseNumber: string;
-    ambulanceId: string;
-    status: 'AVAILABLE' | 'ON_RIDE' | 'OFFLINE';
-    currentLocation: { latitude: number; longitude: number; };
-    rating: number;
-    totalRides: number;
-}
-
-export interface EmergencyRide {
-    id: string;
-    pregnancyId: string;
-    patientName: string;
-    patientPhone: string;
-    pickupLocation: { latitude: number; longitude: number; address: string; };
-    hospitalLocation: { latitude: number; longitude: number; name: string; };
-    symptoms: string;
-    severity: 'HIGH' | 'MEDIUM' | 'LOW';
-    status: 'PENDING' | 'ACCEPTED' | 'EN_ROUTE' | 'ARRIVED' | 'TRANSPORTING' | 'COMPLETED';
-    createdAt: string;
-    eta?: number;
-}
-```
-
-#### Auth Slice Update
-**File**: `src/store/slices/authSlice.ts`
-```typescript
-interface AuthState {
-    // ... existing fields
-    userRole: UserRole | null;  // NEW
-}
-
-// Update loginThunk to extract role from Cognito
-// Update reducer to store userRole
-```
-
-#### New Driver Slice
-**File**: `src/store/slices/driverSlice.ts`
-```typescript
-interface DriverState {
-    profile: Driver | null;
-    activeRide: EmergencyRide | null;
-    pendingRides: EmergencyRide[];
-    rideHistory: EmergencyRide[];
-    loading: boolean;
-    error: string | null;
-}
-
-// Thunks:
-// - fetchDriverProfileThunk
-// - fetchPendingRidesThunk
-// - acceptRideThunk
-// - updateLocationThunk
-// - completeRideThunk
-```
-
-#### Login Screen Update
-**File**: `src/screens/LoginScreen.tsx`
-```typescript
-// ADD role selector UI
-<View style={styles.roleSelector}>
-    <Text style={styles.label}>Login As</Text>
-    <View style={styles.roleButtons}>
-        <TouchableOpacity onPress={() => setSelectedRole('ASHA')}>
-            <Text>👩‍⚕️ ASHA Worker</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setSelectedRole('DRIVER')}>
-            <Text>🚑 Ambulance Driver</Text>
-        </TouchableOpacity>
-    </View>
-</View>
-```
-
-#### App Navigator Update
-**File**: `src/navigation/AppNavigator.tsx`
-```typescript
-// ADD Driver Stack
-const DriverStack = () => (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="DriverHome" component={DriverHomeScreen} />
-        <Stack.Screen name="ActiveRide" component={ActiveRideScreen} />
-        <Stack.Screen name="RideHistory" component={RideHistoryScreen} />
-        <Stack.Screen name="DriverLocation" component={DriverLocationScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-    </Stack.Navigator>
-);
-
-// UPDATE getStack logic
-const getStack = () => {
-    if (!isAuthenticated) return <AuthStack />;
-    if (hasPinSet && !pinVerified) return <PinStack />;
-    if (userRole === 'DRIVER') return <DriverStack />;  // NEW
-    return <AppStack />;  // ASHA workers
-};
-```
-
-**Day 2 Checklist**:
-- [ ] Update `types/index.ts` with Driver types
-- [ ] Update `authSlice.ts` with userRole
-- [ ] Create `driverSlice.ts`
-- [ ] Update `store/index.ts`
-- [ ] Update `LoginScreen.tsx` with role selector
-- [ ] Create `DriverRegisterScreen.tsx`
-- [ ] Update `AppNavigator.tsx` with DriverStack
-- [ ] Test role-based navigation
-
----
-
-### 🚗 PHASE 3: Driver Screens (Day 3)
-**Time**: 8-10 hours
-
-#### Screen 1: DriverHomeScreen
-**File**: `src/screens/driver/DriverHomeScreen.tsx`
-
-**Features**:
-- Driver profile card (name, photo, rating, total rides)
-- Availability toggle (AVAILABLE ↔ OFFLINE)
-- Pending emergency requests list (with pulsing animation)
-- Active ride card (if any)
-- Quick stats (today's rides, earnings)
-- Bottom tabs: Home | Active | History | Location | Settings
-
-**UI Elements**:
-```typescript
-<View style={styles.container}>
-    {/* Profile Card */}
-    <Card>
-        <Image source={{ uri: driver.photo }} />
-        <Text>{driver.name}</Text>
-        <Text>⭐ {driver.rating} | {driver.totalRides} rides</Text>
-        <Switch value={isAvailable} onValueChange={toggleAvailability} />
-    </Card>
-    
-    {/* Pending Requests */}
-    <Text style={styles.heading}>Emergency Requests</Text>
-    <FlatList
-        data={pendingRides}
-        renderItem={({ item }) => (
-            <EmergencyCard
-                emergency={item}
-                onAccept={() => handleAccept(item.id)}
-            />
-        )}
-    />
-</View>
-```
-
-#### Screen 2: ActiveRideScreen
-**File**: `src/screens/driver/ActiveRideScreen.tsx`
-
-**Features**:
-- Patient info card (name, age, symptoms, severity badge)
-- Map view with route (pickup → hospital)
-- ETA display (updates every 30 seconds)
-- Navigation button (opens Google Maps)
-- Status buttons:
-  - "Arrived at Patient" → updates status to ARRIVED
-  - "Patient Picked Up" → updates status to TRANSPORTING
-  - "Reached Hospital" → completes ride
-- Emergency contact buttons (call patient, call hospital)
-- Real-time location tracking
-
-**UI Elements**:
-```typescript
-<View style={styles.container}>
-    {/* Patient Info */}
-    <Card style={styles.patientCard}>
-        <Text style={styles.patientName}>{ride.patientName}</Text>
-        <Badge severity={ride.severity}>{ride.severity}</Badge>
-        <Text>{ride.symptoms}</Text>
-        <Text>📞 {ride.patientPhone}</Text>
-    </Card>
-    
-    {/* Map */}
-    <MapView
-        initialRegion={...}
-        showsUserLocation
-    >
-        <Marker coordinate={ride.pickupLocation} title="Patient" />
-        <Marker coordinate={ride.hospitalLocation} title="Hospital" />
-        <Polyline coordinates={route} />
-    </MapView>
-    
-    {/* ETA */}
-    <View style={styles.etaCard}>
-        <Text>ETA: {ride.eta} minutes</Text>
-    </View>
-    
-    {/* Action Buttons */}
-    <Button onPress={handleArrivedAtPatient}>Arrived at Patient</Button>
-    <Button onPress={handlePatientPickedUp}>Patient Picked Up</Button>
-    <Button onPress={handleReachedHospital}>Reached Hospital</Button>
-</View>
-```
-
-#### Screen 3: RideHistoryScreen
-**File**: `src/screens/driver/RideHistoryScreen.tsx`
-
-**Features**:
-- List of completed rides
-- Filter by date range
-- Each item shows: patient name, date, distance, duration, outcome
-- Tap to view details
-- Export report button
-
-#### Screen 4: DriverLocationScreen
-**File**: `src/screens/driver/DriverLocationScreen.tsx`
-
-**Features**:
-- Map showing driver's current location
-- GPS status indicator (green = active, red = inactive)
-- Last updated timestamp
-- Nearby hospitals markers
-- Ambulance status badge (AVAILABLE/ON_RIDE/OFFLINE)
-- Manual location refresh button
-
-**Day 3 Checklist**:
-- [ ] Create `DriverHomeScreen.tsx`
-- [ ] Create `ActiveRideScreen.tsx`
-- [ ] Create `RideHistoryScreen.tsx`
-- [ ] Create `DriverLocationScreen.tsx`
-- [ ] Create `DriverRegisterScreen.tsx`
-- [ ] Create reusable components (EmergencyCard, StatusBadge)
-- [ ] Test all driver screens
-- [ ] Integrate Google Maps for navigation
-
----
-
-### 🔌 PHASE 4: Services & Integration (Day 4)
-**Time**: 8-10 hours
-
-#### Driver Service
-**File**: `src/services/driverService.ts`
-```typescript
-export class DriverService {
-    static async register(data: RegisterDriverPayload): Promise<Driver> {
-        const response = await api.post('/driver/register', data);
-        return response.data;
-    }
-
-    static async getProfile(driverId: string): Promise<Driver> {
-        const response = await api.get(`/driver/${driverId}`);
-        return response.data;
-    }
-
-    static async updateStatus(driverId: string, status: string): Promise<void> {
-        await api.put(`/driver/${driverId}/status`, { status });
-    }
-
-    static async getPendingRides(ambulanceId: string): Promise<EmergencyRide[]> {
-        const response = await api.get(`/driver/rides/pending?ambulanceId=${ambulanceId}`);
-        return response.data;
-    }
-
-    static async acceptRide(emergencyId: string, driverId: string): Promise<EmergencyRide> {
-        const response = await api.post(`/emergency/${emergencyId}/accept`, { driverId });
-        return response.data;
-    }
-
-    static async updateLocation(driverId: string, lat: number, lng: number): Promise<void> {
-        await api.put(`/driver/${driverId}/location`, { latitude: lat, longitude: lng });
-    }
-
-    static async completeRide(emergencyId: string, outcome: string, notes: string): Promise<EmergencyRide> {
-        const response = await api.post(`/emergency/${emergencyId}/complete`, { outcome, notes });
-        return response.data;
-    }
-
-    static async getRideHistory(driverId: string): Promise<EmergencyRide[]> {
-        const response = await api.get(`/driver/${driverId}/history`);
-        return response.data;
-    }
-}
-```
-
-#### Location Tracking Service
-**File**: `src/services/locationService.ts`
-```typescript
-import * as Location from 'expo-location';
-import { DriverService } from './driverService';
-
-export class LocationService {
-    private static watchId: Location.LocationSubscription | null = null;
-
-    static async startTracking(driverId: string): Promise<void> {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') throw new Error('Location permission denied');
-
-        this.watchId = await Location.watchPositionAsync(
-            {
-                accuracy: Location.Accuracy.High,
-                timeInterval: 30000,  // 30 seconds
-                distanceInterval: 100,  // 100 meters
-            },
-            async (location) => {
-                await DriverService.updateLocation(
-                    driverId,
-                    location.coords.latitude,
-                    location.coords.longitude
-                );
-            }
-        );
-    }
-
-    static async stopTracking(): Promise<void> {
-        if (this.watchId) {
-            this.watchId.remove();
-            this.watchId = null;
+  "Comment": "Parallel Emergency Response Orchestration",
+  "StartAt": "ValidateEmergency",
+  "States": {
+    "ValidateEmergency": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:function:ValidateEmergency",
+      "Next": "ParallelDispatch"
+    },
+    "ParallelDispatch": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "FindAndDispatchAmbulance",
+          "States": { ... }
+        },
+        {
+          "StartAt": "AlertNearestHospital",
+          "States": { ... }
+        },
+        {
+          "StartAt": "NotifyStakeholders",
+          "States": { ... }
         }
+      ],
+      "Next": "MonitorEmergency"
     }
-
-    static async getCurrentLocation(): Promise<Location.LocationObject> {
-        return await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-        });
-    }
+  }
 }
 ```
 
-#### End-to-End Testing
 
-**Test Scenario: Complete Emergency Flow**
+**Task 7.3: Create Step Functions Definition File**
+- File: `step_functions/emergency_workflow.asl.json`
+- Define parallel branches for:
+  1. Ambulance dispatch (find nearest → assign → notify driver)
+  2. Hospital alert (check capacity → select hospital → send alert)
+  3. Stakeholder notifications (ASHA worker, family, district officer)
+- Add error handling and retry logic
+- Set timeout limits (max 5 minutes for entire workflow)
+
+#### Week 8: Lambda Function Refactoring
+**Task 8.1: Refactor Existing Functions for Step Functions**
+- Modify `validate_emergency/handler.py` - Return structured output for Step Functions
+- Modify `find_nearest_ambulance/handler.py` - Accept Step Functions input format
+- Modify `dispatch_ambulance/handler.py` - Return ambulance assignment details
+- Modify `alert_hospital/handler.py` - Return hospital confirmation
+- Modify `send_notifications/handler.py` - Handle parallel notification batches
+
+**Task 8.2: Add Step Functions Trigger**
+- File: `trigger_emergency/handler.py`
+- Replace sequential Lambda invocations with Step Functions execution
+- Pass emergency context to state machine
+- Return execution ARN for tracking
+
+```python
+stepfunctions_client = boto3.client('stepfunctions')
+response = stepfunctions_client.start_execution(
+    stateMachineArn=os.environ['STATE_MACHINE_ARN'],
+    input=json.dumps({
+        'emergency_id': emergency_id,
+        'pregnancy_id': pregnancy_id,
+        'location': location,
+        'severity': severity
+    })
+)
 ```
-1. ASHA Worker App:
-   - Login as ASHA
-   - Record high BP for patient (170/115)
-   - AI flags as CRITICAL
-   - Tap emergency button
-   - Verify emergency created
 
-2. Driver App:
-   - Login as Driver
-   - See new emergency request in pending list
-   - Tap "Accept"
-   - View patient details and route
-   - Tap "Navigate" (opens Google Maps)
-   - Tap "Arrived at Patient"
-   - Tap "Patient Picked Up"
-   - Tap "Reached Hospital"
-   - Enter outcome notes
-   - Complete ride
+**Task 8.3: Add Monitoring Lambda**
+- Create `monitor_step_functions/handler.py`
+- Poll Step Functions execution status
+- Update emergency event status in DynamoDB
+- Send real-time updates via WebSocket
 
-3. Web Dashboard:
-   - View real-time ambulance location
-   - See emergency status updates
-   - Verify completion
-   - Check response time metrics
 
-Expected Result: < 30 minute total response time
+#### Week 9: Testing & Performance Optimization
+**Task 9.1: Integration Testing**
+- Test complete emergency workflow end-to-end
+- Verify parallel execution (ambulance + hospital + notifications)
+- Measure execution time (target: <30 seconds for dispatch)
+- Test error handling and retry logic
+
+**Task 9.2: Performance Benchmarking**
+- Baseline: Current sequential workflow timing
+- Target: <30 minutes total response time (trigger to hospital arrival)
+- Measure: Time to ambulance dispatch, time to hospital alert
+- Compare: Sequential vs parallel execution times
+
+**Task 9.3: Dashboard Integration**
+- Add Step Functions execution visualization to frontend
+- Show parallel branch status in real-time
+- Display execution timeline and bottlenecks
+- Add retry/failure alerts
+
+### Success Criteria
+- ✅ Step Functions workflow deployed and functional
+- ✅ Parallel execution of ambulance dispatch, hospital alert, notifications
+- ✅ Emergency response time reduced to <30 minutes (measured)
+- ✅ Error handling and retry logic tested
+- ✅ Real-time status updates visible in dashboard
+
+---
+
+
+## Phase 4: Enhanced Offline-First Architecture (Weeks 10-12)
+**Priority:** HIGH  
+**Effort:** 3 weeks  
+**Dependencies:** None
+
+### Objective
+Upgrade from basic AsyncStorage to full offline-first architecture with SQLite for reliable operation in low-connectivity rural areas.
+
+### Current State
+- ⚠️ Basic offline support via AsyncStorage (auth tokens, sync queue)
+- ❌ No local database (SQLite) for data persistence
+- ❌ No conflict resolution for offline edits
+- ❌ Limited offline functionality (can't view/edit data offline)
+
+### Implementation Tasks
+
+#### Week 10: SQLite Database Setup
+**Task 10.1: Install SQLite Libraries**
+```bash
+cd MaatriSahayakMobile
+npm install @react-native-async-storage/async-storage
+npm install react-native-sqlite-storage
+npm install @nozbe/watermelondb @nozbe/watermelondb-sync-plugin
 ```
 
-**Day 4 Checklist**:
-- [ ] Create `driverService.ts`
-- [ ] Create `locationService.ts`
-- [ ] Wire all driver screens to services
-- [ ] Test end-to-end emergency flow
-- [ ] Test offline sync for driver actions
-- [ ] Test push notifications
-- [ ] Performance testing
-- [ ] UI/UX polish
-- [ ] Bug fixes
-- [ ] Update documentation
+**Task 10.2: Design Local Database Schema**
+- File: `MaatriSahayakMobile/src/database/schema.ts`
+- Tables: pregnancies, vital_signs, emergencies, asha_workers, sync_queue
+- Indexes for fast queries
+- Sync metadata (last_synced_at, sync_status)
+
+**Task 10.3: Create Database Models**
+- File: `MaatriSahayakMobile/src/database/models/`
+- Pregnancy.ts - Local pregnancy records
+- VitalSigns.ts - Offline vitals recording
+- Emergency.ts - Emergency events
+- SyncQueue.ts - Pending sync operations
+
+
+#### Week 11: Offline Data Sync Implementation
+**Task 11.1: Implement Sync Service**
+- File: `MaatriSahayakMobile/src/services/syncService.ts`
+- Pull: Download new/updated records from server
+- Push: Upload local changes to server
+- Conflict resolution: Last-write-wins with timestamp comparison
+- Batch sync for efficiency
+
+**Task 11.2: Update API Service for Offline Support**
+- File: `MaatriSahayakMobile/src/services/api.ts`
+- Check network connectivity before API calls
+- Queue operations when offline
+- Return cached data when offline
+- Auto-sync when connection restored
+
+**Task 11.3: Implement Background Sync**
+- Use React Native Background Fetch
+- Sync every 15 minutes when online
+- Sync immediately on network reconnection
+- Show sync status indicator in UI
+
+#### Week 12: UI Updates & Testing
+**Task 12.1: Update Screens for Offline Mode**
+- Show offline indicator in header
+- Display cached data with "offline" badge
+- Disable features requiring real-time data (live tracking)
+- Show pending sync count
+
+**Task 12.2: Add Offline Indicators**
+- Network status banner
+- Sync progress indicator
+- Pending operations count
+- Last sync timestamp
+
+**Task 12.3: Comprehensive Testing**
+- Test offline data entry (pregnancies, vitals)
+- Test sync after reconnection
+- Test conflict resolution scenarios
+- Test with poor network conditions (throttled connection)
+- Test data integrity after multiple sync cycles
+
+### Success Criteria
+- ✅ SQLite database integrated with WatermelonDB
+- ✅ Full CRUD operations work offline
+- ✅ Automatic sync when connection restored
+- ✅ Conflict resolution handles concurrent edits
+- ✅ Tested in real rural connectivity conditions
+- ✅ Data integrity maintained across sync cycles
 
 ---
 
-### 📊 Implementation Checklist Summary
 
-#### Backend (Day 1)
-- [ ] Create `register_driver` Lambda
-- [ ] Create `get_driver_profile` Lambda
-- [ ] Create `update_driver_status` Lambda
-- [ ] Create `get_assigned_emergencies` Lambda
-- [ ] Create `accept_emergency` Lambda
-- [ ] Create `complete_ride` Lambda
-- [ ] Create `Drivers` DynamoDB table
-- [ ] Update `Ambulances` table schema
-- [ ] Update `EmergencyEvents` table schema
-- [ ] Add Cognito custom attributes
-- [ ] Deploy all Lambda functions
-- [ ] Test APIs with Postman
+## Phase 5: AWS SageMaker Integration (Weeks 13-14) [OPTIONAL]
+**Priority:** MEDIUM  
+**Effort:** 2 weeks  
+**Dependencies:** Phase 1 complete
 
-#### Mobile - Auth & State (Day 2)
-- [ ] Update `types/index.ts` with Driver types
-- [ ] Update `authSlice.ts` with userRole
-- [ ] Create `driverSlice.ts`
-- [ ] Update `store/index.ts`
-- [ ] Update `LoginScreen.tsx` with role selector
-- [ ] Create `DriverRegisterScreen.tsx`
-- [ ] Update `AppNavigator.tsx` with DriverStack
-- [ ] Test role-based navigation
+### Objective
+Migrate ML model from Lambda to SageMaker for better scalability, model versioning, and A/B testing capabilities.
 
-#### Mobile - Driver Screens (Day 3)
-- [ ] Create `DriverHomeScreen.tsx`
-- [ ] Create `ActiveRideScreen.tsx`
-- [ ] Create `RideHistoryScreen.tsx`
-- [ ] Create `DriverLocationScreen.tsx`
-- [ ] Create `driverService.ts`
-- [ ] Create `locationService.ts`
-- [ ] Integrate Google Maps for navigation
-- [ ] Test all driver screens
+### Current State
+- ✅ ML model runs in Lambda (after Phase 1)
+- ❌ No SageMaker endpoint
+- ❌ No model versioning or A/B testing
+- ❌ Limited to Lambda memory/timeout constraints
 
-#### Testing & Polish (Day 4)
-- [ ] End-to-end emergency flow test
-- [ ] Offline sync test
-- [ ] Push notification test
-- [ ] Performance testing
-- [ ] UI/UX polish
-- [ ] Bug fixes
-- [ ] Documentation update
+### Implementation Tasks
 
----
+#### Week 13: SageMaker Setup
+**Task 13.1: Create SageMaker Endpoint**
+- Upload model to S3: `s3://maatrisahayak-models/risk-assessment/v1/`
+- Create SageMaker model from S3 artifact
+- Deploy endpoint with auto-scaling (min 1, max 5 instances)
+- Configure endpoint for low-latency inference
 
-### 🎨 UI/UX Design Guidelines
+**Task 13.2: Update Lambda to Use SageMaker**
+- File: `lambda_functions/assess_risk/handler.py`
+- Replace local model loading with SageMaker endpoint invocation
+- Add retry logic and error handling
+- Implement fallback to Lambda model if SageMaker unavailable
 
-#### Driver App Color Scheme
-- **Primary**: `#FF6B35` (Ambulance Orange)
-- **Background**: `#0A1F1A` (Dark Green - consistent with ASHA app)
-- **Accent**: `#00E5A0` (Bright Green)
-- **Emergency**: `#FF3B30` (Red)
-- **Success**: `#34C759` (Green)
+**Task 13.3: Add Model Monitoring**
+- Enable SageMaker Model Monitor
+- Track prediction accuracy over time
+- Alert on data drift or model degradation
+- Log predictions for retraining
 
-#### Key UI Principles
-- **Large Touch Targets**: Buttons minimum 48x48 dp (drivers use while moving)
-- **High Contrast**: Text readable in bright sunlight
-- **Minimal Text**: Icon-based navigation where possible
-- **Status Indicators**: Color-coded badges (Red=Emergency, Green=Available, Gray=Offline)
-- **Haptic Feedback**: Vibration on critical actions (accept ride, complete ride)
+#### Week 14: Model Versioning & A/B Testing
+**Task 14.1: Implement Model Versioning**
+- Create model registry in SageMaker
+- Version models: v1 (current), v2 (improved)
+- Tag models with metadata (accuracy, training date)
+
+**Task 14.2: Set Up A/B Testing**
+- Deploy multiple model versions to same endpoint
+- Route 90% traffic to v1, 10% to v2
+- Compare prediction accuracy and latency
+- Gradually shift traffic to better model
+
+**Task 14.3: Automated Retraining Pipeline**
+- Create SageMaker Pipeline for retraining
+- Trigger monthly with new data
+- Evaluate model performance
+- Auto-deploy if accuracy improves
+
+### Success Criteria
+- ✅ SageMaker endpoint deployed and serving predictions
+- ✅ Model versioning implemented
+- ✅ A/B testing framework functional
+- ✅ Automated retraining pipeline operational
 
 ---
 
-### 🚀 Demo Script Addition
 
-**After showing ASHA triggering emergency:**
+## Phase 6: AWS IoT Core Integration (Weeks 15-16) [OPTIONAL]
+**Priority:** MEDIUM  
+**Effort:** 2 weeks  
+**Dependencies:** None
 
-"Now let's see the driver's perspective..."
+### Objective
+Implement real-time ambulance tracking and vital signs monitoring using IoT Core for sub-second updates.
 
-1. **Driver receives notification** (show push notification on screen)
-2. **Opens app, sees emergency request** (patient details, location, severity)
-3. **Taps 'Accept'** (instant confirmation)
-4. **Views route on map** (pickup location → hospital)
-5. **Taps 'Navigate'** (opens Google Maps)
-6. **Updates status at each step**:
-   - "Arrived at Patient" (9:23 AM)
-   - "Patient Picked Up" (9:25 AM)
-   - "Reached Hospital" (9:45 AM)
-7. **Completes ride** (enters outcome notes)
+### Current State
+- ⚠️ Ambulance location updates via REST API (polling)
+- ❌ No IoT Core integration
+- ❌ No real-time device telemetry
+- ❌ High latency for location updates (30-60 seconds)
 
-**Result**: 28-minute total response time vs 134-minute average. Life saved. ✅
+### Implementation Tasks
 
----
+#### Week 15: IoT Core Setup
+**Task 15.1: Create IoT Things**
+- Register ambulances as IoT Things
+- Generate certificates for each ambulance device
+- Create IoT policies for publish/subscribe permissions
+- Store certificates securely in mobile app
 
-### 💡 Future Enhancements (Post-Hackathon)
+**Task 15.2: Implement MQTT Client in Mobile App**
+- Install AWS IoT SDK: `npm install aws-iot-device-sdk-v2`
+- File: `MaatriSahayakMobile/src/services/iotService.ts`
+- Connect to IoT Core using certificates
+- Publish location updates every 5 seconds
+- Subscribe to emergency assignment topics
 
-**Phase 2 Features**:
-- [ ] Driver earnings tracking
-- [ ] Rating system (patients rate drivers)
-- [ ] Voice navigation in Hindi
-- [ ] Offline maps (pre-downloaded)
-- [ ] Driver shift scheduling
-- [ ] Fuel/maintenance tracking
-- [ ] Multi-ambulance coordination
-- [ ] Driver training modules
-- [ ] Emergency protocol checklists
-- [ ] In-app communication (driver ↔ ASHA ↔ hospital)
+**Task 15.3: Create IoT Rules**
+- Rule 1: Forward location updates to DynamoDB
+- Rule 2: Trigger Lambda on critical events (ambulance offline)
+- Rule 3: Send to Kinesis for real-time analytics
 
----
+#### Week 16: Real-Time Dashboard Integration
+**Task 16.1: WebSocket API for Frontend**
+- Create WebSocket API in API Gateway
+- Connect to IoT Core via Lambda
+- Stream ambulance locations to dashboard
+- Update map markers in real-time
 
-### 📈 Success Metrics
+**Task 16.2: Vital Signs Monitoring (Future)**
+- Integrate with wearable devices (pulse oximeter, BP monitor)
+- Stream vitals via IoT Core
+- Alert on abnormal readings
+- Store time-series data in Timestream
 
-#### Driver Adoption
-- **Target**: 80% of drivers actively using app
-- **Measure**: Daily active users, ride acceptance rate
+**Task 16.3: Testing & Optimization**
+- Test with multiple ambulances simultaneously
+- Measure latency (target: <1 second)
+- Test connection resilience (reconnect on network loss)
+- Optimize battery usage on mobile devices
 
-#### Response Time
-- **Target**: < 30 minutes from emergency trigger to hospital arrival
-- **Measure**: Average time across all emergencies
-
-#### User Satisfaction
-- **Target**: 4.5+ rating from drivers
-- **Measure**: In-app feedback, surveys
-
-#### System Reliability
-- **Target**: 99.9% uptime, < 1% failed dispatches
-- **Measure**: CloudWatch metrics, error logs
-
----
-
-### 🎯 Why This Completes Your Project
-
-1. **Full Emergency Workflow**: ASHA → Driver → Hospital (end-to-end)
-2. **Real-Time Coordination**: Live tracking, instant notifications
-3. **Practical Implementation**: Drivers are critical stakeholders
-4. **Scalable Architecture**: Role-based system supports future roles (Hospital, Admin)
-5. **Demo Impact**: Show complete emergency response in demo video
-6. **AWS Integration**: IoT Core for GPS, Location Service for routing, SNS for notifications
-7. **Social Impact**: Demonstrates how technology saves lives in real-time
-
-**This unified app transforms your project from a monitoring system to a complete life-saving platform!** 🚑💙
+### Success Criteria
+- ✅ IoT Core configured with ambulance Things
+- ✅ Real-time location updates (<1 second latency)
+- ✅ Dashboard shows live ambulance positions
+- ✅ Connection resilience tested
+- ✅ Battery impact acceptable (<5% per hour)
 
 ---
 
-*Last Updated: February 17, 2026*
-*Submission Deadline: March 13, 2026, 11:59 PM*
+
+## Implementation Timeline
+
+```
+Week 1-3:   Phase 1 - ML Risk Assessment Integration [CRITICAL]
+Week 4-6:   Phase 2 - Hindi Language Support [CRITICAL]
+Week 7-9:   Phase 3 - Parallel Emergency Orchestration [HIGH]
+Week 10-12: Phase 4 - Enhanced Offline-First Architecture [HIGH]
+Week 13-14: Phase 5 - AWS SageMaker Integration [OPTIONAL]
+Week 15-16: Phase 6 - AWS IoT Core Integration [OPTIONAL]
+```
+
+### Parallel Execution Strategy
+- Phases 1 & 2 can run in parallel (different teams)
+- Phase 3 depends on Phase 1 completion (for risk-based emergency triggers)
+- Phase 4 is independent and can run in parallel with Phase 3
+- Phases 5 & 6 are optional enhancements
+
+### Recommended Team Structure
+- **Backend Team (2 developers):** Phases 1, 3, 5
+- **Mobile Team (2 developers):** Phases 2, 4
+- **DevOps Engineer (1):** Infrastructure, deployment, monitoring
+- **QA Engineer (1):** Testing all phases
+- **Product Manager (1):** Coordination, stakeholder communication
+
+---
+
+## Resource Requirements
+
+### Development Team
+- 2 Backend Developers (Python, AWS Lambda, Step Functions)
+- 2 Mobile Developers (React Native, SQLite, i18n)
+- 1 DevOps Engineer (AWS, CloudFormation, CI/CD)
+- 1 QA Engineer (Testing, automation)
+- 1 Product Manager (Coordination)
+
+### External Resources
+- Hindi translator (medical terminology expert) - Week 5-6
+- ASHA workers for user testing (5-10 people) - Week 6, 12
+- ML engineer for SageMaker setup (optional) - Week 13-14
+
+### AWS Costs (Estimated Monthly)
+- Lambda: $50-100 (increased usage with ML)
+- Step Functions: $25-50 (parallel workflows)
+- SageMaker: $200-400 (if implemented)
+- IoT Core: $50-100 (if implemented)
+- DynamoDB: $50-100 (existing)
+- **Total: $375-750/month** (with optional features)
+
+---
+
+
+## Risk Assessment & Mitigation
+
+### Technical Risks
+
+**Risk 1: ML Model Performance Degradation**
+- **Impact:** High - Core value proposition
+- **Probability:** Medium
+- **Mitigation:** 
+  - Validate model with test dataset before deployment
+  - Implement monitoring and alerting
+  - Keep fallback to rule-based risk assessment
+  - Plan for model retraining pipeline
+
+**Risk 2: Offline Sync Conflicts**
+- **Impact:** High - Data integrity
+- **Probability:** Medium
+- **Mitigation:**
+  - Implement robust conflict resolution (last-write-wins with timestamps)
+  - Add manual conflict resolution UI for critical data
+  - Extensive testing with concurrent edits
+  - Maintain audit log of all changes
+
+**Risk 3: Step Functions Timeout**
+- **Impact:** Medium - Emergency response delay
+- **Probability:** Low
+- **Mitigation:**
+  - Set appropriate timeouts (5 minutes max)
+  - Implement retry logic with exponential backoff
+  - Add fallback to sequential workflow
+  - Monitor execution times and optimize bottlenecks
+
+**Risk 4: Hindi Translation Quality**
+- **Impact:** High - User adoption by ASHA workers
+- **Probability:** Medium
+- **Mitigation:**
+  - Hire professional medical translator
+  - Conduct user testing with actual ASHA workers
+  - Iterate based on feedback
+  - Maintain glossary of medical terms
+
+### Operational Risks
+
+**Risk 5: Increased AWS Costs**
+- **Impact:** Medium - Budget overrun
+- **Probability:** Medium
+- **Mitigation:**
+  - Set up AWS Cost Explorer alerts
+  - Use reserved instances for predictable workloads
+  - Optimize Lambda memory and timeout settings
+  - Monitor and optimize DynamoDB usage
+
+**Risk 6: Team Capacity**
+- **Impact:** High - Timeline delays
+- **Probability:** Medium
+- **Mitigation:**
+  - Prioritize critical phases (1 & 2)
+  - Make phases 5 & 6 optional
+  - Consider external contractors for specialized work
+  - Build buffer time into estimates
+
+---
+
+
+## Success Metrics & KPIs
+
+### Technical Metrics
+- **ML Model Accuracy:** Maintain 92% recall, 87% precision
+- **Emergency Response Time:** Reduce from 134 min to <30 min (78% improvement)
+- **Offline Functionality:** 100% of core features work offline
+- **API Latency:** <500ms for 95th percentile
+- **System Uptime:** 99.9% availability
+
+### User Adoption Metrics
+- **ASHA Worker App Usage:** 80% daily active users
+- **Hindi Language Adoption:** 70% of ASHA workers use Hindi interface
+- **Offline Mode Usage:** 40% of operations performed offline
+- **Risk Assessment Coverage:** 100% of pregnancies have risk scores
+
+### Business Impact Metrics
+- **Maternal Mortality Reduction:** Target 20% reduction in first year
+- **Emergency Response Success Rate:** 95% of emergencies resolved successfully
+- **Hospital Coordination Efficiency:** 50% reduction in coordination time
+- **ASHA Worker Satisfaction:** 4.5/5 average rating
+
+---
+
+## Testing Strategy
+
+### Phase 1: ML Risk Assessment
+- Unit tests for assess_risk Lambda function
+- Integration tests with pregnancy registration
+- Load testing (1000 concurrent risk assessments)
+- Validation against historical data (accuracy metrics)
+
+### Phase 2: Hindi Language Support
+- UI testing in both languages
+- Text overflow/truncation testing
+- User acceptance testing with ASHA workers
+- Accessibility testing (screen readers)
+
+### Phase 3: Parallel Emergency Orchestration
+- Step Functions execution testing
+- Parallel branch timing analysis
+- Error handling and retry testing
+- End-to-end emergency workflow testing
+
+### Phase 4: Enhanced Offline-First
+- Offline CRUD operations testing
+- Sync conflict resolution testing
+- Network interruption simulation
+- Data integrity validation
+
+### Phase 5 & 6: Optional Features
+- SageMaker endpoint load testing
+- IoT Core connection resilience testing
+- Real-time data streaming validation
+
+---
+
+
+## Deployment Strategy
+
+### Phased Rollout Approach
+
+**Phase 1-2 (Weeks 1-6): Critical Features**
+- Deploy to DEV environment first
+- Internal testing (1 week)
+- Deploy to STAGING with test data
+- Limited pilot with 2-3 districts (1 week)
+- Full production rollout
+
+**Phase 3-4 (Weeks 7-12): High Priority Features**
+- Deploy to DEV environment
+- Parallel testing with existing workflow
+- Gradual rollout: 10% → 50% → 100% traffic
+- Monitor performance metrics closely
+- Rollback plan ready
+
+**Phase 5-6 (Weeks 13-16): Optional Features**
+- Deploy as opt-in features initially
+- A/B testing with control group
+- Gradual adoption based on success metrics
+- Full rollout after validation
+
+### Rollback Strategy
+- Maintain previous Lambda versions (3 versions)
+- Feature flags for new functionality
+- Database migration scripts (forward and backward)
+- Automated rollback triggers (error rate >5%)
+
+### Monitoring & Alerting
+- CloudWatch dashboards for all phases
+- PagerDuty alerts for critical failures
+- Daily summary reports to stakeholders
+- Weekly performance review meetings
+
+---
+
+## Communication Plan
+
+### Stakeholder Updates
+
+**Weekly Status Reports (Email)**
+- To: Project sponsors, district health officers
+- Content: Progress summary, blockers, next week's plan
+- Format: Brief bullet points with traffic light status
+
+**Bi-weekly Demo Sessions (Video Call)**
+- To: ASHA workers, district officers, technical team
+- Content: Live demo of completed features
+- Duration: 30 minutes
+- Collect feedback and questions
+
+**Monthly Executive Summary (Document)**
+- To: State health department, funding agencies
+- Content: Overall progress, metrics, budget, risks
+- Format: 2-page executive summary with charts
+
+### User Training
+
+**ASHA Worker Training (Week 6, 12)**
+- Hindi language interface training
+- Offline mode usage
+- Risk assessment interpretation
+- Emergency workflow
+
+**District Officer Training (Week 9)**
+- Dashboard usage
+- Emergency monitoring
+- Report generation
+- System administration
+
+---
+
+
+## Post-Implementation Review
+
+### Week 17: Comprehensive Review
+
+**Technical Review**
+- Code quality audit
+- Security vulnerability assessment
+- Performance benchmarking
+- Documentation completeness
+
+**User Feedback Collection**
+- ASHA worker surveys (50+ respondents)
+- District officer interviews (10+ participants)
+- Ambulance driver feedback (20+ respondents)
+- Hospital staff feedback (15+ respondents)
+
+**Metrics Analysis**
+- Compare actual vs target metrics
+- Identify areas for improvement
+- Document lessons learned
+- Plan for next iteration
+
+### Continuous Improvement Plan
+
+**Monthly Reviews**
+- ML model performance monitoring
+- User adoption metrics
+- System performance analysis
+- Cost optimization opportunities
+
+**Quarterly Enhancements**
+- Feature requests prioritization
+- Bug fixes and optimizations
+- Security updates
+- Infrastructure improvements
+
+---
+
+## Appendix A: Technical Architecture Diagrams
+
+### Current Architecture (Before Implementation)
+```
+Mobile App → API Gateway → Lambda Functions → DynamoDB
+                                ↓
+                          (ML Model NOT integrated)
+                          (Step Functions DISABLED)
+```
+
+### Target Architecture (After Implementation)
+```
+Mobile App (Hindi + Offline SQLite)
+    ↓
+API Gateway
+    ↓
+Lambda Functions ←→ Step Functions (Parallel Orchestration)
+    ↓                      ↓
+DynamoDB ←→ SageMaker (ML) ←→ IoT Core (Real-time)
+    ↓
+CloudWatch (Monitoring)
+```
+
+---
+

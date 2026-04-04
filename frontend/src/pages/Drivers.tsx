@@ -4,11 +4,26 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Stack, TextField, InputAdornment, CircularProgress, Alert,
   useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent,
-  DialogActions, DialogContentText,
+  DialogActions, DialogContentText, Grid,
 } from '@mui/material';
-import { Search, Car, Phone, Star, Truck, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Search as SearchIcon,
+  DirectionsCar as CarIcon,
+  Phone as PhoneIcon,
+  Star as StarIcon,
+  LocalShipping as TruckIcon,
+  CheckCircle as ApproveIcon,
+  Cancel as RejectIcon,
+  Group as GroupIcon,
+  HourglassEmpty as PendingIcon,
+  CheckCircleOutline as AvailableIcon,
+  DriveEta as OnRideIcon,
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { listDrivers, verifyRegistration, Driver } from '../services/driver';
+
+const DRAWER_WIDTH = 270;
 
 const STATUS_COLORS: Record<string, 'success' | 'warning' | 'default' | 'error'> = {
   AVAILABLE: 'success',
@@ -89,7 +104,7 @@ const Drivers: React.FC = () => {
         <Button
           size="small" variant="contained" color="success"
           disabled={busy}
-          startIcon={busy ? <CircularProgress size={12} color="inherit" /> : <CheckCircle size={14} />}
+          startIcon={busy ? <CircularProgress size={12} color="inherit" /> : <ApproveIcon />}
           onClick={() => setConfirm({ driver, action: 'APPROVE' })}
           sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.7rem', borderRadius: 1.5 }}
         >
@@ -98,7 +113,7 @@ const Drivers: React.FC = () => {
         <Button
           size="small" variant="outlined" color="error"
           disabled={busy}
-          startIcon={<XCircle size={14} />}
+          startIcon={<RejectIcon />}
           onClick={() => setConfirm({ driver, action: 'REJECT' })}
           sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.7rem', borderRadius: 1.5 }}
         >
@@ -111,7 +126,7 @@ const Drivers: React.FC = () => {
   const DriverCard = ({ driver }: { driver: Driver }) => {
     const vs = (driver as any).verificationStatus ?? 'APPROVED';
     return (
-      <Card elevation={0} sx={{ border: '1px solid #d1fae5', borderRadius: 3, mb: 2 }}>
+      <Card elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3, mb: 2, '&:hover': { boxShadow: 2 }, transition: 'all 0.2s' }}>
         <CardContent sx={{ p: 2.5 }}>
           <Stack direction="row" alignItems="center" spacing={2} mb={1.5}>
             <Avatar sx={{ bgcolor: '#1B6B4A', width: 44, height: 44, fontWeight: 700 }}>
@@ -130,15 +145,15 @@ const Drivers: React.FC = () => {
           </Stack>
           <Stack direction="row" spacing={2} flexWrap="wrap" mb={1.5}>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <Phone size={14} color="#9e9e9e" />
+              <PhoneIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
               <Typography variant="caption" color="text.secondary">{driver.phone}</Typography>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <Truck size={14} color="#9e9e9e" />
+              <TruckIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
               <Typography variant="caption" color="text.secondary">{driver.ambulanceId}</Typography>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <Star size={14} color="#f59e0b" />
+              <StarIcon sx={{ fontSize: 14, color: '#f59e0b' }} />
               <Typography variant="caption" color="text.secondary">{driver.rating} · {driver.totalRides} rides</Typography>
             </Stack>
           </Stack>
@@ -156,120 +171,255 @@ const Drivers: React.FC = () => {
   };
 
   return (
-    <Box>
-      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2} mb={3}>
-        <Box>
-          <Typography variant="h5" fontWeight={800} color="#0f172a">Ambulance Drivers</Typography>
-          <Typography variant="body2" color="text.secondary">Manage and monitor all registered drivers</Typography>
-        </Box>
-      </Stack>
-
-      <Stack direction="row" spacing={2} mb={3} flexWrap="wrap">
-        {[
-          { label: 'Total', value: stats.total, color: '#1B6B4A', bg: '#f0faf7' },
-          { label: 'Pending Approval', value: stats.pending, color: '#d97706', bg: '#fffbeb' },
-          { label: 'Available', value: stats.available, color: '#16a34a', bg: '#f0fdf4' },
-          { label: 'On Ride', value: stats.onRide, color: '#7c3aed', bg: '#f5f3ff' },
-        ].map((s) => (
-          <Card key={s.label} elevation={0} sx={{ border: `1px solid ${s.bg}`, bgcolor: s.bg, borderRadius: 2.5, flex: '1 1 120px', minWidth: 100 }}>
-            <CardContent sx={{ p: '12px 16px !important', textAlign: 'center' }}>
-              <Typography variant="h5" fontWeight={800} sx={{ color: s.color }}>{s.value}</Typography>
-              <Typography variant="caption" color="text.secondary" fontWeight={500}>{s.label}</Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
-
-      <TextField
-        fullWidth placeholder="Search by name, phone or license..."
-        value={search} onChange={(e) => setSearch(e.target.value)}
-        InputProps={{ startAdornment: <InputAdornment position="start"><Search size={18} color="#0d9488" /></InputAdornment> }}
+    <Box
+      sx={{
+        position: 'absolute',
+        top: { xs: 56, md: 64 },
+        left: { xs: 0, md: DRAWER_WIDTH },
+        right: 0,
+        bottom: 0,
+        bgcolor: '#f5f7fa',
+        overflow: 'auto',
+      }}
+    >
+      {/* Header Section */}
+      <Box
         sx={{
-          mb: 3,
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 2, bgcolor: '#f8fafc',
-            '& fieldset': { borderColor: '#d1fae5' },
-            '&:hover fieldset': { borderColor: '#0d9488' },
-            '&.Mui-focused fieldset': { borderColor: '#0d9488' },
-          },
+          background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
+          pt: 4,
+          pb: 4,
+          px: 3,
         }}
-      />
-
-      {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setError(null)}>{error}</Alert>}
-
-      {loading ? (
-        <Box display="flex" justifyContent="center" py={6}><CircularProgress sx={{ color: '#0d9488' }} /></Box>
-      ) : filtered.length === 0 ? (
-        <Box textAlign="center" py={6}>
-          <Car size={56} color="#d1fae5" />
-          <Typography color="text.secondary">No drivers found</Typography>
+      >
+        <Box maxWidth={1400} mx="auto">
+          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+            <Box>
+              <Typography variant="h4" fontWeight={700} color="white" mb={0.5}>
+                Ambulance Drivers
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                Manage and monitor all registered drivers
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<RefreshIcon />}
+              onClick={fetchDrivers}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+              }}
+            >
+              Refresh
+            </Button>
+          </Stack>
         </Box>
-      ) : isMobile ? (
-        <Box>{filtered.map((d) => <DriverCard key={d.id} driver={d} />)}</Box>
-      ) : (
-        <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #d1fae5', borderRadius: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ bgcolor: '#f0faf7' }}>
-                {['Driver', 'Phone', 'License No.', 'Ambulance', 'Verification', 'Status', 'Rating', 'Actions'].map((h) => (
-                  <TableCell key={h} sx={{ fontWeight: 700, color: '#1B6B4A', fontSize: '0.8rem', py: 1.5 }}>{h}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filtered.map((driver) => {
-                const vs = (driver as any).verificationStatus ?? 'APPROVED';
-                return (
-                  <TableRow key={driver.id} hover sx={{ '&:hover': { bgcolor: '#f0faf7' } }}>
-                    <TableCell>
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Avatar sx={{ bgcolor: '#1B6B4A', width: 36, height: 36, fontSize: '0.8rem', fontWeight: 700 }}>
-                          {driver.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                        </Avatar>
-                        <Box>
-                          <Typography fontWeight={600} fontSize="0.9rem">{driver.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">{driver.email}</Typography>
-                        </Box>
-                      </Stack>
+      </Box>
+
+      {/* Main Content */}
+      <Box maxWidth={1400} mx="auto" px={3} sx={{ py: 4 }}>
+        {/* Stats Cards */}
+        <Grid container spacing={3} mb={4}>
+          {[
+            { label: 'Total Drivers', value: stats.total, color: '#1B6B4A', bg: '#E8F5EE', icon: GroupIcon },
+            { label: 'Pending Approval', value: stats.pending, color: '#d97706', bg: '#FFF3E0', icon: PendingIcon },
+            { label: 'Available', value: stats.available, color: '#16a34a', bg: '#E8F5E9', icon: AvailableIcon },
+            { label: 'On Ride', value: stats.onRide, color: '#7c3aed', bg: '#F3E5F5', icon: OnRideIcon },
+          ].map((s) => (
+            <Grid item xs={12} sm={6} md={3} key={s.label}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: 3,
+                  border: '1px solid #e5e7eb',
+                  bgcolor: 'white',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: `0 8px 28px ${s.color}22`,
+                    borderColor: s.color,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: s.bg,
+                    mb: 2,
+                  }}
+                >
+                  <s.icon sx={{ color: s.color, fontSize: 24 }} />
+                </Box>
+                <Typography variant="h4" fontWeight={800} sx={{ color: s.color, mb: 0.5 }}>
+                  {s.value}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                  {s.label}
+                </Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* Search Bar */}
+        <TextField
+          fullWidth
+          placeholder="Search by name, phone or license..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: '#0d9488' }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            mb: 3,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 3,
+              bgcolor: 'white',
+              '& fieldset': { borderColor: '#e5e7eb' },
+              '&:hover fieldset': { borderColor: '#0d9488' },
+              '&.Mui-focused fieldset': { borderColor: '#0d9488' },
+            },
+          }}
+        />
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
+
+        {/* Content */}
+        {loading ? (
+          <Box display="flex" justifyContent="center" py={8}>
+            <CircularProgress sx={{ color: '#0d9488' }} />
+          </Box>
+        ) : filtered.length === 0 ? (
+          <Paper elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3, py: 8, textAlign: 'center' }}>
+            <CarIcon sx={{ fontSize: 64, color: '#e5e7eb', mb: 2 }} />
+            <Typography variant="body1" color="text.secondary" fontWeight={600}>
+              No drivers found
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {search ? 'Try adjusting your search' : 'No drivers registered yet'}
+            </Typography>
+          </Paper>
+        ) : isMobile ? (
+          <Box>{filtered.map((d) => <DriverCard key={d.id} driver={d} />)}</Box>
+        ) : (
+          <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#f9fafb' }}>
+                  {['Driver', 'Phone', 'License No.', 'Ambulance', 'Verification', 'Status', 'Rating', 'Actions'].map((h) => (
+                    <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.8rem', py: 2 }}>
+                      {h}
                     </TableCell>
-                    <TableCell sx={{ fontSize: '0.85rem' }}>{driver.phone}</TableCell>
-                    <TableCell sx={{ fontSize: '0.85rem', fontFamily: 'monospace' }}>{driver.licenseNumber}</TableCell>
-                    <TableCell>
-                      <Chip label={driver.ambulanceId} size="small" sx={{ bgcolor: '#f0faf7', color: '#1B6B4A', fontWeight: 600, fontSize: '0.7rem' }} />
-                    </TableCell>
-                    <TableCell>
-                      <Chip label={vs} color={VERIFY_COLORS[vs] ?? 'default'} size="small" sx={{ fontWeight: 700, fontSize: '0.7rem' }} />
-                    </TableCell>
-                    <TableCell>
-                      {vs === 'APPROVED' && (
-                        <Chip label={driver.status} color={STATUS_COLORS[driver.status] ?? 'default'} size="small" sx={{ fontWeight: 600, fontSize: '0.75rem' }} />
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <Star size={14} color="#f59e0b" />
-                        <Typography fontSize="0.85rem">{driver.rating}</Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <VerifyButtons driver={driver} />
-                        <Button
-                          size="small" variant="outlined"
-                          onClick={() => navigate(`/drivers/${driver.id}`)}
-                          sx={{ borderColor: '#0d9488', color: '#0d9488', borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.75rem' }}
-                        >
-                          View
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filtered.map((driver) => {
+                  const vs = (driver as any).verificationStatus ?? 'APPROVED';
+                  return (
+                    <TableRow key={driver.id} hover sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
+                      <TableCell>
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                          <Avatar sx={{ bgcolor: '#1B6B4A', width: 40, height: 40, fontSize: '0.85rem', fontWeight: 700 }}>
+                            {driver.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                          </Avatar>
+                          <Box>
+                            <Typography fontWeight={600} fontSize="0.9rem">
+                              {driver.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {driver.email}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </TableCell>
+                      <TableCell sx={{ fontSize: '0.85rem' }}>{driver.phone}</TableCell>
+                      <TableCell sx={{ fontSize: '0.85rem', fontFamily: 'monospace', fontWeight: 600 }}>
+                        {driver.licenseNumber}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={driver.ambulanceId}
+                          size="small"
+                          sx={{ bgcolor: '#E8F5EE', color: '#1B6B4A', fontWeight: 600, fontSize: '0.7rem' }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={vs}
+                          color={VERIFY_COLORS[vs] ?? 'default'}
+                          size="small"
+                          sx={{ fontWeight: 700, fontSize: '0.7rem' }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {vs === 'APPROVED' && (
+                          <Chip
+                            label={driver.status}
+                            color={STATUS_COLORS[driver.status] ?? 'default'}
+                            size="small"
+                            sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" alignItems="center" spacing={0.5}>
+                          <StarIcon sx={{ fontSize: 16, color: '#f59e0b' }} />
+                          <Typography fontSize="0.85rem" fontWeight={600}>
+                            {driver.rating}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            ({driver.totalRides})
+                          </Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <VerifyButtons driver={driver} />
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => navigate(`/drivers/${driver.id}`)}
+                            sx={{
+                              borderColor: '#0d9488',
+                              color: '#0d9488',
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              '&:hover': { borderColor: '#0d9488', bgcolor: 'rgba(13,148,136,0.08)' },
+                            }}
+                          >
+                            View
+                          </Button>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
 
       {/* Confirm Dialog */}
       <Dialog open={!!confirm} onClose={() => setConfirm(null)} maxWidth="xs" fullWidth>
@@ -284,7 +434,9 @@ const Drivers: React.FC = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setConfirm(null)} sx={{ textTransform: 'none' }}>Cancel</Button>
+          <Button onClick={() => setConfirm(null)} sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
           <Button
             variant="contained"
             color={confirm?.action === 'APPROVE' ? 'success' : 'error'}

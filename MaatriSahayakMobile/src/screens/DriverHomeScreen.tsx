@@ -14,16 +14,16 @@ import {
     removeNotificationSubscription,
 } from '../services/notificationService';
 
-const BG     = '#0A0F1A';
-const CARD   = '#111827';
-const CARD2  = '#0D1520';
+const BG = '#0A0F1A';
+const CARD = '#111827';
+const CARD2 = '#0D1520';
 const PURPLE = '#7C3AED';
-const PURPLEL= '#A78BFA';
-const GREEN  = '#00E5A0';
-const RED    = '#FF5252';
+const PURPLEL = '#A78BFA';
+const GREEN = '#00E5A0';
+const RED = '#FF5252';
 const ORANGE = '#FF9F43';
-const DIM    = '#6B7FA8';
-const WHITE  = '#FFFFFF';
+const DIM = '#6B7FA8';
+const WHITE = '#FFFFFF';
 const BORDER = '#1E2D45';
 
 const getGreeting = () => {
@@ -34,31 +34,34 @@ const getGreeting = () => {
 };
 
 const QUICK_ACTIONS = [
-    { key: 'DriverMyRides',        icon: '📋', label: 'My Rides',  sub: 'Trip history'     },
-    { key: 'DriverUpdateLocation', icon: '📍', label: 'Location',  sub: 'Update GPS'       },
-    { key: 'DriverProfile',        icon: '👤', label: 'Profile',   sub: 'View details'     },
-    { key: 'DriverEmergencyTracking', icon: '🗺️', label: 'Navigate', sub: 'Active route'  },
+    { key: 'DriverMyRides', icon: '📋', label: 'My Rides', sub: 'Trip history' },
+    { key: 'DriverUpdateLocation', icon: '📍', label: 'Location', sub: 'Update GPS' },
+    { key: 'DriverProfile', icon: '👤', label: 'Profile', sub: 'View details' },
+    { key: 'DriverEmergencyTracking', icon: '🗺️', label: 'Navigate', sub: 'Active route' },
 ];
 
 const DriverHomeScreen = ({ navigation }: any) => {
     const { width } = useWindowDimensions();
     const dispatch = useDispatch<AppDispatch>();
     const { user } = useSelector((s: RootState) => s.auth);
-    const notifListener  = useRef<any>(null);
+    const notifListener = useRef<any>(null);
     const responseListener = useRef<any>(null);
     const [isAvailable, setIsAvailable] = useState(true);
     const [totalRides, setTotalRides] = useState(0);
 
     const displayName = user?.name || 'Driver';
-    const firstName   = displayName.split(' ')[0];
+    const firstName = displayName.split(' ')[0];
 
     useEffect(() => {
-        registerForPushNotifications();
+        const initNotifications = async () => {
+            await registerForPushNotifications();
+        };
+        initNotifications();
 
         notifListener.current = addNotificationListener((notification) => {
-            const data  = notification.request.content.data as any;
+            const data = notification.request.content.data as any;
             const title = notification.request.content.title ?? 'New Alert';
-            const body  = notification.request.content.body  ?? '';
+            const body = notification.request.content.body ?? '';
             Alert.alert(`🚨 ${title}`, body, [
                 { text: 'Dismiss', style: 'cancel' },
                 { text: 'View Emergency', onPress: () => navigation.navigate('DriverEmergencyTracking', { emergency: data }) },
@@ -73,10 +76,10 @@ const DriverHomeScreen = ({ navigation }: any) => {
         });
 
         return () => {
-            if (notifListener.current)   removeNotificationSubscription(notifListener.current);
+            if (notifListener.current) removeNotificationSubscription(notifListener.current);
             if (responseListener.current) removeNotificationSubscription(responseListener.current);
         };
-    }, []);
+    }, [navigation]);
 
     const handleLogout = () => {
         Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -216,10 +219,10 @@ const DriverHomeScreen = ({ navigation }: any) => {
             {/* ── Bottom Tab Bar ── */}
             <View style={styles.tabBar}>
                 {[
-                    { key: 'home',                  label: 'Home',     icon: '🏠',  active: true  },
-                    { key: 'DriverMyRides',          label: 'Rides',    icon: '📋',  active: false },
-                    { key: 'DriverUpdateLocation',   label: 'Location', icon: '📍',  active: false },
-                    { key: 'DriverProfile',          label: 'Profile',  icon: '👤',  active: false },
+                    { key: 'home', label: 'Home', icon: '🏠', active: true },
+                    { key: 'DriverMyRides', label: 'Rides', icon: '📋', active: false },
+                    { key: 'DriverUpdateLocation', label: 'Location', icon: '📍', active: false },
+                    { key: 'DriverProfile', label: 'Profile', icon: '👤', active: false },
                 ].map(tab => (
                     <TouchableOpacity
                         key={tab.key}
@@ -254,8 +257,8 @@ const styles = StyleSheet.create({
         borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
         borderWidth: 1,
     },
-    availBtnOn:  { backgroundColor: 'rgba(0,229,160,0.08)',  borderColor: 'rgba(0,229,160,0.25)'  },
-    availBtnOff: { backgroundColor: 'rgba(255,82,82,0.08)',  borderColor: 'rgba(255,82,82,0.25)'  },
+    availBtnOn: { backgroundColor: 'rgba(0,229,160,0.08)', borderColor: 'rgba(0,229,160,0.25)' },
+    availBtnOff: { backgroundColor: 'rgba(255,82,82,0.08)', borderColor: 'rgba(255,82,82,0.25)' },
     availDot: { width: 7, height: 7, borderRadius: 4 },
     availText: { fontSize: 12, fontWeight: '700' },
     avatarBtn: {
@@ -283,8 +286,8 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start', borderRadius: 20,
         paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1,
     },
-    heroBadgeOn:  { backgroundColor: 'rgba(0,229,160,0.08)',  borderColor: 'rgba(0,229,160,0.2)'  },
-    heroBadgeOff: { backgroundColor: 'rgba(255,82,82,0.08)',  borderColor: 'rgba(255,82,82,0.2)'  },
+    heroBadgeOn: { backgroundColor: 'rgba(0,229,160,0.08)', borderColor: 'rgba(0,229,160,0.2)' },
+    heroBadgeOff: { backgroundColor: 'rgba(255,82,82,0.08)', borderColor: 'rgba(255,82,82,0.2)' },
     heroBadgeDot: { width: 6, height: 6, borderRadius: 3 },
     heroBadgeText: { fontSize: 11, fontWeight: '700' },
     heroTitle: { fontSize: 26, fontWeight: '900', color: WHITE, lineHeight: 30, letterSpacing: -0.5 },
@@ -296,8 +299,8 @@ const styles = StyleSheet.create({
         alignItems: 'center', minWidth: 72,
         borderWidth: 1, borderColor: BORDER,
     },
-    heroStatBoxGreen:  { borderColor: 'rgba(0,229,160,0.3)',   backgroundColor: 'rgba(0,229,160,0.06)'   },
-    heroStatBoxPurple: { borderColor: 'rgba(167,139,250,0.3)', backgroundColor: 'rgba(124,58,237,0.08)'  },
+    heroStatBoxGreen: { borderColor: 'rgba(0,229,160,0.3)', backgroundColor: 'rgba(0,229,160,0.06)' },
+    heroStatBoxPurple: { borderColor: 'rgba(167,139,250,0.3)', backgroundColor: 'rgba(124,58,237,0.08)' },
     heroStatNum: { fontSize: 22, fontWeight: '900', color: WHITE },
     heroStatLabel: { fontSize: 10, color: DIM, fontWeight: '600', marginTop: 1 },
 

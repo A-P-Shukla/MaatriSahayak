@@ -8,16 +8,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { driverRegisterThunk, clearError } from '../store/slices/authSlice';
 import { AppDispatch, RootState } from '../store';
 
-const BG          = '#0D0A1F';
-const CARD        = '#1A1230';
-const PURPLE      = '#7B2FBE';
+const BG = '#0D0A1F';
+const CARD = '#1A1230';
+const PURPLE = '#7B2FBE';
 const PURPLE_LIGHT = '#A855F7';
-const RED         = '#FF6B6B';
-const ORANGE      = '#FFA040';
-const YELLOW      = '#FFD700';
-const DIM         = '#C4B8D4';
-const WHITE       = '#FFFFFF';
-const BORDER      = '#3D2A5A';
+const RED = '#FF6B6B';
+const ORANGE = '#FFA040';
+const YELLOW = '#FFD700';
+const DIM = '#C4B8D4';
+const WHITE = '#FFFFFF';
+const BORDER = '#3D2A5A';
 const PLACEHOLDER = '#7A6A9A';
 
 const STRINGS = {
@@ -165,13 +165,13 @@ const DriverRegisterScreen = ({ navigation }: any) => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [showPassword, setShowPassword] = useState(false);
 
-    const phoneRef      = useRef<RNTextInput>(null);
-    const emailRef      = useRef<RNTextInput>(null);
-    const licenseRef    = useRef<RNTextInput>(null);
-    const vehicleRef    = useRef<RNTextInput>(null);
+    const phoneRef = useRef<RNTextInput>(null);
+    const emailRef = useRef<RNTextInput>(null);
+    const licenseRef = useRef<RNTextInput>(null);
+    const vehicleRef = useRef<RNTextInput>(null);
     const experienceRef = useRef<RNTextInput>(null);
-    const passwordRef   = useRef<RNTextInput>(null);
-    const confirmRef    = useRef<RNTextInput>(null);
+    const passwordRef = useRef<RNTextInput>(null);
+    const confirmRef = useRef<RNTextInput>(null);
 
     useEffect(() => {
         if (error) Alert.alert(S.failTitle, error, [{ text: S.ok, onPress: () => dispatch(clearError()) }]);
@@ -184,7 +184,42 @@ const DriverRegisterScreen = ({ navigation }: any) => {
 
     const validate = (): boolean => {
         const e: FormErrors = {};
-        if (!form.fullName.trim()) e.fullName = S.errName;
+
+        // Enhanced name validation
+        const name = form.fullName.trim();
+        if (!name) {
+            e.fullName = S.errName;
+        } else {
+            // Check for minimum length (at least 3 characters)
+            if (name.length < 3) {
+                e.fullName = 'Name must be at least 3 characters long';
+            }
+            // Check for at least 2 words (first name and last name)
+            else if (name.split(/\s+/).length < 2) {
+                e.fullName = 'Please enter your full name (first and last name)';
+            }
+            // Check for invalid patterns
+            else if (/^(mr\.?|mrs\.?|ms\.?|dr\.?|test|demo|user|admin|sample|example|abc|xyz|xxx|aaa|bbb|driver)\s/i.test(name)) {
+                e.fullName = 'Please enter your real name (no titles or test names)';
+            }
+            // Check for repeated characters (like "aaa", "xxx")
+            else if (/(.)\1{2,}/.test(name.replace(/\s/g, ''))) {
+                e.fullName = 'Please enter a valid name';
+            }
+            // Check for numbers in name
+            else if (/\d/.test(name)) {
+                e.fullName = 'Name cannot contain numbers';
+            }
+            // Check for special characters (except spaces, hyphens, apostrophes)
+            else if (/[^a-zA-Z\s\-']/.test(name)) {
+                e.fullName = 'Name contains invalid characters';
+            }
+            // Check each word has at least 2 characters
+            else if (name.split(/\s+/).some(word => word.length < 2)) {
+                e.fullName = 'Each name part must be at least 2 characters';
+            }
+        }
+
         if (!form.phone.trim() || form.phone.length !== 10) e.phone = S.errPhone;
         if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = S.errEmail;
         if (!form.license.trim()) e.license = S.errLicense;

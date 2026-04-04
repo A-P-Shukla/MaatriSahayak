@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet, ScrollView,
-    StatusBar, Alert, ActivityIndicator, useWindowDimensions, Linking,
+    StatusBar, Alert, ActivityIndicator, useWindowDimensions, Linking, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -58,6 +58,7 @@ const HomeScreen = ({ navigation, route }: any) => {
     const [isOnline, setIsOnline] = useState(true);
     const [pendingCount, setPendingCount] = useState(0);
     const [activeEmergency, setActiveEmergency] = useState<any>(null);
+    const [refreshing, setRefreshing] = useState(false);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Pick up emergency passed back from EmergencyScreen
@@ -96,13 +97,20 @@ const HomeScreen = ({ navigation, route }: any) => {
 
     useEffect(() => {
         const setup = async () => {
-            await DatabaseService.init();
-            SyncService.startBackgroundSync();
-            dispatch(fetchPregnanciesThunk());
-            const count = await DatabaseService.getPendingSyncCount();
-            setPendingCount(count);
-            const online = await SyncService.isOnline();
-            setIsOnline(online);
+            try {
+                await DatabaseService.init();
+                SyncService.startBackgroundSync();
+                await dispatch(fetchPregnanciesThunk()).unwrap();
+                const count = await DatabaseService.getPendingSyncCount();
+                setPendingCount(count);
+                const online = await SyncService.isOnline();
+                setIsOnline(online);
+            } catch (error) {
+                console.error('Setup error:', error);
+                // Still show UI even if data fetch fails
+                const online = await SyncService.isOnline();
+                setIsOnline(online);
+            }
         };
         setup();
         const unsub = SyncService.addSyncListener((status, count) => {
@@ -110,7 +118,7 @@ const HomeScreen = ({ navigation, route }: any) => {
             SyncService.isOnline().then(setIsOnline);
         });
         return () => { unsub(); SyncService.stopBackgroundSync(); };
-    }, []);
+    }, [dispatch]);
 
     // Poll emergency status every 8s when there's an active emergency
     useEffect(() => {
@@ -152,6 +160,21 @@ const HomeScreen = ({ navigation, route }: any) => {
         ]);
     };
 
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await dispatch(fetchPregnanciesThunk()).unwrap();
+            const count = await DatabaseService.getPendingSyncCount();
+            setPendingCount(count);
+            const online = await SyncService.isOnline();
+            setIsOnline(online);
+        } catch (error) {
+            console.error('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
     const riskColor = (level: string) => {
         if (level === 'CRITICAL' || level === 'HIGH') return RED;
         if (level === 'MEDIUM') return ORANGE;
@@ -168,7 +191,18 @@ const HomeScreen = ({ navigation, route }: any) => {
         <SafeAreaView style={styles.root} edges={['top']}>
             <StatusBar barStyle="light-content" backgroundColor={BG} />
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scroll}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                        tintColor={GREEN}
+                        colors={[GREEN]}
+                    />
+                }
+            >
 
                 {/* ── Header ── */}
                 <View style={styles.header}>

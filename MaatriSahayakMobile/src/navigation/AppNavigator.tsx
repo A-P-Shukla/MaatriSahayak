@@ -86,7 +86,7 @@ const AppStack = () => (
 
 const AppNavigator = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { isAuthenticated, sessionRestored, hasPinSet, pinVerified, user } = useSelector((s: RootState) => s.auth);
+    const { isAuthenticated, hasPinSet, pinVerified, user } = useSelector((s: RootState) => s.auth);
     const [ready, setReady] = useState(false);
 
     useEffect(() => {

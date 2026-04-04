@@ -160,3 +160,44 @@
 6. ❌ Record Demo Video (2–3 days) — HIGHEST RISK ITEM
 7. ❌ Create Pitch Deck (1 day)
 8. ❌ Final testing + documentation (1 day)
+
+❌ MISSING/INCOMPLETE Features:
+1. Hindi Language Support
+❌ No i18n implementation found in mobile app
+❌ No translation files or language switching
+❌ UI shows English-only labels
+2. AWS Advanced Services
+⚠️ AWS Bedrock: Referenced in infrastructure but NOT actively used
+❌ SageMaker: No implementation found
+⚠️ Step Functions: Defined in constants but workflow NOT deployed (commented out in template.yaml)
+❌ IoT Core: No implementation for real-time ambulance tracking
+3. Parallel Emergency Orchestration
+⚠️ Partially implemented: Emergency trigger calls ambulance/hospital functions sequentially, NOT in parallel
+❌ Step Functions workflow (which would enable parallel orchestration) is commented out
+Current implementation: Sequential Lambda calls (find ambulance → find hospital → send notifications)
+4. 60-Second Response Time
+⚠️ Infrastructure supports it, but no evidence of actual 60-second guarantee
+❌ No SLA monitoring or alerting for response time violations
+5. Offline-First Mobile App
+⚠️ Partially implemented: AsyncStorage for auth/sync queue exists
+❌ No SQLite database for full offline data storage
+❌ No background sync service implementation visible
+⚠️ Sync service referenced but implementation incomplete
+📊 Summary:
+Implemented (70%):
+
+✅ AI risk prediction with ML model
+✅ Emergency response workflow (sequential)
+✅ Real-time frontend dashboard
+✅ Mobile app with basic offline support
+✅ Ambulance/hospital assignment
+✅ Analytics and reporting
+Missing (30%):
+
+❌ Hindi language support (0%)
+❌ AWS Bedrock/SageMaker integration (0%)
+❌ Step Functions parallel orchestration (defined but not deployed)
+❌ IoT Core for real-time tracking (0%)
+❌ Full offline-first architecture (partial - 40%)
+❌ 60-second response guarantee/monitoring
+The core maternal health system is functional, but the advanced AWS services (Bedrock, SageMaker, Step Functions, IoT Core) and Hindi localization are not implemented despite being mentioned in your key strengths.

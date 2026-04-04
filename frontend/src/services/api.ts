@@ -23,13 +23,36 @@ apiClient.interceptors.request.use(
       // Ensure token is a valid JWT format (3 parts separated by dots)
       const parts = token.split('.');
       if (parts.length === 3) {
-        config.headers.Authorization = `Bearer ${token}`;
+        // Additional validation: each part should be base64-encoded
+        try {
+          // Validate that we can decode the payload (middle part)
+          const payload = JSON.parse(atob(parts[1]));
+          if (payload && typeof payload === 'object') {
+            config.headers.Authorization = `Bearer ${token}`;
+          } else {
+            throw new Error('Invalid token payload');
+          }
+        } catch (e) {
+          console.error('Invalid JWT token detected, clearing auth data:', e);
+          localStorage.removeItem('id_token');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          // Redirect to login if we're not already there
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
+        }
       } else {
-        console.error('Invalid token format detected, clearing auth data');
+        console.error('Invalid token format detected (not 3 parts), clearing auth data');
         localStorage.removeItem('id_token');
         localStorage.removeItem('auth_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user_data');
+        // Redirect to login if we're not already there
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     return config;
@@ -67,9 +90,9 @@ apiClient.interceptors.response.use(
 
         // Exponential backoff: 1s, 2s, 4s
         const delay = Math.min(1000 * Math.pow(2, originalRequest._retryCount - 1), 4000);
-        
+
         await new Promise((resolve) => setTimeout(resolve, delay));
-        
+
         return apiClient(originalRequest);
       }
     }

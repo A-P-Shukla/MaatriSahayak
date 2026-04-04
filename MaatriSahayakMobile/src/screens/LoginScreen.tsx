@@ -50,7 +50,7 @@ const STRINGS = {
 
 const LoginScreen = ({ navigation }: any) => {
     const dispatch = useDispatch<AppDispatch>();
-    const { loading, error, isAuthenticated, user } = useSelector((s: RootState) => s.auth);
+    const { loading, error } = useSelector((s: RootState) => s.auth);
 
     const [lang, setLang] = useState<'en' | 'hi'>('en');
     const t = STRINGS[lang];
@@ -63,8 +63,10 @@ const LoginScreen = ({ navigation }: any) => {
     const passwordRef = useRef<RNTextInput>(null);
 
     useEffect(() => {
-        if (error) Alert.alert(t.loginFailed, error, [{ text: t.ok, onPress: () => dispatch(clearError()) }]);
-    }, [error]);
+        if (error) {
+            Alert.alert(t.loginFailed, error, [{ text: t.ok, onPress: () => dispatch(clearError()) }]);
+        }
+    }, [error, t.loginFailed, t.ok, dispatch]);
 
     const handleLogin = () => {
         if (!email.trim()) { Alert.alert('', t.missingEmail); return; }

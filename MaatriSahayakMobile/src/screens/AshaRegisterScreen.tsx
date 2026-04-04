@@ -211,7 +211,42 @@ const AshaRegisterScreen = ({ navigation }: any) => {
 
     const validate = (): boolean => {
         const e: FormErrors = {};
-        if (!form.fullName.trim()) e.fullName = S.errName;
+
+        // Enhanced name validation
+        const name = form.fullName.trim();
+        if (!name) {
+            e.fullName = S.errName;
+        } else {
+            // Check for minimum length (at least 3 characters)
+            if (name.length < 3) {
+                e.fullName = 'Name must be at least 3 characters long';
+            }
+            // Check for at least 2 words (first name and last name)
+            else if (name.split(/\s+/).length < 2) {
+                e.fullName = 'Please enter your full name (first and last name)';
+            }
+            // Check for invalid patterns
+            else if (/^(mr\.?|mrs\.?|ms\.?|dr\.?|test|demo|user|admin|sample|example|abc|xyz|xxx|aaa|bbb)\s/i.test(name)) {
+                e.fullName = 'Please enter your real name (no titles or test names)';
+            }
+            // Check for repeated characters (like "aaa", "xxx")
+            else if (/(.)\1{2,}/.test(name.replace(/\s/g, ''))) {
+                e.fullName = 'Please enter a valid name';
+            }
+            // Check for numbers in name
+            else if (/\d/.test(name)) {
+                e.fullName = 'Name cannot contain numbers';
+            }
+            // Check for special characters (except spaces, hyphens, apostrophes)
+            else if (/[^a-zA-Z\s\-']/.test(name)) {
+                e.fullName = 'Name contains invalid characters';
+            }
+            // Check each word has at least 2 characters
+            else if (name.split(/\s+/).some(word => word.length < 2)) {
+                e.fullName = 'Each name part must be at least 2 characters';
+            }
+        }
+
         if (!form.phone.trim() || form.phone.length !== 10) e.phone = S.errPhone;
         if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = S.errEmail;
         if (!form.village.trim()) e.village = S.errVillage;
@@ -336,7 +371,7 @@ const AshaRegisterScreen = ({ navigation }: any) => {
                         return (
                             <View style={styles.strengthWrap}>
                                 <View style={styles.strengthBars}>
-                                    {[1,2,3,4].map(i => (
+                                    {[1, 2, 3, 4].map(i => (
                                         <View key={i} style={[
                                             styles.strengthBar,
                                             { backgroundColor: i <= s ? strengthColor(s) : BORDER }
@@ -353,7 +388,7 @@ const AshaRegisterScreen = ({ navigation }: any) => {
                     <View style={styles.fieldGroup}>
                         <Text style={styles.label}>{S.confirm}</Text>
                         <View style={[styles.inputBox, !!errors.confirmPassword && styles.inputError,
-                            confirmMatch && styles.inputSuccess]}>
+                        confirmMatch && styles.inputSuccess]}>
                             <TextInput
                                 ref={confirmRef}
                                 style={styles.inputText}

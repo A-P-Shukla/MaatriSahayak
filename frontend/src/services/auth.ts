@@ -268,10 +268,35 @@ export const isAuthenticated = (): boolean => {
 
 // Token storage helpers
 export const storeTokens = (tokens: AuthTokens): void => {
-  localStorage.setItem(AUTH_TOKEN_KEY, tokens.access_token);
-  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
-  if (tokens.id_token) {
+  // Validate tokens before storing
+  const validateJWT = (token: string): boolean => {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    try {
+      // Try to decode the payload to ensure it's valid base64 and JSON
+      JSON.parse(atob(parts[1]));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  if (validateJWT(tokens.access_token)) {
+    localStorage.setItem(AUTH_TOKEN_KEY, tokens.access_token);
+  } else {
+    console.error('Invalid access_token format, not storing');
+  }
+
+  if (validateJWT(tokens.refresh_token)) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
+  } else {
+    console.error('Invalid refresh_token format, not storing');
+  }
+
+  if (tokens.id_token && validateJWT(tokens.id_token)) {
     localStorage.setItem(ID_TOKEN_KEY, tokens.id_token);
+  } else if (tokens.id_token) {
+    console.error('Invalid id_token format, not storing');
   }
 };
 

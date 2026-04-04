@@ -57,12 +57,8 @@ export type {
 
 // Analytics types
 export type {
-  ResponseTimeMetrics,
-  EmergencyVolumeData,
-  ResponseTimeTrend,
-  OutcomeStats,
-  DistrictMetrics,
-  AnalyticsData,
+  CloudAnalyticsData,
+  ComputedAnalytics,
   AnalyticsFilters,
   DateRangePreset,
 } from './analytics';

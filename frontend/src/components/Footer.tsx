@@ -1,11 +1,5 @@
 import React from 'react';
-import { Box, Container, Typography, Link, IconButton } from '@mui/material';
-import {
-  GitHub as GitHubIcon,
-  Twitter as TwitterIcon,
-  LinkedIn as LinkedInIcon,
-  Email as EmailIcon,
-} from '@mui/icons-material';
+import { Box, Container, Typography, Link } from '@mui/material';
 
 /**
  * Footer component
@@ -87,72 +81,6 @@ const Footer: React.FC = () => {
             <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
               Version 1.0.0
             </Typography>
-          </Box>
-
-          {/* Right side - Social links */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton
-              size="small"
-              aria-label="GitHub"
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                color: 'text.secondary',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                  color: 'primary.main',
-                },
-              }}
-            >
-              <GitHubIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              aria-label="Twitter"
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                color: 'text.secondary',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                  color: 'primary.main',
-                },
-              }}
-            >
-              <TwitterIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              aria-label="LinkedIn"
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                color: 'text.secondary',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                  color: 'primary.main',
-                },
-              }}
-            >
-              <LinkedInIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              aria-label="Email"
-              href="mailto:support@maatrisahayak.com"
-              sx={{
-                color: 'text.secondary',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                  color: 'primary.main',
-                },
-              }}
-            >
-              <EmailIcon fontSize="small" />
-            </IconButton>
           </Box>
         </Box>
 
