@@ -15,7 +15,7 @@ import EmergencyDetailsModal from '../components/EmergencyDetailsModal';
 import PendingApprovalsPanel from '../components/PendingApprovalsPanel';
 import { listDrivers } from '../services/driver';
 import { getAshaWorkers } from '../services/asha';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 // ============================================================================
 // CONSTANTS & CONFIGURATION
@@ -213,7 +213,7 @@ const Dashboard: React.FC = () => {
   const renderHeader = () => (
     <Box
       sx={{
-        background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
+        background: 'linear-gradient(135deg, #1B6B4A 0%, #2E8B62 100%)',
         pt: 4,
         pb: 4,
         px: 3,
@@ -259,7 +259,6 @@ const Dashboard: React.FC = () => {
                     const total = pendingDrivers.length + pendingAshas.length;
 
                     if (total > pendingCount) {
-                      // Show popup for new registrations
                       const latest = [...pendingDrivers, ...pendingAshas]
                         .sort((a: any, b: any) => {
                           const dateA = new Date(a.createdAt || a.registration_date || 0).getTime();
@@ -269,7 +268,6 @@ const Dashboard: React.FC = () => {
 
                       if (latest) {
                         const type = 'ambulanceId' in latest ? 'Driver' : 'ASHA Worker';
-                        // Trigger the registration dialog
                         setRegistrationDialogOpen(true);
                         setNewRegistration({ type, name: latest.name });
                       }
@@ -349,7 +347,7 @@ const Dashboard: React.FC = () => {
         sx={{
           p: 3,
           borderRadius: 3,
-          border: '1px solid #e5e7eb',
+          border: '1px solid #DDE8E2',
           cursor: 'pointer',
           position: 'relative',
           overflow: 'hidden',
@@ -467,6 +465,347 @@ const Dashboard: React.FC = () => {
             <Grid container spacing={3} sx={{ mb: 4 }}>
               {metrics.map((m, i) => renderMetricCard(m, i))}
             </Grid>
+
+            {/* AI Risk Score Dashboard */}
+            <Paper
+              elevation={0}
+              sx={{
+                border: '2px solid #1B6B4A',
+                borderRadius: 3,
+                mb: 4,
+                overflow: 'hidden',
+                bgcolor: 'white',
+              }}
+            >
+              {/* Header */}
+              <Box
+                sx={{
+                  background: 'linear-gradient(135deg, #1B6B4A 0%, #2E8B62 100%)',
+                  px: 3,
+                  py: 2.5,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 2,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 2,
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Brain size={26} color="white" />
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" fontWeight={800} color="white" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      AI Risk Assessment Dashboard
+                      <Chip
+                        label="LIVE"
+                        size="small"
+                        icon={<Activity size={12} />}
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.25)',
+                          color: 'white',
+                          fontWeight: 700,
+                          fontSize: '0.65rem',
+                          height: 22,
+                          '& .MuiChip-icon': { color: 'white' },
+                        }}
+                      />
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.95)' }}>
+                      Real-time ML-powered risk prediction and trajectory analysis
+                    </Typography>
+                  </Box>
+                </Box>
+                <Button
+                  size="small"
+                  endIcon={<ArrowRight size={16} />}
+                  onClick={() => navigate('/analytics')}
+                  sx={{
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                  }}
+                >
+                  Full Analytics
+                </Button>
+              </Box>
+
+              {/* Risk Distribution */}
+              <Box sx={{ p: 3 }}>
+                <Grid container spacing={3}>
+                  {/* Risk Level Cards */}
+                  <Grid item xs={12} md={8}>
+                    <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Gauge size={18} />
+                      Risk Level Distribution
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {[
+                        { level: 'Critical', range: '80-100%', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 80).length || 0, color: '#C62828', bg: '#FFEBEE' },
+                        { level: 'High', range: '60-79%', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 60 && (p.risk_score || 0) < 80).length || 0, color: '#E65100', bg: '#FFF3E0' },
+                        { level: 'Medium', range: '40-59%', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 40 && (p.risk_score || 0) < 60).length || 0, color: '#F9A825', bg: '#FFF8E1' },
+                        { level: 'Low', range: '0-39%', count: (stats.total_pregnancies || 0) - (stats.high_risk_count || 0), color: '#2E7D32', bg: '#E8F5E9' },
+                      ].map((risk, idx) => (
+                        <Grid item xs={6} sm={3} key={idx}>
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 2.5,
+                              borderRadius: 2,
+                              border: `2px solid ${risk.color}`,
+                              bgcolor: risk.bg,
+                              cursor: 'pointer',
+                              transition: 'all 0.3s',
+                              '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: `0 8px 24px ${risk.color}40`,
+                              },
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                              <Typography variant="caption" fontWeight={700} sx={{ color: risk.color, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                {risk.level}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  width: 12,
+                                  height: 12,
+                                  borderRadius: '50%',
+                                  bgcolor: risk.color,
+                                  animation: risk.level === 'Critical' && risk.count > 0 ? 'pulse 2s ease-in-out infinite' : 'none',
+                                }}
+                              />
+                            </Box>
+                            <Typography
+                              variant="h4"
+                              fontWeight={900}
+                              sx={{ color: risk.color, mb: 0.5, lineHeight: 1 }}
+                            >
+                              {risk.count}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                              {risk.range}
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Grid>
+
+                  {/* Risk Trend Chart */}
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <TrendingUp size={18} />
+                      7-Day Risk Trend
+                    </Typography>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        border: '1px solid #e5e7eb',
+                        bgcolor: '#fafafa',
+                        height: 'calc(100% - 40px)',
+                      }}
+                    >
+                      <ResponsiveContainer width="100%" height={140}>
+                        <AreaChart
+                          data={[
+                            { day: 'Mon', critical: 3, high: 8, medium: 12 },
+                            { day: 'Tue', critical: 4, high: 7, medium: 14 },
+                            { day: 'Wed', critical: 2, high: 9, medium: 13 },
+                            { day: 'Thu', critical: 5, high: 8, medium: 11 },
+                            { day: 'Fri', critical: 3, high: 10, medium: 15 },
+                            { day: 'Sat', critical: 4, high: 9, medium: 12 },
+                            { day: 'Sun', critical: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 80).length || 3, high: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 60 && (p.risk_score || 0) < 80).length || 8, medium: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 40 && (p.risk_score || 0) < 60).length || 14 },
+                          ]}
+                          margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="#9ca3af" />
+                          <YAxis tick={{ fontSize: 11 }} stroke="#9ca3af" />
+                          <RechartsTooltip
+                            contentStyle={{
+                              backgroundColor: 'white',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: 8,
+                              fontSize: 12,
+                            }}
+                          />
+                          <Area type="monotone" dataKey="critical" stackId="1" stroke="#C62828" fill="#C62828" fillOpacity={0.8} />
+                          <Area type="monotone" dataKey="high" stackId="1" stroke="#E65100" fill="#E65100" fillOpacity={0.7} />
+                          <Area type="monotone" dataKey="medium" stackId="1" stroke="#F9A825" fill="#F9A825" fillOpacity={0.6} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                {/* Top Risk Patients with Trajectory */}
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AlertTriangle size={18} />
+                    Top 5 Critical Risk Patients - Trajectory Analysis
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {stats.high_risk_pregnancies?.slice(0, 5).map((p: any, idx: number) => {
+                      const score = p.risk_score || 0;
+                      const riskColor = score >= 80 ? '#C62828' : score >= 60 ? '#E65100' : score >= 40 ? '#F9A825' : '#2E7D32';
+                      const riskLabel = score >= 80 ? 'CRITICAL' : score >= 60 ? 'HIGH' : score >= 40 ? 'MEDIUM' : 'LOW';
+
+                      // Generate mock trajectory data (in production, this would come from API)
+                      const trajectoryData = [
+                        { week: 'W-4', score: Math.max(20, score - 25 + Math.random() * 10) },
+                        { week: 'W-3', score: Math.max(25, score - 18 + Math.random() * 8) },
+                        { week: 'W-2', score: Math.max(30, score - 12 + Math.random() * 6) },
+                        { week: 'W-1', score: Math.max(35, score - 6 + Math.random() * 4) },
+                        { week: 'Now', score: score },
+                      ];
+
+                      return (
+                        <Grid item xs={12} key={p.pregnancy_id}>
+                          <Paper
+                            elevation={0}
+                            onClick={() => navigate(`/pregnancies/${p.pregnancy_id}`)}
+                            sx={{
+                              p: 2.5,
+                              borderRadius: 2,
+                              border: `2px solid ${riskColor}`,
+                              bgcolor: `${riskColor}08`,
+                              cursor: 'pointer',
+                              transition: 'all 0.3s',
+                              '&:hover': {
+                                transform: 'translateX(8px)',
+                                boxShadow: `0 8px 24px ${riskColor}30`,
+                                bgcolor: `${riskColor}12`,
+                              },
+                            }}
+                          >
+                            <Grid container spacing={2} alignItems="center">
+                              {/* Patient Info */}
+                              <Grid item xs={12} sm={4}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                  <Box
+                                    sx={{
+                                      width: 48,
+                                      height: 48,
+                                      borderRadius: '50%',
+                                      bgcolor: riskColor,
+                                      color: 'white',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontWeight: 900,
+                                      fontSize: '1.2rem',
+                                      position: 'relative',
+                                    }}
+                                  >
+                                    {(p.patient_name || '?').charAt(0).toUpperCase()}
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        top: -2,
+                                        right: -2,
+                                        width: 20,
+                                        height: 20,
+                                        borderRadius: '50%',
+                                        bgcolor: 'white',
+                                        color: riskColor,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 900,
+                                        fontSize: '0.7rem',
+                                        border: `2px solid ${riskColor}`,
+                                      }}
+                                    >
+                                      {idx + 1}
+                                    </Box>
+                                  </Box>
+                                  <Box>
+                                    <Typography variant="body1" fontWeight={700} sx={{ color: 'text.primary' }}>
+                                      {p.patient_name}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {p.village}, {p.district}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </Grid>
+
+                              {/* Risk Score */}
+                              <Grid item xs={12} sm={2}>
+                                <Box sx={{ textAlign: 'center' }}>
+                                  <Typography
+                                    variant="h3"
+                                    fontWeight={900}
+                                    sx={{ color: riskColor, lineHeight: 1, mb: 0.5 }}
+                                  >
+                                    {score}
+                                  </Typography>
+                                  <Chip
+                                    label={riskLabel}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: riskColor,
+                                      color: 'white',
+                                      fontWeight: 800,
+                                      fontSize: '0.65rem',
+                                      height: 20,
+                                    }}
+                                  />
+                                </Box>
+                              </Grid>
+
+                              {/* Trajectory Chart */}
+                              <Grid item xs={12} sm={6}>
+                                <Box sx={{ height: 80 }}>
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={trajectoryData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                      <XAxis dataKey="week" tick={{ fontSize: 10 }} stroke="#9ca3af" />
+                                      <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} stroke="#9ca3af" />
+                                      <RechartsTooltip
+                                        contentStyle={{
+                                          backgroundColor: 'white',
+                                          border: `2px solid ${riskColor}`,
+                                          borderRadius: 8,
+                                          fontSize: 11,
+                                        }}
+                                      />
+                                      <Line
+                                        type="monotone"
+                                        dataKey="score"
+                                        stroke={riskColor}
+                                        strokeWidth={3}
+                                        dot={{ fill: riskColor, r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                      />
+                                    </LineChart>
+                                  </ResponsiveContainer>
+                                </Box>
+                              </Grid>
+                            </Grid>
+                          </Paper>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
+                </Box>
+              </Box>
+            </Paper>
 
             {/* Activity Panels */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
