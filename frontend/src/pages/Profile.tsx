@@ -59,6 +59,12 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     if (user) {
+      console.log('User object:', user);
+      console.log('User ID fields:', {
+        user_id: user.user_id,
+        id: (user as any).id,
+        userId: (user as any).userId,
+      });
       setForm({
         name: user.name ?? '',
         phone: user.phone ?? '',
@@ -312,16 +318,22 @@ const Profile: React.FC = () => {
                     >
                       <BadgeIcon sx={{ fontSize: 20, color: '#15803d' }} />
                     </Box>
-                    <Box flex={1}>
-                      <Typography variant="caption" color="text.secondary">
+                    <Box flex={1} minWidth={0}>
+                      <Typography variant="caption" color="text.secondary" display="block">
                         User ID
                       </Typography>
                       <Typography
                         variant="body2"
                         fontWeight={600}
-                        sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
+                        sx={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.8rem',
+                          color: '#0f172a',
+                          wordBreak: 'break-all',
+                          lineHeight: 1.4,
+                        }}
                       >
-                        {user?.user_id ?? '—'}
+                        {user?.user_id || (user as any)?.id || (user as any)?.userId || '—'}
                       </Typography>
                     </Box>
                   </Stack>
@@ -398,24 +410,19 @@ const Profile: React.FC = () => {
               sx={{
                 border: '1px solid #e5e7eb',
                 borderRadius: 3,
-                p: 4,
+                p: { xs: 2, sm: 3, md: 4 },
+                position: 'relative',
               }}
             >
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={3}
-              >
-                <Box>
-                  <Typography variant="h6" fontWeight={700} color="#0f172a">
-                    Personal Information
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Update your personal details and contact information
-                  </Typography>
-                </Box>
-                {!editing && (
+              {!editing && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: { xs: 16, sm: 24, md: 32 },
+                    right: { xs: 16, sm: 24, md: 32 },
+                    zIndex: 1,
+                  }}
+                >
                   <Button
                     startIcon={<EditIcon />}
                     onClick={() => setEditing(true)}
@@ -425,13 +432,25 @@ const Profile: React.FC = () => {
                       color: '#0d9488',
                       bgcolor: '#f0fdfa',
                       px: 3,
+                      py: 1,
+                      borderRadius: 2,
+                      whiteSpace: 'nowrap',
                       '&:hover': { bgcolor: '#ccfbf1' },
                     }}
                   >
                     Edit Profile
                   </Button>
-                )}
-              </Stack>
+                </Box>
+              )}
+
+              <Box sx={{ mb: 3, pr: { xs: 0, sm: 14 } }}>
+                <Typography variant="h6" fontWeight={700} color="#0f172a" sx={{ mb: 0.5 }}>
+                  Personal Information
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Update your personal details and contact information
+                </Typography>
+              </Box>
 
               <Divider sx={{ mb: 4 }} />
 

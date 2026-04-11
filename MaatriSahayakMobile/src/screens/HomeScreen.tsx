@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet, ScrollView,
-    StatusBar, Alert, ActivityIndicator, useWindowDimensions, Linking, RefreshControl,
+    StatusBar, Alert, ActivityIndicator, useWindowDimensions, Linking, RefreshControl, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +11,7 @@ import { AppDispatch, RootState } from '../store';
 import { DatabaseService } from '../services/database';
 import { SyncService } from '../services/sync';
 import { PregnancyService } from '../services/pregnancyService';
+import { StorageService } from '../services/storage';
 
 const BG = '#0A1F1A';
 const CARD = '#112920';
@@ -34,14 +35,26 @@ const getDueLabel = (edd: string): string | null => {
     return null;
 };
 
-const getGreeting = () => {
+const getGreeting = (lang: 'en' | 'hi' = 'hi') => {
     const h = new Date().getHours();
+    if (lang === 'hi') {
+        if (h < 12) return 'सुप्रभात';
+        if (h < 17) return 'नमस्ते';
+        return 'शुभ संध्या';
+    }
     if (h < 12) return 'Good Morning';
     if (h < 17) return 'Good Afternoon';
     return 'Good Evening';
 };
 
-const QUICK_ACTIONS = [
+const QUICK_ACTIONS_HI = [
+    { key: 'Register', icon: '✏️', label: 'पंजीकरण', sub: 'नई गर्भावस्था' },
+    { key: 'PregnancyList', icon: '📋', label: 'मरीज', sub: 'सभी मामले देखें' },
+    { key: 'NearbyPatients', icon: '📍', label: 'आस-पास', sub: 'क्षेत्र मानचित्र' },
+    { key: 'Alerts', icon: '🔔', label: 'अलर्ट', sub: 'सूचनाएं' },
+];
+
+const QUICK_ACTIONS_EN = [
     { key: 'Register', icon: '✏️', label: 'Register', sub: 'New pregnancy' },
     { key: 'PregnancyList', icon: '📋', label: 'Patients', sub: 'View all cases' },
     { key: 'NearbyPatients', icon: '📍', label: 'Nearby', sub: 'Area map' },
@@ -54,12 +67,30 @@ const HomeScreen = ({ navigation, route }: any) => {
     const dispatch = useDispatch<AppDispatch>();
     const { pregnancies, loading } = useSelector((s: RootState) => s.pregnancy);
     const { user } = useSelector((s: RootState) => s.auth);
-    const [lang, setLang] = useState<'en' | 'hi'>('en');
+    const [lang, setLang] = useState<'en' | 'hi'>('hi'); // Default to Hindi
     const [isOnline, setIsOnline] = useState(true);
     const [pendingCount, setPendingCount] = useState(0);
     const [activeEmergency, setActiveEmergency] = useState<any>(null);
     const [refreshing, setRefreshing] = useState(false);
+    const [showWelcome, setShowWelcome] = useState(false);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Show welcome screen on first login
+    useEffect(() => {
+        const checkFirstLogin = async () => {
+            try {
+                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+                const hasSeenWelcome = await AsyncStorage.getItem('hasSeenWelcome');
+                if (!hasSeenWelcome) {
+                    setShowWelcome(true);
+                    await AsyncStorage.setItem('hasSeenWelcome', 'true');
+                }
+            } catch (error) {
+                console.error('Error checking first login:', error);
+            }
+        };
+        checkFirstLogin();
+    }, []);
 
     // Pick up emergency passed back from EmergencyScreen
     useEffect(() => {
@@ -191,6 +222,39 @@ const HomeScreen = ({ navigation, route }: any) => {
         <SafeAreaView style={styles.root} edges={['top']}>
             <StatusBar barStyle="light-content" backgroundColor={BG} />
 
+            {/* Welcome Modal */}
+            <Modal visible={showWelcome} transparent animationType="fade">
+                <View style={styles.welcomeOverlay}>
+                    <View style={styles.welcomeCard}>
+                        <View style={styles.welcomeIconBox}>
+                            <Text style={styles.welcomeIcon}>🎉</Text>
+                        </View>
+                        <Text style={styles.welcomeTitle}>Welcome, {firstName}!</Text>
+                        <Text style={styles.welcomeSubtitle}>Your account has been approved</Text>
+                        <View style={styles.welcomeMessageBox}>
+                            <Text style={styles.welcomeMessage}>You're all set to start managing maternal health cases in your area. Your dedication helps save lives.</Text>
+                        </View>
+                        <View style={styles.welcomeFeatures}>
+                            <View style={styles.welcomeFeature}>
+                                <Text style={styles.welcomeFeatureIcon}>✏️</Text>
+                                <Text style={styles.welcomeFeatureText}>Register pregnancies</Text>
+                            </View>
+                            <View style={styles.welcomeFeature}>
+                                <Text style={styles.welcomeFeatureIcon}>📊</Text>
+                                <Text style={styles.welcomeFeatureText}>Track vitals & risks</Text>
+                            </View>
+                            <View style={styles.welcomeFeature}>
+                                <Text style={styles.welcomeFeatureIcon}>🚨</Text>
+                                <Text style={styles.welcomeFeatureText}>Trigger emergencies</Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity style={styles.welcomeBtn} onPress={() => setShowWelcome(false)}>
+                            <Text style={styles.welcomeBtnText}>Get Started</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scroll}
@@ -320,7 +384,7 @@ const HomeScreen = ({ navigation, route }: any) => {
                 <View style={styles.section}>
                     <Text style={styles.sectionLabel}>QUICK ACTIONS</Text>
                     <View style={styles.qaRow}>
-                        {QUICK_ACTIONS.map(a => (
+                        {(lang === 'hi' ? QUICK_ACTIONS_HI : QUICK_ACTIONS_EN).map((a: { key: string; icon: string; label: string; sub: string }) => (
                             <TouchableOpacity
                                 key={a.key}
                                 style={styles.qaCard}
@@ -673,6 +737,22 @@ const styles = StyleSheet.create({
     tabIcon: { fontSize: 18 },
     tabLabel: { fontSize: 10, color: DIM, fontWeight: '600' },
     tabLabelActive: { color: GREEN, fontWeight: '800' },
+
+    // Welcome Modal
+    welcomeOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+    welcomeCard: { backgroundColor: CARD, borderRadius: 24, padding: 32, width: '100%', maxWidth: 400, alignItems: 'center', borderWidth: 1, borderColor: BORDER },
+    welcomeIconBox: { width: 80, height: 80, borderRadius: 40, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    welcomeIcon: { fontSize: 40 },
+    welcomeTitle: { fontSize: 26, fontWeight: '900', color: WHITE, marginBottom: 8, textAlign: 'center' },
+    welcomeSubtitle: { fontSize: 14, color: GREEN, marginBottom: 24, textAlign: 'center', fontWeight: '600' },
+    welcomeMessageBox: { backgroundColor: BG, borderRadius: 16, padding: 20, marginBottom: 24, borderLeftWidth: 4, borderLeftColor: GREEN },
+    welcomeMessage: { fontSize: 14, color: DIM, lineHeight: 22, textAlign: 'center' },
+    welcomeFeatures: { width: '100%', gap: 12, marginBottom: 28 },
+    welcomeFeature: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: BG, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: BORDER },
+    welcomeFeatureIcon: { fontSize: 24 },
+    welcomeFeatureText: { fontSize: 14, color: WHITE, fontWeight: '600', flex: 1 },
+    welcomeBtn: { backgroundColor: GREEN, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 48, width: '100%', alignItems: 'center' },
+    welcomeBtnText: { color: BG, fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
 });
 
 export default HomeScreen;

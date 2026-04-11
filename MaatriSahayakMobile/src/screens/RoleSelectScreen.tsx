@@ -1,87 +1,46 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet,
-    StatusBar, Image, ScrollView, useWindowDimensions,
+    StatusBar, Image, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const BG           = '#0A1F1A';
-const CARD         = '#112920';
-const GREEN        = '#00E5A0';
-const DIM          = '#B8D4CC';
-const WHITE        = '#FFFFFF';
-const PURPLE_LIGHT = '#7B2FBE';
-const YELLOW       = '#FFD700';
+const BG = '#0A1F1A';
+const CARD = '#112920';
+const GREEN = '#00E5A0';
+const WHITE = '#FFFFFF';
+const DIM = '#7FA898';
+const BORDER = '#1E3D30';
 
-/* ── Reusable Role Card ─────────────────────────────────────────────────── */
-interface RoleCardProps {
-    borderColor: string;
-    iconBg: string;
-    image: any;
-    title: string;
-    subtitle: string;
-    desc: string;
-    primaryColor: string;
-    primaryTextColor: string;
-    primaryLabel: string;
-    outlineColor: string;
-    outlineLabel: string;
-    onPrimary: () => void;
-    onOutline: () => void;
-}
-
-const RoleCard = ({
-    borderColor, iconBg, image, title, subtitle, desc,
-    primaryColor, primaryTextColor, primaryLabel,
-    outlineColor, outlineLabel, onPrimary, onOutline,
-}: RoleCardProps) => (
-    <View style={[styles.card, { borderColor }]}>
-
-        {/* Icon + Title row */}
-        <View style={styles.cardHeader}>
-            <View style={[styles.iconBox, { backgroundColor: iconBg }]}>
-                <Image source={image} style={styles.roleImage} />
-            </View>
-            <View style={styles.cardHeaderText}>
-                <Text style={styles.roleTitle}>{title}</Text>
-                <Text style={styles.roleSubtitle} numberOfLines={2}>{subtitle}</Text>
-            </View>
-        </View>
-
-        {/* Description */}
-        <Text style={styles.roleDesc}>{desc}</Text>
-
-        {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: borderColor + '40' }]} />
-
-        {/* Primary Button */}
-        <TouchableOpacity
-            style={[styles.primaryBtn, { backgroundColor: primaryColor }]}
-            onPress={onPrimary}
-            activeOpacity={0.88}
-        >
-            <Text style={[styles.primaryBtnText, { color: primaryTextColor }]}>
-                {primaryLabel}
-            </Text>
-        </TouchableOpacity>
-
-        {/* Outline Button */}
-        <TouchableOpacity
-            style={[styles.outlineBtn, { borderColor: outlineColor }]}
-            onPress={onOutline}
-            activeOpacity={0.85}
-        >
-            <Text style={[styles.outlineBtnText, { color: YELLOW }]}>
-                {outlineLabel}
-            </Text>
-        </TouchableOpacity>
-    </View>
-);
-
-/* ── Main Screen ────────────────────────────────────────────────────────── */
+/* ── Main Screen ──────────────────────────────────────────────────────────── */
 const RoleSelectScreen = ({ navigation }: any) => {
-    const { width } = useWindowDimensions();
-    const cardWidth = Math.min(width - 40, 480); // max 480 on tablets
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideUp1 = useRef(new Animated.Value(30)).current;
+    const slideUp2 = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 600,
+                useNativeDriver: true,
+            }),
+            Animated.stagger(150, [
+                Animated.spring(slideUp1, {
+                    toValue: 0,
+                    friction: 8,
+                    tension: 40,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(slideUp2, {
+                    toValue: 0,
+                    friction: 8,
+                    tension: 40,
+                    useNativeDriver: true,
+                }),
+            ]),
+        ]).start();
+    }, []);
 
     return (
         <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -94,256 +53,389 @@ const RoleSelectScreen = ({ navigation }: any) => {
                 <View style={[styles.strip, { backgroundColor: '#138808' }]} />
             </View>
 
-            <ScrollView
-                contentContainerStyle={[styles.scroll, { paddingHorizontal: (width - cardWidth) / 2 }]}
-                showsVerticalScrollIndicator={false}
-                bounces={false}
-            >
-                {/* ── Brand Header ── */}
-                <View style={styles.brandRow}>
-                    <View style={styles.iconShadow}>
+            <View style={styles.container}>
+                {/* Header */}
+                <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
+                    <View style={styles.logoContainer}>
+                        <View style={styles.logoGlow} />
                         <Image
                             source={require('../../assets/icon.png')}
-                            style={styles.appIcon}
+                            style={styles.logo}
                         />
                     </View>
                     <Text style={styles.appName}>MaatriSahayak</Text>
-                    <Text style={styles.tagline}>MATERNAL HEALTH MONITORING</Text>
-                    <View style={styles.subtitleRow}>
-                        <View style={styles.subtitleLine} />
-                        <Text style={styles.subtitle}>Select your role to continue</Text>
-                        <View style={styles.subtitleLine} />
+                    <View style={styles.taglineRow}>
+                        <View style={styles.taglineDot} />
+                        <Text style={styles.tagline}>मातृ स्वास्थ्य निगरानी</Text>
+                        <View style={styles.taglineDot} />
                     </View>
+                </Animated.View>
+
+                {/* Main Content */}
+                <View style={styles.content}>
+                    <Animated.View style={{ opacity: fadeAnim }}>
+                        <Text style={styles.heading}>अपनी भूमिका चुनें</Text>
+                        <Text style={styles.subheading}>Choose Your Role</Text>
+                    </Animated.View>
+
+                    {/* Role Cards */}
+                    <View style={styles.cardsContainer}>
+                        {/* ASHA Worker Card */}
+                        <Animated.View
+                            style={[
+                                styles.cardWrapper,
+                                {
+                                    opacity: fadeAnim,
+                                    transform: [{ translateY: slideUp1 }],
+                                },
+                            ]}>
+                            <TouchableOpacity
+                                style={[styles.roleCard, styles.ashaCard]}
+                                activeOpacity={0.85}
+                                onPress={() => navigation.navigate('Login')}>
+                                <View style={styles.cardHeader}>
+                                    <View style={[styles.iconCircle, styles.ashaIconCircle]}>
+                                        <Text style={styles.iconEmoji}>👩‍⚕️</Text>
+                                    </View>
+                                    <View style={styles.badge}>
+                                        <Text style={styles.badgeText}>HEALTH WORKER</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.cardBody}>
+                                    <Text style={styles.roleTitle}>आशा कार्यकर्ता</Text>
+                                    <Text style={styles.roleTitleEn}>ASHA Worker</Text>
+                                    <Text style={styles.roleDesc}>
+                                        Monitor pregnancies, record vitals, and trigger emergency alerts
+                                    </Text>
+                                </View>
+                                <View style={styles.cardFooter}>
+                                    <Text style={styles.actionText}>Continue</Text>
+                                    <View style={styles.arrowCircle}>
+                                        <Text style={styles.arrowIcon}>→</Text>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+                        </Animated.View>
+
+                        {/* Driver Card */}
+                        <Animated.View
+                            style={[
+                                styles.cardWrapper,
+                                {
+                                    opacity: fadeAnim,
+                                    transform: [{ translateY: slideUp2 }],
+                                },
+                            ]}>
+                            <TouchableOpacity
+                                style={[styles.roleCard, styles.driverCard]}
+                                activeOpacity={0.85}
+                                onPress={() => navigation.navigate('DriverLogin')}>
+                                <View style={styles.cardHeader}>
+                                    <View style={[styles.iconCircle, styles.driverIconCircle]}>
+                                        <Text style={styles.iconEmoji}>🚑</Text>
+                                    </View>
+                                    <View style={[styles.badge, styles.driverBadge]}>
+                                        <Text style={[styles.badgeText, styles.driverBadgeText]}>EMERGENCY</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.cardBody}>
+                                    <Text style={styles.roleTitle}>एम्बुलेंस चालक</Text>
+                                    <Text style={styles.roleTitleEn}>Ambulance Driver</Text>
+                                    <Text style={styles.roleDesc}>
+                                        Respond to emergencies and transport patients safely
+                                    </Text>
+                                </View>
+                                <View style={styles.cardFooter}>
+                                    <Text style={styles.actionText}>Continue</Text>
+                                    <View style={styles.arrowCircle}>
+                                        <Text style={styles.arrowIcon}>→</Text>
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+                        </Animated.View>
+                    </View>
+
+                    {/* Register Link */}
+                    <Animated.View style={[styles.registerContainer, { opacity: fadeAnim }]}>
+                        <Text style={styles.registerText}>नया उपयोगकर्ता?</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('AshaRegister')}>
+                            <Text style={styles.registerLink}>यहाँ पंजीकरण करें</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
                 </View>
 
-                {/* ── ASHA Card ── */}
-                <RoleCard
-                    borderColor={GREEN}
-                    iconBg="#0d3d2a"
-                    image={require('../../assets/asha_worker.png')}
-                    title="ASHA Worker"
-                    subtitle="ACCREDITED SOCIAL HEALTH ACTIVIST"
-                    desc="Monitor pregnancies, record vitals, manage ANC visits and trigger emergency alerts for mothers in your area."
-                    primaryColor={GREEN}
-                    primaryTextColor={BG}
-                    primaryLabel="Sign In as ASHA"
-                    outlineColor={GREEN}
-                    outlineLabel="Register as ASHA"
-                    onPrimary={() => navigation.navigate('Login')}
-                    onOutline={() => navigation.navigate('AshaRegister')}
-                />
-
-                {/* ── Driver Card ── */}
-                <RoleCard
-                    borderColor={PURPLE_LIGHT}
-                    iconBg="#1e0635"
-                    image={require('../../assets/ambulance_driver.png')}
-                    title="Ambulance Driver"
-                    subtitle="EMERGENCY RESPONSE PERSONNEL"
-                    desc="Accept emergency dispatches, navigate to patients and complete life-saving ambulance rides across your district."
-                    primaryColor={PURPLE_LIGHT}
-                    primaryTextColor={WHITE}
-                    primaryLabel="Sign In as Driver"
-                    outlineColor={PURPLE_LIGHT}
-                    outlineLabel="Register as Driver"
-                    onPrimary={() => navigation.navigate('DriverLogin')}
-                    onOutline={() => navigation.navigate('DriverRegister')}
-                />
-
-                {/* ── Footer ── */}
-                <View style={styles.footerWrap}>
-                    <Text style={styles.footer}>National Health Mission · Government of India</Text>
-                    <Text style={styles.footer}>Made with ❤️ by Team MaatriSahayak</Text>
-                </View>
-            </ScrollView>
+                {/* Footer */}
+                <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
+                    <View style={styles.footerDivider} />
+                    <Text style={styles.footerText}>राष्ट्रीय स्वास्थ्य मिशन · भारत सरकार</Text>
+                    <Text style={styles.footerTextEn}>National Health Mission · Government of India</Text>
+                </Animated.View>
+            </View>
         </SafeAreaView>
     );
 };
 
 /* ── StyleSheet ─────────────────────────────────────────────────────────── */
 const styles = StyleSheet.create({
-
     root: {
         flex: 1,
         backgroundColor: BG,
     },
-
     tricolor: {
         flexDirection: 'row',
         height: 4,
         width: '100%',
     },
     strip: { flex: 1 },
-
-    scroll: {
-        flexGrow: 1,
-        paddingBottom: 48,
+    container: {
+        flex: 1,
+        paddingHorizontal: 20,
     },
 
-    /* Brand */
-    brandRow: {
+    /* Header */
+    header: {
         alignItems: 'center',
         paddingTop: 32,
-        paddingBottom: 28,
-        width: '100%',
+        paddingBottom: 24,
     },
-    iconShadow: {
-        shadowColor: GREEN,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        elevation: 8,
-        marginBottom: 14,
+    logoContainer: {
+        position: 'relative',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 16,
     },
-    appIcon: {
-        width: 80,
-        height: 80,
-        resizeMode: 'contain',
+    logoGlow: {
+        position: 'absolute',
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: GREEN,
+        opacity: 0.12,
+    },
+    logo: {
+        width: 64,
+        height: 64,
         borderRadius: 18,
     },
     appName: {
         fontSize: 28,
         fontWeight: '900',
         color: WHITE,
-        letterSpacing: 0.5,
-        textAlign: 'center',
-        marginBottom: 5,
+        letterSpacing: -0.5,
+        marginBottom: 8,
     },
-    tagline: {
-        fontSize: 10,
-        color: DIM,
-        letterSpacing: 2.5,
-        fontWeight: '700',
-        textAlign: 'center',
-        marginBottom: 14,
-    },
-    subtitleRow: {
+    taglineRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
-        width: '80%',
+        gap: 8,
     },
-    subtitleLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: 'rgba(184,212,204,0.2)',
+    taglineDot: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: GREEN,
     },
-    subtitle: {
-        fontSize: 13,
-        color: DIM,
-        opacity: 0.7,
-        textAlign: 'center',
+    tagline: {
+        fontSize: 11,
+        color: GREEN,
+        fontWeight: '700',
+        letterSpacing: 0.8,
     },
 
-    /* Card */
-    card: {
+    /* Content */
+    content: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingBottom: 20,
+    },
+    heading: {
+        fontSize: 24,
+        fontWeight: '900',
+        color: WHITE,
+        textAlign: 'center',
+        marginBottom: 4,
+        letterSpacing: -0.3,
+    },
+    subheading: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: DIM,
+        textAlign: 'center',
+        marginBottom: 32,
+        letterSpacing: 0.3,
+    },
+
+    /* Cards */
+    cardsContainer: {
+        gap: 16,
+    },
+    cardWrapper: {
+        width: '100%',
+    },
+    roleCard: {
         backgroundColor: CARD,
         borderRadius: 20,
-        borderWidth: 1.5,
         padding: 20,
-        marginBottom: 16,
-        width: '100%',
-        alignSelf: 'stretch',
+        borderWidth: 1.5,
+        borderColor: BORDER,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 5,
     },
-
-    /* Card header — icon + title side by side */
+    ashaCard: {
+        borderLeftWidth: 4,
+        borderLeftColor: GREEN,
+    },
+    driverCard: {
+        borderLeftWidth: 4,
+        borderLeftColor: '#9D4EDD',
+    },
     cardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 14,
-        marginBottom: 12,
+        justifyContent: 'space-between',
+        marginBottom: 16,
     },
-    iconBox: {
-        width: 64,
-        height: 64,
+    iconCircle: {
+        width: 56,
+        height: 56,
         borderRadius: 16,
-        overflow: 'hidden',
-        flexShrink: 0,
+        justifyContent: 'center',
         alignItems: 'center',
-        justifyContent: 'center',
+        borderWidth: 2,
     },
-    roleImage: {
-        width: '100%',
-        height: '100%',
-        resizeMode: 'cover',
+    ashaIconCircle: {
+        backgroundColor: 'rgba(0,229,160,0.1)',
+        borderColor: 'rgba(0,229,160,0.3)',
     },
-    cardHeaderText: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        gap: 4,
+    driverIconCircle: {
+        backgroundColor: 'rgba(157,78,221,0.1)',
+        borderColor: 'rgba(157,78,221,0.3)',
+    },
+    iconEmoji: {
+        fontSize: 28,
+    },
+    badge: {
+        backgroundColor: 'rgba(0,229,160,0.15)',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(0,229,160,0.3)',
+    },
+    driverBadge: {
+        backgroundColor: 'rgba(157,78,221,0.15)',
+        borderColor: 'rgba(157,78,221,0.3)',
+    },
+    badgeText: {
+        fontSize: 9,
+        fontWeight: '800',
+        color: GREEN,
+        letterSpacing: 0.8,
+    },
+    driverBadgeText: {
+        color: '#C77DFF',
+    },
+    cardBody: {
+        marginBottom: 16,
     },
     roleTitle: {
         fontSize: 20,
         fontWeight: '900',
         color: WHITE,
+        marginBottom: 2,
+        letterSpacing: -0.3,
     },
-    roleSubtitle: {
-        fontSize: 10,
-        color: DIM,
-        letterSpacing: 1.4,
-        fontWeight: '700',
-        flexWrap: 'wrap',
-    },
-
-    roleDesc: {
+    roleTitleEn: {
         fontSize: 13,
+        fontWeight: '700',
         color: DIM,
-        lineHeight: 20,
-        marginBottom: 16,
-    },
-
-    divider: {
-        height: 1,
-        width: '100%',
-        marginBottom: 16,
-    },
-
-    /* Buttons */
-    primaryBtn: {
-        width: '100%',
-        borderRadius: 12,
-        paddingVertical: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
         marginBottom: 10,
+        letterSpacing: 0.3,
     },
-    primaryBtnText: {
-        fontSize: 15,
-        fontWeight: '900',
-        letterSpacing: 0.4,
-        textAlign: 'center',
+    roleDesc: {
+        fontSize: 12,
+        color: DIM,
+        lineHeight: 18,
+        fontWeight: '500',
     },
-    outlineBtn: {
-        width: '100%',
-        borderWidth: 1.5,
-        borderRadius: 12,
-        paddingVertical: 13,
+    cardFooter: {
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
+        justifyContent: 'space-between',
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: BORDER,
     },
-    outlineBtnText: {
+    actionText: {
         fontSize: 14,
         fontWeight: '800',
+        color: GREEN,
         letterSpacing: 0.3,
-        textAlign: 'center',
+    },
+    arrowCircle: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        backgroundColor: 'rgba(0,229,160,0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(0,229,160,0.2)',
+    },
+    arrowIcon: {
+        fontSize: 18,
+        color: GREEN,
+        fontWeight: '700',
+    },
+
+    /* Register */
+    registerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 24,
+    },
+    registerText: {
+        fontSize: 13,
+        color: DIM,
+        fontWeight: '600',
+    },
+    registerLink: {
+        fontSize: 13,
+        fontWeight: '800',
+        color: GREEN,
     },
 
     /* Footer */
-    footerWrap: {
-        alignItems: 'center',
-        gap: 4,
-        marginTop: 8,
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(184,212,204,0.1)',
-    },
     footer: {
-        textAlign: 'center',
-        fontSize: 11,
+        alignItems: 'center',
+        paddingBottom: 16,
+        gap: 6,
+    },
+    footerDivider: {
+        width: 40,
+        height: 3,
+        borderRadius: 2,
+        backgroundColor: BORDER,
+        marginBottom: 8,
+    },
+    footerText: {
+        fontSize: 10,
         color: DIM,
-        opacity: 0.45,
+        fontWeight: '700',
+        letterSpacing: 0.3,
+        opacity: 0.7,
+    },
+    footerTextEn: {
+        fontSize: 9,
+        color: DIM,
+        fontWeight: '600',
+        letterSpacing: 0.3,
+        opacity: 0.5,
     },
 });
 

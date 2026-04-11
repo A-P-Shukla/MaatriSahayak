@@ -95,6 +95,86 @@ export const loginDriver = async (credentials: LoginCredentials): Promise<{ user
   }
 };
 
+// Login as District Officer via Cognito
+export const loginOfficer = async (credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens }> => {
+  const CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID;
+  const REGION = import.meta.env.VITE_AWS_REGION || 'ap-south-1';
+
+  if (!CLIENT_ID) {
+    throw new Error('Cognito Client ID not configured');
+  }
+
+  try {
+    // Authenticate with Cognito
+    const authBody = {
+      ClientId: CLIENT_ID,
+      AuthFlow: 'USER_PASSWORD_AUTH',
+      AuthParameters: {
+        USERNAME: credentials.email,
+        PASSWORD: credentials.password,
+      },
+    };
+
+    const authRes = await fetch(
+      `https://cognito-idp.${REGION}.amazonaws.com/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-amz-json-1.1',
+          'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
+        },
+        body: JSON.stringify(authBody),
+      }
+    );
+
+    if (!authRes.ok) {
+      const err = await authRes.json();
+      const msg = err.message || err.__type || 'Login failed';
+      throw new Error(msg);
+    }
+
+    const authData = await authRes.json();
+
+    if (!authData.AuthenticationResult) {
+      throw new Error('Authentication failed');
+    }
+
+    const { AccessToken, IdToken, RefreshToken, ExpiresIn } = authData.AuthenticationResult;
+
+    // Parse user info from ID token
+    const idTokenPayload = JSON.parse(atob(IdToken.split('.')[1]));
+
+    const user: User = {
+      user_id: idTokenPayload.sub,
+      email: idTokenPayload.email || credentials.email,
+      name: idTokenPayload.name || '',
+      role: 'district_officer',
+      phone: idTokenPayload.phone_number || '',
+      district: idTokenPayload['custom:district'] || '',
+      created_at: new Date().toISOString(),
+      last_login: new Date().toISOString(),
+    };
+
+    const tokens: AuthTokens = {
+      access_token: AccessToken,
+      id_token: IdToken,
+      refresh_token: RefreshToken,
+      expires_in: ExpiresIn,
+      token_type: 'Bearer',
+    };
+
+    storeTokens(tokens);
+    storeUser(user);
+
+    return { user, tokens };
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Login failed. Please check your credentials.');
+  }
+};
+
 // Logout user
 export const logout = async (): Promise<void> => {
   try {

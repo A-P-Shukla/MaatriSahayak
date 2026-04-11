@@ -190,39 +190,59 @@ const DriverRegisterScreen = ({ navigation }: any) => {
         if (!name) {
             e.fullName = S.errName;
         } else {
-            // Check for minimum length (at least 3 characters)
             if (name.length < 3) {
                 e.fullName = 'Name must be at least 3 characters long';
             }
-            // Check for at least 2 words (first name and last name)
             else if (name.split(/\s+/).length < 2) {
                 e.fullName = 'Please enter your full name (first and last name)';
             }
-            // Check for invalid patterns
             else if (/^(mr\.?|mrs\.?|ms\.?|dr\.?|test|demo|user|admin|sample|example|abc|xyz|xxx|aaa|bbb|driver)\s/i.test(name)) {
                 e.fullName = 'Please enter your real name (no titles or test names)';
             }
-            // Check for repeated characters (like "aaa", "xxx")
             else if (/(.)\1{2,}/.test(name.replace(/\s/g, ''))) {
                 e.fullName = 'Please enter a valid name';
             }
-            // Check for numbers in name
             else if (/\d/.test(name)) {
                 e.fullName = 'Name cannot contain numbers';
             }
-            // Check for special characters (except spaces, hyphens, apostrophes)
             else if (/[^a-zA-Z\s\-']/.test(name)) {
                 e.fullName = 'Name contains invalid characters';
             }
-            // Check each word has at least 2 characters
             else if (name.split(/\s+/).some(word => word.length < 2)) {
                 e.fullName = 'Each name part must be at least 2 characters';
             }
         }
 
-        if (!form.phone.trim() || form.phone.length !== 10) e.phone = S.errPhone;
-        if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = S.errEmail;
-        if (!form.license.trim()) e.license = S.errLicense;
+        // Phone validation - check for repeated digits
+        if (!form.phone.trim() || form.phone.length !== 10) {
+            e.phone = S.errPhone;
+        } else if (/^(\d)\1{9}$/.test(form.phone)) {
+            e.phone = 'Please enter a valid phone number (not all same digits)';
+        } else if (/^(0{10}|1{10}|9{10})$/.test(form.phone)) {
+            e.phone = 'Please enter a valid phone number';
+        }
+
+        // Email validation - block disposable domains
+        const disposableDomains = ['tempmail', 'throwaway', '10minutemail', 'guerrillamail', 'mailinator', 'trashmail', 'fakeinbox'];
+        const emailDomain = form.email.toLowerCase().split('@')[1];
+        if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+            e.email = S.errEmail;
+        } else if (disposableDomains.some(d => emailDomain?.includes(d))) {
+            e.email = 'Please use a valid email (temporary emails not allowed)';
+        }
+
+        // License validation - must be at least 8 characters and contain letters and numbers
+        const license = form.license.trim();
+        if (!license) {
+            e.license = S.errLicense;
+        } else if (license.length < 8) {
+            e.license = 'License number must be at least 8 characters';
+        } else if (!/[A-Za-z]/.test(license) || !/\d/.test(license)) {
+            e.license = 'License must contain both letters and numbers';
+        } else if (/^(test|demo|sample|abc|xyz|xxx|aaa|123)$/i.test(license)) {
+            e.license = 'Please enter a valid license number';
+        }
+
         const exp = parseInt(form.experience, 10);
         if (!form.experience.trim() || isNaN(exp) || exp < 0 || exp > 50) e.experience = S.errExperience;
         if (form.password.length < 8) e.password = S.errPassword;
@@ -243,25 +263,12 @@ const DriverRegisterScreen = ({ navigation }: any) => {
             password: form.password,
         }));
         if (driverRegisterThunk.fulfilled.match(result)) {
-            const { id, ambulanceId } = result.payload as { id: string; ambulanceId: string };
-            Alert.alert(
-                '✅ Registration Successful!',
-                `Welcome ${form.fullName}!\n\nYour driver account has been created. You will be notified once your account is activated by the district coordinator.`,
-                [
-                    {
-                        text: 'View ID Card',
-                        onPress: () => navigation.navigate('DriverIdCard', {
-                            fullName: form.fullName,
-                            phone: `+91${form.phone}`,
-                            email: form.email,
-                            licenseNumber: form.license,
-                            ambulanceId: ambulanceId === 'UNASSIGNED' ? 'Not Assigned' : ambulanceId,
-                            driverId: id,
-                        }),
-                    },
-                ],
-                { cancelable: false }
-            );
+            navigation.replace('WaitingApproval', {
+                name: form.fullName,
+                email: form.email,
+                role: 'Driver',
+                password: form.password,
+            });
         }
     };
 

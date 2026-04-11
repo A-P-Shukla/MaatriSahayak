@@ -1,7 +1,8 @@
 """
 MaatriSahayak - Trigger Emergency Lambda Function
 
-Triggers emergency response workflow for pregnancy complications.
+Triggers emergency response workflow using AWS Step Functions for orchestration.
+Implements the "one tap fires everything at once" feature with parallel execution.
 """
 
 import json
@@ -23,12 +24,13 @@ from shared import (
     get_current_timestamp,
     validate_emergency_data
 )
-from shared.constants import TABLE_NAMES, HTTP_STATUS, EMERGENCY_STATUS, EVENT_TYPES
+from shared.constants import TABLE_NAMES, HTTP_STATUS, EMERGENCY_STATUS, EVENT_TYPES, STEP_FUNCTIONS
 from shared.models import EmergencyModel
 
 # Initialize AWS clients
 lambda_client = boto3.client('lambda')
 sns_client = boto3.client('sns')
+sfn_client = boto3.client('stepfunctions')  # Step Functions client
 
 
 def lambda_handler(event, context):
@@ -123,6 +125,70 @@ def lambda_handler(event, context):
             pregnancy_id=pregnancy_id,
             severity=body['severity']
         )
+        
+        # ==================== STEP FUNCTIONS ORCHESTRATION ====================
+        # Execute emergency workflow using Step Functions for parallel execution
+        # This implements the "one tap fires everything at once" feature
+        
+        workflow_input = {
+            'emergency_id': emergency_id,
+            'pregnancy_id': pregnancy_id,
+            'pregnancy': pregnancy,
+            'location': {
+                'latitude': body['latitude'],
+                'longitude': body['longitude'],
+                'address': body.get('location_address')
+            },
+            'severity': body['severity'],
+            'event_type': body['event_type'],
+            'district': pregnancy['district']
+        }
+        
+        try:
+            # Start Step Functions execution
+            import os
+            state_machine_arn = os.getenv(
+                'EMERGENCY_WORKFLOW_ARN',
+                f"arn:aws:states:ap-south-1:{context.invoked_function_arn.split(':')[4]}:stateMachine:{STEP_FUNCTIONS['EMERGENCY_WORKFLOW']}"
+            )
+            
+            execution_response = sfn_client.start_execution(
+                stateMachineArn=state_machine_arn,
+                name=f"emergency-{emergency_id}-{timestamp.replace(':', '-').replace('.', '-')}",
+                input=json.dumps(workflow_input)
+            )
+            
+            log_info(
+                "Step Functions workflow started",
+                execution_arn=execution_response['executionArn'],
+                emergency_id=emergency_id
+            )
+            
+            # Update emergency with execution ARN
+            update_item(
+                TABLE_NAMES['EMERGENCY_EVENTS'],
+                {'id': emergency_id},
+                {
+                    'workflow_execution_arn': execution_response['executionArn'],
+                    'workflow_started_at': get_current_timestamp()
+                }
+            )
+            
+            # Return immediately - Step Functions handles the rest
+            return create_success_response(
+                {
+                    'emergency': emergency_model.model_dump(),
+                    'workflow_execution_arn': execution_response['executionArn'],
+                    'message': 'Emergency workflow initiated. Ambulance dispatch, hospital alert, and notifications are being processed in parallel.'
+                },
+                "Emergency triggered successfully - workflow in progress"
+            )
+            
+        except Exception as e:
+            log_error("Step Functions execution failed, falling back to sequential processing", e)
+            # Fall back to sequential processing if Step Functions fails
+        
+        # ==================== FALLBACK: SEQUENTIAL PROCESSING ====================
         
         # Find nearest ambulance
         ambulance = None

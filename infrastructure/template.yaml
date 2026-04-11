@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: MaatriSahayak - AI-Powered Maternal Emergency Response Platform
 
@@ -11,6 +11,10 @@ Globals:
         POWERTOOLS_SERVICE_NAME: maatrisahayak
         LOG_LEVEL: INFO
         ENVIRONMENT: !Ref Environment
+        SES_SENDER_EMAIL: noreply@maatrisahayak.in
+        SES_REGION: ap-south-1
+        APP_URL: https://maatrisahayak.in
+        RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
 
 Parameters:
   Environment:
@@ -71,8 +75,8 @@ Resources:
           Mutable: true
       # EmailConfiguration:
       #   EmailSendingAccount: DEVELOPER
-      #   SourceArn: !Sub arn:aws:ses:ap-south-1:${AWS::AccountId}:identity/noreply@maatrisahayak.in
-      #   From: MatriSahayak <noreply@maatrisahayak.in>
+      #   SourceArn: !Sub arn:aws:ses:ap-south-1:${AWS::AccountId}:identity/noreply.maatrisahayak@gmail.com
+      #   From: MatriSahayak <noreply.maatrisahayak@gmail.com>
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -548,7 +552,8 @@ Resources:
         Variables:
           USER_POOL_ID: !Ref UserPool
           ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
-          SES_SENDER_EMAIL: noreply@maatrisahayak.in
+          SES_SENDER_EMAIL: noreply.maatrisahayak@gmail.com
+          RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ASHAWorkersTable
@@ -672,6 +677,7 @@ Resources:
               Action:
                 - cognito-idp:InitiateAuth
                 - cognito-idp:GetUser
+                - cognito-idp:AdminGetUser
               Resource: !GetAtt UserPool.Arn
       Events:
         LoginASHA:
@@ -679,6 +685,38 @@ Resources:
           Properties:
             RestApiId: !Ref MaatriSahayakApi
             Path: /asha/login
+            Method: POST
+
+  LoginDriverFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/login_driver/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Driver login with Cognito
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+          CLIENT_ID: !Ref UserPoolClient
+          DRIVERS_TABLE: !Ref DriversTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DriversTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:InitiateAuth
+                - cognito-idp:GetUser
+                - cognito-idp:AdminGetUser
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        LoginDriver:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /driver/login
             Method: POST
 
   RefreshTokenFunction:
@@ -1262,7 +1300,7 @@ Resources:
             Method: POST
 
   # ==================== AI/ML Functions ====================
-  # 
+  #
   AnalyzeSymptomsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -1412,7 +1450,8 @@ Resources:
           CLIENT_ID: !Ref UserPoolClient
           DRIVERS_TABLE: !Ref DriversTable
           AMBULANCES_TABLE: !Ref AmbulancesTable
-          SES_SENDER_EMAIL: noreply@maatrisahayak.in
+          SES_SENDER_EMAIL: noreply.maatrisahayak@gmail.com
+          RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DriversTable
@@ -1437,6 +1476,11 @@ Resources:
             RestApiId: !Ref MaatriSahayakApi
             Path: /driver/register
             Method: POST
+
+  # LoginDriverFunction is managed manually via AWS CLI (not via SAM)
+  # to avoid EarlyValidation::ResourceExistenceCheck hook conflicts.
+  # Function ARN: arn:aws:lambda:ap-south-1:053549819347:function:maatrisahayak-v2-LoginDriverFunction
+  # API route: POST /driver/login (resource h8mwi8 on API 73qjqd2j7c)
 
   GetDriverProfileFunction:
     Type: AWS::Serverless::Function
@@ -1561,8 +1605,9 @@ Resources:
         - !Ref SharedDependenciesLayer
       Environment:
         Variables:
-          SES_SENDER_EMAIL: noreply@maatrisahayak.in
+          SES_SENDER_EMAIL: noreply.maatrisahayak@gmail.com
           EMAIL_SUPPRESSION_TABLE: !Ref EmailSuppressionTable
+          RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
         - Statement:
             - Effect: Allow
@@ -1594,7 +1639,7 @@ Resources:
           USER_POOL_ID: !Ref UserPool
           DRIVERS_TABLE: !Ref DriversTable
           ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
-          SES_SENDER_EMAIL: noreply@maatrisahayak.in
+          RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DriversTable
@@ -1617,6 +1662,71 @@ Resources:
           Properties:
             RestApiId: !Ref MaatriSahayakApi
             Path: /admin/verify
+            Method: POST
+
+  ResetUserPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/reset_user_password/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Admin tool to reset user passwords in Cognito
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+                - cognito-idp:AdminSetUserPassword
+                - cognito-idp:AdminEnableUser
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        ResetUserPassword:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /admin/reset-password
+            Method: POST
+
+  SyncCognitoDynamoDBFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/sync_cognito_dynamodb/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Fix data mismatches between Cognito and DynamoDB
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
+          DRIVERS_TABLE: !Ref DriversTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ASHAWorkersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DriversTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+                - cognito-idp:AdminCreateUser
+                - cognito-idp:AdminSetUserPassword
+                - cognito-idp:AdminEnableUser
+                - cognito-idp:AdminDisableUser
+                - cognito-idp:ListUsers
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        SyncUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /admin/sync-user
             Method: POST
 
   CompleteRideFunction:
@@ -1681,7 +1791,8 @@ Resources:
         Variables:
           USER_POOL_ID: !Ref UserPool
           RESET_TABLE: !Ref PasswordResetsTable
-          SES_SENDER_EMAIL: MatriSahayak <noreply@maatrisahayak.in>
+          SES_SENDER_EMAIL: MatriSahayak <noreply.maatrisahayak@gmail.com>
+          RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PasswordResetsTable
@@ -1770,7 +1881,7 @@ Resources:
   # EmergencyWorkflowStateMachine:
   #   Type: AWS::Serverless::StateMachine
   #   Properties:
-  #     
+  #
   #     DefinitionUri: ../step_functions/emergency_workflow.asl.json
   #     DefinitionSubstitutions:
   #       TriggerEmergencyFunctionArn: !GetAtt TriggerEmergencyFunction.Arn

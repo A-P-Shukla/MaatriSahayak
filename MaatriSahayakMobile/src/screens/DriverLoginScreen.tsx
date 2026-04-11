@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
     Alert, KeyboardAvoidingView, Platform, ScrollView,
-    StatusBar, Image, ActivityIndicator,
+    StatusBar, Image, ActivityIndicator, Linking,
     TextInput as RNTextInput,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -27,11 +27,24 @@ const DriverLoginScreen = ({ navigation }: any) => {
     const [showPw, setShowPw]     = useState(false);
     const [emailFocused, setEmailFocused]       = useState(false);
     const [passwordFocused, setPasswordFocused] = useState(false);
+    const [showPendingApproval, setShowPendingApproval] = useState(false);
     const passwordRef = useRef<RNTextInput>(null);
 
     useEffect(() => {
-        if (error) Alert.alert('Login Failed', error, [{ text: 'OK', onPress: () => dispatch(clearError()) }]);
-    }, [error]);
+        if (error) {
+            if (error.includes('pending approval') || error.includes('disabled')) {
+                setShowPendingApproval(true);
+                dispatch(clearError());
+            } else {
+                const errorMsg = error.includes('Incorrect password') 
+                    ? 'Incorrect password. Please check and try again.'
+                    : error.includes('No account found')
+                    ? 'No account found with this email. Please register first.'
+                    : error;
+                Alert.alert('Login Failed', errorMsg, [{ text: 'OK', onPress: () => dispatch(clearError()) }]);
+            }
+        }
+    }, [error, dispatch]);
 
     const handleLogin = () => {
         if (!email.trim()) { Alert.alert('', 'Please enter your email address.'); return; }
@@ -43,6 +56,49 @@ const DriverLoginScreen = ({ navigation }: any) => {
         }
         dispatch(loginThunk({ email: email.trim(), password, role: 'driver' }));
     };
+
+    if (showPendingApproval) {
+        return (
+            <View style={styles.root}>
+                <StatusBar barStyle="light-content" backgroundColor={BG} />
+                <ScrollView contentContainerStyle={styles.pendingContainer} showsVerticalScrollIndicator={false}>
+                    <View style={styles.pendingCard}>
+                        <View style={styles.pendingIconBox}>
+                            <Text style={styles.pendingIcon}>⏳</Text>
+                        </View>
+                        <Text style={styles.pendingTitle}>Waiting for Approval</Text>
+                        <Text style={styles.pendingSubtitle}>Your registration is under review</Text>
+                        <View style={styles.pendingInfoBox}>
+                            <Text style={styles.pendingInfoText}>Your driver account has been created successfully, but it needs to be approved by a District Officer before you can log in.</Text>
+                            <Text style={[styles.pendingInfoText, { marginTop: 12 }]}>You will receive an email notification once your account is activated.</Text>
+                        </View>
+                        <View style={styles.pendingSteps}>
+                            <View style={styles.pendingStep}>
+                                <View style={styles.pendingStepIconDone}><Text style={styles.pendingStepIconText}>✓</Text></View>
+                                <Text style={styles.pendingStepText}>Registration Submitted</Text>
+                            </View>
+                            <View style={styles.pendingStepLine} />
+                            <View style={styles.pendingStep}>
+                                <View style={styles.pendingStepIconPending}><Text style={styles.pendingStepIconText}>⏳</Text></View>
+                                <Text style={styles.pendingStepText}>Admin Approval Pending</Text>
+                            </View>
+                            <View style={styles.pendingStepLine} />
+                            <View style={styles.pendingStep}>
+                                <View style={styles.pendingStepIconWaiting}><Text style={styles.pendingStepIconText}>○</Text></View>
+                                <Text style={[styles.pendingStepText, { color: '#7A6A9A' }]}>Account Activated</Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity style={styles.pendingBackBtn} onPress={() => setShowPendingApproval(false)}>
+                            <Text style={styles.pendingBackBtnText}>Back to Login</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => Linking.openURL('mailto:support@maatrisahayak.org')}>
+                            <Text style={styles.pendingHelpText}>Need help? Contact support@maatrisahayak.org</Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
 
     return (
         <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -123,6 +179,18 @@ const DriverLoginScreen = ({ navigation }: any) => {
                         </TouchableOpacity>
                     </View>
 
+                    {/* Forgot Password */}
+                    <TouchableOpacity 
+                        style={{ alignSelf: 'flex-end', marginTop: 8 }}
+                        onPress={() => Alert.alert(
+                            'Reset Password',
+                            'Please contact your District Officer or support@maatrisahayak.org to reset your password.',
+                            [{ text: 'OK' }]
+                        )}
+                    >
+                        <Text style={{ fontSize: 12, color: PURPLE_LIGHT, fontWeight: '700' }}>Forgot Password?</Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                         style={[styles.loginBtn, loading && { opacity: 0.75 }]}
                         onPress={handleLogin}
@@ -138,6 +206,11 @@ const DriverLoginScreen = ({ navigation }: any) => {
                         <Text style={styles.dividerLabel}>or</Text>
                         <View style={styles.divider} />
                     </View>
+
+                    <TouchableOpacity style={styles.googleBtn} onPress={() => Alert.alert('Coming Soon', 'Google Sign-In will be available soon!')} activeOpacity={0.85}>
+                        <Image source={{ uri: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg' }} style={styles.googleIcon} />
+                        <Text style={styles.googleBtnText}>Sign in with Google</Text>
+                    </TouchableOpacity>
 
                     <TouchableOpacity style={styles.registerBtn} onPress={() => navigation.navigate('DriverRegister')} activeOpacity={0.85}>
                         <Text style={styles.registerBtnText}>New Driver? Register Here</Text>
@@ -192,8 +265,32 @@ const styles = StyleSheet.create({
     divider: { flex: 1, height: 1, backgroundColor: BORDER },
     dividerLabel: { marginHorizontal: 12, fontSize: 13, color: DIM, fontWeight: '600' },
 
+    googleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: WHITE, borderRadius: 12, paddingVertical: 14, marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
+    googleIcon: { width: 20, height: 20, marginRight: 12 },
+    googleBtnText: { color: '#1F1F1F', fontSize: 15, fontWeight: '700', letterSpacing: 0.3 },
+
     registerBtn: { borderWidth: 2, borderColor: PURPLE, borderRadius: 12, paddingVertical: 14, alignItems: 'center', backgroundColor: 'rgba(123,47,190,0.08)' },
     registerBtnText: { color: PURPLE_LIGHT, fontSize: 15, fontWeight: '800', letterSpacing: 0.3 },
+
+    pendingContainer: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+    pendingCard: { backgroundColor: CARD, borderRadius: 20, padding: 32, alignItems: 'center', borderWidth: 1, borderColor: BORDER },
+    pendingIconBox: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#FFA500', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    pendingIcon: { fontSize: 40 },
+    pendingTitle: { fontSize: 24, fontWeight: '900', color: WHITE, marginBottom: 8, textAlign: 'center' },
+    pendingSubtitle: { fontSize: 14, color: DIM, marginBottom: 24, textAlign: 'center' },
+    pendingInfoBox: { backgroundColor: BG, borderRadius: 12, padding: 20, marginBottom: 28, borderLeftWidth: 4, borderLeftColor: '#FFA500' },
+    pendingInfoText: { fontSize: 14, color: DIM, lineHeight: 22, textAlign: 'center' },
+    pendingSteps: { width: '100%', marginBottom: 28 },
+    pendingStep: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
+    pendingStepIconDone: { width: 32, height: 32, borderRadius: 16, backgroundColor: PURPLE_LIGHT, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    pendingStepIconPending: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFA500', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    pendingStepIconWaiting: { width: 32, height: 32, borderRadius: 16, backgroundColor: BORDER, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    pendingStepIconText: { fontSize: 16, color: WHITE, fontWeight: '700' },
+    pendingStepText: { fontSize: 14, color: WHITE, fontWeight: '600', flex: 1 },
+    pendingStepLine: { width: 2, height: 20, backgroundColor: BORDER, marginLeft: 15, marginVertical: 2 },
+    pendingBackBtn: { backgroundColor: PURPLE, borderRadius: 12, paddingVertical: 14, paddingHorizontal: 32, marginBottom: 16, width: '100%', alignItems: 'center' },
+    pendingBackBtnText: { color: WHITE, fontSize: 15, fontWeight: '900', letterSpacing: 0.5 },
+    pendingHelpText: { fontSize: 12, color: '#FFA500', textDecorationLine: 'underline', textAlign: 'center' },
 });
 
 export default DriverLoginScreen;

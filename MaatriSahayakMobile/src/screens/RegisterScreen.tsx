@@ -87,7 +87,7 @@ const RegisterScreen = ({ navigation }: any) => {
     const dispatch = useDispatch<AppDispatch>();
     const { submitting, error } = useSelector((s: RootState) => s.pregnancy);
     const { user } = useSelector((s: RootState) => s.auth);
-    const [lang, setLang] = useState<Lang>('EN');
+    const [lang, setLang] = useState<Lang>('HI'); // Default to Hindi
     const S = STRINGS[lang];
 
     const [form, setForm] = useState({

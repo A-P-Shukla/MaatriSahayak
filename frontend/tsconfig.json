@@ -28,7 +28,7 @@
         "noFallthroughCasesInSwitch": true,
         "forceConsistentCasingInFileNames": true,
         /* Path aliases */
-        "ignoreDeprecations": "6.0",
+        "ignoreDeprecations": "5.0",
         "baseUrl": ".",
         "paths": {
             "@/*": [

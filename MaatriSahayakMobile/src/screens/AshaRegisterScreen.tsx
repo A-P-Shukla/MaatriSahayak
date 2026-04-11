@@ -217,38 +217,47 @@ const AshaRegisterScreen = ({ navigation }: any) => {
         if (!name) {
             e.fullName = S.errName;
         } else {
-            // Check for minimum length (at least 3 characters)
             if (name.length < 3) {
                 e.fullName = 'Name must be at least 3 characters long';
             }
-            // Check for at least 2 words (first name and last name)
             else if (name.split(/\s+/).length < 2) {
                 e.fullName = 'Please enter your full name (first and last name)';
             }
-            // Check for invalid patterns
             else if (/^(mr\.?|mrs\.?|ms\.?|dr\.?|test|demo|user|admin|sample|example|abc|xyz|xxx|aaa|bbb)\s/i.test(name)) {
                 e.fullName = 'Please enter your real name (no titles or test names)';
             }
-            // Check for repeated characters (like "aaa", "xxx")
             else if (/(.)\1{2,}/.test(name.replace(/\s/g, ''))) {
                 e.fullName = 'Please enter a valid name';
             }
-            // Check for numbers in name
             else if (/\d/.test(name)) {
                 e.fullName = 'Name cannot contain numbers';
             }
-            // Check for special characters (except spaces, hyphens, apostrophes)
             else if (/[^a-zA-Z\s\-']/.test(name)) {
                 e.fullName = 'Name contains invalid characters';
             }
-            // Check each word has at least 2 characters
             else if (name.split(/\s+/).some(word => word.length < 2)) {
                 e.fullName = 'Each name part must be at least 2 characters';
             }
         }
 
-        if (!form.phone.trim() || form.phone.length !== 10) e.phone = S.errPhone;
-        if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = S.errEmail;
+        // Phone validation - check for repeated digits
+        if (!form.phone.trim() || form.phone.length !== 10) {
+            e.phone = S.errPhone;
+        } else if (/^(\d)\1{9}$/.test(form.phone)) {
+            e.phone = 'Please enter a valid phone number (not all same digits)';
+        } else if (/^(0{10}|1{10}|9{10})$/.test(form.phone)) {
+            e.phone = 'Please enter a valid phone number';
+        }
+
+        // Email validation - block disposable domains
+        const disposableDomains = ['tempmail', 'throwaway', '10minutemail', 'guerrillamail', 'mailinator', 'trashmail', 'fakeinbox'];
+        const emailDomain = form.email.toLowerCase().split('@')[1];
+        if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+            e.email = S.errEmail;
+        } else if (disposableDomains.some(d => emailDomain?.includes(d))) {
+            e.email = 'Please use a valid email (temporary emails not allowed)';
+        }
+
         if (!form.village.trim()) e.village = S.errVillage;
         const ageNum = parseInt(form.age, 10);
         if (!form.age.trim() || isNaN(ageNum) || ageNum < 18 || ageNum > 80) e.age = S.errAge;
@@ -268,26 +277,12 @@ const AshaRegisterScreen = ({ navigation }: any) => {
             district: form.district, password: form.password,
         }));
         if (registerThunk.fulfilled.match(result)) {
-            // Show success popup
-            Alert.alert(
-                '✅ Registration Successful!',
-                `Welcome ${form.fullName}!\n\nYour ASHA Worker account has been created successfully. You can now access nearby patients and start providing care.\n\nYour registration details have been sent for verification.`,
-                [
-                    {
-                        text: 'View Nearby Patients',
-                        onPress: () => {
-                            navigation.navigate('AshaIdCard', {
-                                fullName: form.fullName,
-                                phone: form.phone,
-                                district: form.district,
-                                email: form.email,
-                                photo: photo || undefined,
-                            });
-                        },
-                    },
-                ],
-                { cancelable: false }
-            );
+            navigation.replace('WaitingApproval', {
+                name: form.fullName,
+                email: form.email,
+                role: 'ASHA Worker',
+                password: form.password,
+            });
         }
     };
 

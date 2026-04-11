@@ -1,0 +1,12 @@
+{
+    "symptoms": [
+        "severe headache",
+        "blurred vision",
+        "swelling in hands and feet"
+    ],
+    "gestational_age_weeks": 32,
+    "language": "en",
+    "medical_history": {
+        "hypertension": true
+    }
+}

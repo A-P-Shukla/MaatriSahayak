@@ -8,11 +8,12 @@ import {
   ArrowBack as BackIcon, Phone as PhoneIcon, Email as EmailIcon,
   LocationOn as LocationIcon, People as PeopleIcon,
   Warning as WarningIcon, LocalHospital as EmergencyIcon,
-  CheckCircle as ApproveIcon, Cancel as RejectIcon,
+  CheckCircle as ApproveIcon, Cancel as RejectIcon, Build as BuildIcon,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAshaWorker, useAshaPregnancies } from '../hooks/useAsha';
 import { verifyAshaRegistration } from '../services/asha';
+import SyncUserDialog from '../components/SyncUserDialog';
 
 const VERIFY_COLORS: Record<string, 'warning' | 'success' | 'error' | 'default'> = {
   PENDING: 'warning', APPROVED: 'success', REJECTED: 'error',
@@ -27,6 +28,7 @@ const AshaWorkerDetails: React.FC = () => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<'APPROVE' | 'REJECT' | null>(null);
+  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
 
   const handleVerify = async (action: 'APPROVE' | 'REJECT') => {
     if (!worker) return;
@@ -116,6 +118,22 @@ const AshaWorkerDetails: React.FC = () => {
                 </Button>
               </Stack>
             )}
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<BuildIcon />}
+              onClick={() => setSyncDialogOpen(true)}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 700,
+                borderRadius: 2,
+                borderColor: '#0d9488',
+                color: '#0d9488',
+                '&:hover': { borderColor: '#0f766e', bgcolor: '#f0fdf4' },
+              }}
+            >
+              Fix Data
+            </Button>
           </Stack>
         </CardContent>
       </Card>
@@ -235,6 +253,15 @@ const AshaWorkerDetails: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Sync User Dialog */}
+      <SyncUserDialog
+        open={syncDialogOpen}
+        onClose={() => setSyncDialogOpen(false)}
+        ashaId={worker.asha_id}
+        currentEmail={worker.email || ''}
+        phone={worker.phone || ''}
+      />
     </Box>
   );
 };

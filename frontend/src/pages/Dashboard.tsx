@@ -6,13 +6,16 @@ import {
 } from '@mui/material';
 import {
   Baby, AlertTriangle, Ambulance, HeartPulse, ArrowRight, RefreshCw,
-  Bell, TrendingUp, Circle, Clock, MapPin, Gauge, ShieldPlus,
+  Bell, TrendingUp, Circle, Clock, MapPin, Gauge, ShieldPlus, Activity, Brain,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useWebSocket } from '../hooks/useWebSocket';
 import EmergencyDetailsModal from '../components/EmergencyDetailsModal';
 import PendingApprovalsPanel from '../components/PendingApprovalsPanel';
+import { listDrivers } from '../services/driver';
+import { getAshaWorkers } from '../services/asha';
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
 // ============================================================================
 // CONSTANTS & CONFIGURATION
@@ -111,7 +114,9 @@ const useRegistrationNotifications = (lastMessage: any) => {
   const [notificationMessage, setNotificationMessage] = useState('');
   const [registrationDialogOpen, setRegistrationDialogOpen] = useState(false);
   const [newRegistration, setNewRegistration] = useState<{ type: string; name: string } | null>(null);
+  const [previousCount, setPreviousCount] = useState(0);
 
+  // Handle WebSocket messages
   useEffect(() => {
     if (lastMessage?.type === 'new_registration') {
       const { registrationType, name } = lastMessage.data || {};
@@ -120,9 +125,22 @@ const useRegistrationNotifications = (lastMessage: any) => {
       setRegistrationDialogOpen(true);
       setNotificationMessage(`New ${type} registration: ${name || 'Unknown'}`);
       setNotificationOpen(true);
-      setPendingCount((prev) => prev + 1);
     }
   }, [lastMessage]);
+
+  // Detect count increase and show popup
+  useEffect(() => {
+    if (pendingCount > previousCount && previousCount >= 0) {
+      const diff = pendingCount - previousCount;
+      if (diff > 0) {
+        setNewRegistration({ type: 'Registration', name: `${diff} New Registration${diff > 1 ? 's' : ''}` });
+        setRegistrationDialogOpen(true);
+        setNotificationMessage(`${diff} new registration${diff > 1 ? 's' : ''} pending approval`);
+        setNotificationOpen(true);
+      }
+    }
+    setPreviousCount(pendingCount);
+  }, [pendingCount]);
 
   return {
     pendingCount,
@@ -133,6 +151,7 @@ const useRegistrationNotifications = (lastMessage: any) => {
     registrationDialogOpen,
     setRegistrationDialogOpen,
     newRegistration,
+    setNewRegistration,
   };
 };
 
@@ -150,6 +169,21 @@ const Dashboard: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [approvalsOpen, setApprovalsOpen] = useState(false);
 
+  // Fetch pending registrations count on mount
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const [drivers, ashas] = await Promise.all([listDrivers(), getAshaWorkers()]);
+        const pendingDrivers = drivers.filter((d: any) => d.verificationStatus === 'PENDING').length;
+        const pendingAshas = ashas.filter((a: any) => a.verificationStatus === 'PENDING').length;
+        setPendingCount(pendingDrivers + pendingAshas);
+      } catch (err) {
+        console.error('Failed to fetch pending count:', err);
+      }
+    };
+    fetchPendingCount();
+  }, []);
+
   // Data Fetching
   const { data: stats, isLoading, isError, error, refetch } = useDashboardStats();
   const { isConnected, lastMessage } = useWebSocket({ enabled: true });
@@ -164,6 +198,7 @@ const Dashboard: React.FC = () => {
     registrationDialogOpen,
     setRegistrationDialogOpen,
     newRegistration,
+    setNewRegistration,
   } = useRegistrationNotifications(lastMessage);
 
   // Memoized Data
@@ -214,6 +249,45 @@ const Dashboard: React.FC = () => {
           </Box>
 
           <Stack direction="row" spacing={1.5} alignItems="center">
+            <Tooltip title="Check for New Registrations">
+              <IconButton
+                onClick={async () => {
+                  try {
+                    const [drivers, ashas] = await Promise.all([listDrivers(), getAshaWorkers()]);
+                    const pendingDrivers = drivers.filter((d: any) => d.verificationStatus === 'PENDING');
+                    const pendingAshas = ashas.filter((a: any) => a.verificationStatus === 'PENDING');
+                    const total = pendingDrivers.length + pendingAshas.length;
+
+                    if (total > pendingCount) {
+                      // Show popup for new registrations
+                      const latest = [...pendingDrivers, ...pendingAshas]
+                        .sort((a: any, b: any) => {
+                          const dateA = new Date(a.createdAt || a.registration_date || 0).getTime();
+                          const dateB = new Date(b.createdAt || b.registration_date || 0).getTime();
+                          return dateB - dateA;
+                        })[0];
+
+                      if (latest) {
+                        const type = 'ambulanceId' in latest ? 'Driver' : 'ASHA Worker';
+                        // Trigger the registration dialog
+                        setRegistrationDialogOpen(true);
+                        setNewRegistration({ type, name: latest.name });
+                      }
+                    }
+                    setPendingCount(total);
+                  } catch (err) {
+                    console.error('Failed to check registrations:', err);
+                  }
+                }}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                }}
+              >
+                <RefreshCw size={20} />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Pending Approvals">
               <IconButton
                 onClick={() => setApprovalsOpen(true)}
@@ -862,7 +936,7 @@ const Dashboard: React.FC = () => {
           </Box>
           <Box flex={1}>
             <Typography variant="h6" fontWeight={700} mb={0.5}>
-              New Registration Alert
+              🎉 New Registration Alert
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.95 }}>
               A new {newRegistration?.type} has registered via the mobile app

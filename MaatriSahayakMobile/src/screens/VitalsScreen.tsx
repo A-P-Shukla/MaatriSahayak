@@ -7,6 +7,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { recordVitalsThunk, clearPregnancyError } from '../store/slices/pregnancySlice';
 import { AppDispatch, RootState } from '../store';
+import { useTranslation } from 'react-i18next';
 
 const BG = '#0A1F1A';
 const CARD = '#112920';
@@ -18,12 +19,13 @@ const BORDER = '#3A6B58';
 const PLACEHOLDER = '#7AADA0';
 
 const VitalsScreen = ({ navigation, route }: any) => {
+    const { t } = useTranslation();
     const dispatch = useDispatch<AppDispatch>();
     const { submitting, error } = useSelector((s: RootState) => s.pregnancy);
     const { user } = useSelector((s: RootState) => s.auth);
 
     const pregnancyId = route?.params?.pregnancyId || '';
-    const patientName = route?.params?.patientName || 'Patient';
+    const patientName = route?.params?.patientName || t('vitals.patient');
 
     const [vitals, setVitals] = useState({
         bpSystolic: '', bpDiastolic: '', weight: '',
@@ -35,13 +37,13 @@ const VitalsScreen = ({ navigation, route }: any) => {
 
     useEffect(() => {
         if (error) {
-            Alert.alert('Error', error, [{ text: 'OK', onPress: () => dispatch(clearPregnancyError()) }]);
+            Alert.alert(t('common.error'), error, [{ text: t('common.ok'), onPress: () => dispatch(clearPregnancyError()) }]);
         }
     }, [error]);
 
     const handleSubmit = async () => {
         if (!vitals.bpSystolic.trim() || !vitals.bpDiastolic.trim()) {
-            Alert.alert('Missing Fields', 'Blood pressure (systolic and diastolic) is required.');
+            Alert.alert(t('vitals.missingFields'), t('vitals.bpRequired'));
             return;
         }
 
@@ -49,12 +51,12 @@ const VitalsScreen = ({ navigation, route }: any) => {
         const systolic = parseInt(vitals.bpSystolic, 10);
         const diastolic = parseInt(vitals.bpDiastolic, 10);
         if (isNaN(systolic) || isNaN(diastolic) || systolic < 50 || systolic > 250 || diastolic < 30 || diastolic > 150) {
-            Alert.alert('Invalid Values', 'Please enter valid blood pressure values.');
+            Alert.alert(t('vitals.invalidValues'), t('vitals.validBpPrompt'));
             return;
         }
 
         if (!pregnancyId) {
-            Alert.alert('Error', 'No pregnancy selected. Please go back and select a patient.');
+            Alert.alert(t('common.error'), t('vitals.noPregnancy'));
             return;
         }
 
@@ -72,20 +74,20 @@ const VitalsScreen = ({ navigation, route }: any) => {
         }));
 
         if (recordVitalsThunk.fulfilled.match(result)) {
-            Alert.alert('Saved', 'Vital signs recorded successfully.', [
-                { text: 'OK', onPress: () => navigation.goBack() },
+            Alert.alert(t('vitals.saved'), t('vitals.successMessage'), [
+                { text: t('common.ok'), onPress: () => navigation.goBack() },
             ]);
         }
     };
 
     const fields = [
-        { label: 'BP Systolic (mmHg)', key: 'bpSystolic', placeholder: 'e.g. 120', keyboard: 'numeric' as any, required: true },
-        { label: 'BP Diastolic (mmHg)', key: 'bpDiastolic', placeholder: 'e.g. 80', keyboard: 'numeric' as any, required: true },
-        { label: 'Weight (kg)', key: 'weight', placeholder: 'e.g. 58', keyboard: 'numeric' as any },
-        { label: 'Hemoglobin (g/dL)', key: 'hemoglobin', placeholder: 'e.g. 11.5', keyboard: 'numeric' as any },
-        { label: 'Temperature (°C)', key: 'temperature', placeholder: 'e.g. 37.0', keyboard: 'numeric' as any },
-        { label: 'Heart Rate (bpm)', key: 'heartRate', placeholder: 'e.g. 78', keyboard: 'numeric' as any },
-        { label: 'Oxygen Saturation (%)', key: 'oxygenSaturation', placeholder: 'e.g. 98', keyboard: 'numeric' as any },
+        { label: t('vitals.bpSystolic'), key: 'bpSystolic', placeholder: t('vitals.bpSystolicPlaceholder'), keyboard: 'numeric' as any, required: true },
+        { label: t('vitals.bpDiastolic'), key: 'bpDiastolic', placeholder: t('vitals.bpDiastolicPlaceholder'), keyboard: 'numeric' as any, required: true },
+        { label: t('vitals.weight'), key: 'weight', placeholder: t('vitals.weightPlaceholder'), keyboard: 'numeric' as any },
+        { label: t('vitals.hemoglobin'), key: 'hemoglobin', placeholder: t('vitals.hemoglobinPlaceholder'), keyboard: 'numeric' as any },
+        { label: t('vitals.temperature'), key: 'temperature', placeholder: t('vitals.temperaturePlaceholder'), keyboard: 'numeric' as any },
+        { label: t('vitals.heartRate'), key: 'heartRate', placeholder: t('vitals.heartRatePlaceholder'), keyboard: 'numeric' as any },
+        { label: t('vitals.oxygenSaturation'), key: 'oxygenSaturation', placeholder: t('vitals.oxygenSaturationPlaceholder'), keyboard: 'numeric' as any },
     ];
 
     return (
@@ -95,7 +97,7 @@ const VitalsScreen = ({ navigation, route }: any) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Text style={styles.back}>←</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Record Vitals</Text>
+                <Text style={styles.headerTitle}>{t('vitals.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -109,7 +111,7 @@ const VitalsScreen = ({ navigation, route }: any) => {
                 keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
                 <View style={styles.card}>
-                    <Text style={styles.sectionLabel}>Vital Signs</Text>
+                    <Text style={styles.sectionLabel}>{t('vitals.vitalSigns')}</Text>
                     {fields.map(f => (
                         <View key={f.key} style={styles.fieldGroup}>
                             <Text style={styles.label}>
@@ -128,12 +130,12 @@ const VitalsScreen = ({ navigation, route }: any) => {
                 </View>
 
                 <View style={styles.card}>
-                    <Text style={styles.sectionLabel}>Notes</Text>
+                    <Text style={styles.sectionLabel}>{t('vitals.notes')}</Text>
                     <TextInput
                         style={[styles.input, styles.textArea]}
                         value={vitals.notes}
                         onChangeText={set('notes')}
-                        placeholder="Any observations or remarks..."
+                        placeholder={t('vitals.notesPlaceholder')}
                         placeholderTextColor={PLACEHOLDER}
                         multiline
                         numberOfLines={4}
@@ -146,7 +148,7 @@ const VitalsScreen = ({ navigation, route }: any) => {
                     onPress={handleSubmit} disabled={submitting} activeOpacity={0.9}>
                     {submitting
                         ? <ActivityIndicator color={BG} size="small" />
-                        : <Text style={styles.submitText}>Save Vitals</Text>}
+                        : <Text style={styles.submitText}>{t('vitals.saveButton')}</Text>}
                 </TouchableOpacity>
             </ScrollView>
         </KeyboardAvoidingView>

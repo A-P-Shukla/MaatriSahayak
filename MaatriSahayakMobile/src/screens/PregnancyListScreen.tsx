@@ -6,6 +6,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPregnanciesThunk } from '../store/slices/pregnancySlice';
 import { AppDispatch, RootState } from '../store';
+import { useTranslation } from 'react-i18next';
 
 const BG = '#0A1F1A';
 const CARD = '#112920';
@@ -17,13 +18,14 @@ const RED = '#FF6B6B';
 const ORANGE = '#FFA040';
 
 const riskConfig: Record<string, { color: string; bg: string; label: string }> = {
-    HIGH:     { color: RED,    bg: 'rgba(255,107,107,0.15)', label: 'HIGH' },
-    CRITICAL: { color: RED,    bg: 'rgba(255,107,107,0.15)', label: 'CRITICAL' },
-    MEDIUM:   { color: ORANGE, bg: 'rgba(255,160,64,0.15)',  label: 'MEDIUM' },
-    LOW:      { color: GREEN,  bg: 'rgba(0,229,160,0.15)',   label: 'LOW' },
+    HIGH: { color: RED, bg: 'rgba(255,107,107,0.15)', label: 'HIGH' },
+    CRITICAL: { color: RED, bg: 'rgba(255,107,107,0.15)', label: 'CRITICAL' },
+    MEDIUM: { color: ORANGE, bg: 'rgba(255,160,64,0.15)', label: 'MEDIUM' },
+    LOW: { color: GREEN, bg: 'rgba(0,229,160,0.15)', label: 'LOW' },
 };
 
 const PregnancyListScreen = ({ navigation }: any) => {
+    const { t } = useTranslation();
     const dispatch = useDispatch<AppDispatch>();
     const { pregnancies, loading, error } = useSelector((s: RootState) => s.pregnancy);
     const [query, setQuery] = useState('');
@@ -50,14 +52,14 @@ const PregnancyListScreen = ({ navigation }: any) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Text style={styles.back}>←</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Pregnancy Cases</Text>
+                <Text style={styles.headerTitle}>{t('pregnancyList.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <View style={styles.searchBox}>
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search by name or phone..."
+                    placeholder={t('pregnancyList.searchPlaceholder')}
                     placeholderTextColor={DIM}
                     value={query}
                     onChangeText={setQuery}
@@ -74,7 +76,7 @@ const PregnancyListScreen = ({ navigation }: any) => {
                 <View style={styles.errorWrap}>
                     <Text style={styles.errorText}>{error}</Text>
                     <TouchableOpacity onPress={() => dispatch(fetchPregnanciesThunk())}>
-                        <Text style={styles.retryText}>Retry</Text>
+                        <Text style={styles.retryText}>{t('common.retry')}</Text>
                     </TouchableOpacity>
                 </View>
             )}

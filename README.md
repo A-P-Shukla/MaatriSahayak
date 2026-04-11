@@ -206,19 +206,20 @@ graph TB
 
 ### AWS Services Used
 
-| Service | Purpose |
-|:---|:---|
-| **Lambda** (Python 3.12) | 38 serverless functions, 512 MB memory, 30s timeout |
-| **API Gateway** | REST API with CORS, multi-environment (dev/staging/prod) |
-| **DynamoDB** | 6 tables with GSIs, Streams, Point-in-Time Recovery |
-| **Cognito** | User authentication with custom attributes (role, district) |
-| **S3** | Storage for ANC card images and documents |
-| **SNS** | SMS and push notifications for emergency alerts |
-| **Step Functions** | Emergency workflow orchestration (ASL state machine) |
-| **Bedrock** | Claude 3 Haiku for Hindi symptom NLP and clinical advice |
-| **Textract** | OCR for handwritten ANC card digitization |
-| **IoT Core** | MQTT-based real-time GPS tracking for ambulances |
-| **SAM / CloudFormation** | Infrastructure as Code, parameterized deployment |
+| Service | Purpose | Status |
+|:---|:---|:---|
+| **Lambda** (Python 3.12) | 35 serverless functions, 512 MB memory, 30s timeout | ✅ Deployed |
+| **API Gateway** | REST API with CORS, multi-environment (dev/staging/prod) | ✅ Live |
+| **DynamoDB** | 6 tables with GSIs, Streams, Point-in-Time Recovery | ✅ Active |
+| **Cognito** | User authentication with custom attributes (role, district) | ✅ Configured |
+| **S3** | Storage for ANC card images and documents | ✅ Active |
+| **SNS** | SMS and push notifications for emergency alerts | ✅ Configured |
+| **SES** | Email notifications (welcome, approval, alerts) | ✅ Configured (sandbox) |
+| **Textract** | OCR for handwritten ANC card digitization | ✅ Integrated |
+| **Bedrock** | Claude 3 Haiku for Hindi symptom NLP | 🚧 In Progress |
+| **Step Functions** | Emergency workflow orchestration (ASL state machine) | 🚧 Planned |
+| **IoT Core** | MQTT-based real-time GPS tracking for ambulances | 🚧 Planned |
+| **SAM / CloudFormation** | Infrastructure as Code, parameterized deployment | ✅ Deployed |
 
 ### Database Schema
 
@@ -358,7 +359,8 @@ MaatriSahayak/
 │   │   ├── exceptions.py              # Custom exception hierarchy
 │   │   ├── models.py                  # Pydantic v2 data models
 │   │   ├── utils.py                   # HTTP responses, logging, Haversine
-│   │   └── validators.py              # Input validation functions
+│   │   ├── validators.py              # Input validation functions
+│   │   └── email_service.py           # SES email sending service
 │   ├── register_pregnancy/            # POST /pregnancies
 │   ├── record_vitals/                 # POST /vitals
 │   ├── trigger_emergency/             # POST /emergency (core function)
@@ -367,7 +369,9 @@ MaatriSahayak/
 │   ├── process_anc_card/              # Textract OCR pipeline
 │   ├── find_nearest_ambulance/        # POST /ambulances/nearest
 │   ├── send_notifications/            # SNS SMS + push notifications
-│   └── ... (38 functions total)
+│   ├── send_welcome_email/            # SES welcome email on registration
+│   ├── list_emergencies/              # GET /emergencies with filters
+│   └── ... (35 functions total)
 │
 ├── frontend/                          # Web Dashboard
 │   ├── src/
@@ -422,6 +426,14 @@ MaatriSahayak/
 
 ---
 
+## Live Demo
+
+🌐 **Website**: [http://maatrisahayak.in](http://maatrisahayak.in) (LIVE)
+
+The web dashboard is deployed and accessible. You can register as a District Health Officer and explore the platform.
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -466,6 +478,13 @@ sam deploy --guided
 ```
 
 SAM will prompt for the environment parameter (`dev`, `staging`, or `prod`) and deploy the full stack: API Gateway, Lambda functions, DynamoDB tables, Cognito, and SNS.
+
+After deployment, seed the database with sample data:
+
+```bash
+cd scripts
+python seed_data.py
+```
 
 ### 4. Start the Web Dashboard
 
@@ -524,66 +543,69 @@ https://{api-id}.execute-api.{region}.amazonaws.com/{environment}/
 
 ### Authentication
 
-| Method | Endpoint | Description |
-|:---|:---|:---|
-| POST | `/asha/register` | Register a new ASHA worker |
-| POST | `/asha/login` | Login and receive JWT tokens |
-| POST | `/auth/refresh` | Refresh authentication tokens |
-| GET | `/asha/{id}` | Get ASHA worker profile |
-| PUT | `/asha/{id}` | Update ASHA worker profile |
+| Method | Endpoint | Description | Status |
+|:---|:---|:---|:---|
+| POST | `/asha/register` | Register a new ASHA worker | ✅ |
+| POST | `/asha/login` | Login and receive JWT tokens | ✅ |
+| POST | `/auth/refresh` | Refresh authentication tokens | ✅ |
+| GET | `/asha/{id}` | Get ASHA worker profile | ✅ |
+| PUT | `/asha/{id}` | Update ASHA worker profile | ✅ |
+| POST | `/officer/register` | Register a District Health Officer | ✅ |
+| POST | `/driver/register` | Register an ambulance driver | ✅ |
 
 ### Pregnancy Management
 
-| Method | Endpoint | Description |
-|:---|:---|:---|
-| POST | `/pregnancies` | Register a new pregnancy |
-| GET | `/pregnancies` | List pregnancies (filterable, paginated) |
-| GET | `/pregnancies/{id}` | Get pregnancy details |
-| PUT | `/pregnancies/{id}` | Update pregnancy information |
+| Method | Endpoint | Description | Status |
+|:---|:---|:---|:---|
+| POST | `/pregnancies` | Register a new pregnancy | ✅ |
+| GET | `/pregnancies` | List pregnancies (filterable, paginated) | ✅ |
+| GET | `/pregnancies/{id}` | Get pregnancy details | ✅ |
+| PUT | `/pregnancies/{id}` | Update pregnancy information | ✅ |
 
 ### Vitals and ANC
 
-| Method | Endpoint | Description |
-|:---|:---|:---|
-| POST | `/vitals` | Record vital signs |
-| GET | `/pregnancies/{id}/vitals-history` | Get vitals timeline |
-| POST | `/anc/visits` | Record an ANC visit |
-| GET | `/pregnancies/{id}/anc-history` | Get ANC visit history |
+| Method | Endpoint | Description | Status |
+|:---|:---|:---|:---|
+| POST | `/vitals` | Record vital signs | ✅ |
+| GET | `/pregnancies/{id}/vitals-history` | Get vitals timeline | ✅ |
+| POST | `/anc/visits` | Record an ANC visit | ✅ |
+| GET | `/pregnancies/{id}/anc-history` | Get ANC visit history | ✅ |
 
 ### Emergency
 
-| Method | Endpoint | Description |
-|:---|:---|:---|
-| POST | `/emergency` | Trigger emergency response |
-| GET | `/emergencies/{id}` | Monitor emergency status |
-| PUT | `/emergencies/{id}/complete` | Complete emergency |
+| Method | Endpoint | Description | Status |
+|:---|:---|:---|:---|
+| POST | `/emergency` | Trigger emergency response | ✅ |
+| GET | `/emergencies` | List all emergencies with filters | ✅ |
+| GET | `/emergencies/{id}` | Monitor emergency status | ✅ |
+| PUT | `/emergencies/{id}/complete` | Complete emergency | ✅ |
 
 ### Ambulance
 
-| Method | Endpoint | Description |
-|:---|:---|:---|
-| POST | `/ambulances` | Register an ambulance |
-| POST | `/ambulances/nearest` | Find nearest available ambulance |
-| PUT | `/ambulances/{id}/location` | Update ambulance GPS location |
-| GET | `/ambulances/{id}/status` | Get ambulance status |
-| GET | `/ambulances/{id}/route` | Get ambulance route |
+| Method | Endpoint | Description | Status |
+|:---|:---|:---|:---|
+| POST | `/ambulances` | Register an ambulance | ✅ |
+| POST | `/ambulances/nearest` | Find nearest available ambulance | ✅ |
+| PUT | `/ambulances/{id}/location` | Update ambulance GPS location | ✅ |
+| GET | `/ambulances/{id}/status` | Get ambulance status | ✅ |
+| GET | `/ambulances/{id}/route` | Get ambulance route | 🚧 |
 
 ### Hospital
 
-| Method | Endpoint | Description |
-|:---|:---|:---|
-| POST | `/hospitals` | Register a hospital |
-| GET | `/hospitals` | List hospitals |
-| GET | `/hospitals/{id}/capacity` | Check hospital bed capacity |
-| PUT | `/hospitals/{id}/capacity` | Update hospital capacity |
+| Method | Endpoint | Description | Status |
+|:---|:---|:---|:---|
+| POST | `/hospitals` | Register a hospital | ✅ |
+| GET | `/hospitals` | List hospitals | ✅ |
+| GET | `/hospitals/{id}/capacity` | Check hospital bed capacity | ✅ |
+| PUT | `/hospitals/{id}/capacity` | Update hospital capacity | ✅ |
 
 ### AI / ML
 
-| Method | Endpoint | Description |
-|:---|:---|:---|
-| POST | `/risk/assess/{pregnancy_id}` | Run ML risk assessment |
-| POST | `/symptoms/analyze` | Analyze symptoms via Bedrock NLP |
-| POST | `/anc/process` | Process ANC card image via Textract |
+| Method | Endpoint | Description | Status |
+|:---|:---|:---|:---|
+| POST | `/risk/assess/{pregnancy_id}` | Run ML risk assessment | ✅ |
+| POST | `/symptoms/analyze` | Analyze symptoms via Bedrock NLP | 🚧 |
+| POST | `/anc/process` | Process ANC card image via Textract | ✅ |
 
 ---
 
@@ -616,6 +638,40 @@ The project includes 4 GitHub Actions workflows:
 | `deploy.yml` | Push to main | Deploys to AWS via SAM |
 | `seed-data.yml` | Manual | Seeds DynamoDB with sample data |
 | `cleanup.yml` | Manual | Tears down AWS resources |
+
+---
+
+## Current Implementation Status
+
+**Overall Progress**: ~86% Complete
+
+### ✅ Fully Implemented
+- Backend Infrastructure (35 Lambda functions deployed)
+- API Gateway with Cognito authentication
+- DynamoDB database with 6 tables
+- Web Dashboard (live at maatrisahayak.in)
+- Mobile App (React Native - 85% complete)
+- AI Risk Assessment (Random Forest model)
+- ANC Card OCR (Amazon Textract)
+- Email notifications via AWS SES
+- Officer registration and approval workflow
+
+### 🚧 In Progress
+- AWS Bedrock integration for Hindi NLP (handler exists, needs wiring)
+- Real-time WebSocket updates for dashboard
+- Mobile app offline SQLite database
+- Push notifications (FCM)
+- IoT Core for real-time ambulance GPS tracking
+- Step Functions parallel emergency orchestration
+
+### 📋 Planned
+- Production SES access (pending AWS approval)
+- Full offline-first mobile architecture
+- Multi-language support (Hindi UI)
+- Advanced analytics and reporting
+- End-to-end testing suite
+
+For detailed progress tracking, see [PROGRESS_SUMMARY.md](PROGRESS_SUMMARY.md).
 
 ---
 
@@ -720,6 +776,31 @@ gantt
 | [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) | Stakeholder and hackathon overview |
 | [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md) | Phased implementation plan |
 | [WINNING_STRATEGY.md](WINNING_STRATEGY.md) | Hackathon strategy and positioning |
+| [PROGRESS_SUMMARY.md](PROGRESS_SUMMARY.md) | Current implementation status and remaining tasks |
+
+---
+
+## Quick Start Guide
+
+### For District Health Officers (Web Dashboard)
+
+1. Visit [http://maatrisahayak.in](http://maatrisahayak.in)
+2. Click "Register as Officer"
+3. Fill in your details (name, email, phone, district)
+4. Wait for admin approval (email notification sent)
+5. Login and access the dashboard
+
+### For ASHA Workers (Mobile App)
+
+1. Install the MaatriSahayak mobile app
+2. Register with your ASHA ID and district
+3. Wait for approval from District Health Officer
+4. Set up your 4-digit PIN for quick access
+5. Start registering pregnancies and recording vitals
+
+### For Developers
+
+See the [Getting Started](#getting-started) section above for local development setup.
 
 ---
 

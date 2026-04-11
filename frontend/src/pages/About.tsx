@@ -1,6 +1,6 @@
 import React from 'react';
-import { Box, Grid, Paper, Typography } from '@mui/material';
-import { PublicOutlined, SecurityOutlined, EmojiObjectsOutlined, TimelineOutlined } from '@mui/icons-material';
+import { Box, Grid, Paper, Typography, Divider } from '@mui/material';
+import { PublicOutlined, SecurityOutlined, EmojiObjectsOutlined, TimelineOutlined, LockOutlined, VerifiedUserOutlined, StorageOutlined, AdminPanelSettingsOutlined } from '@mui/icons-material';
 import PublicLayout, { usePublicTheme } from '../components/PublicLayout';
 import krishnaTripathiImg from '../assets/krishna.jpg';
 import akhandPratapImg from '../assets/akhand.jpg';
@@ -212,6 +212,123 @@ const AboutContent: React.FC = () => {
               </Paper>
             </Grid>
           </Grid>
+        </Paper>
+      </Box>
+
+      <Box sx={{ px: { xs: 2.5, md: 6 }, mt: 8 }}>
+        <Divider sx={{ mb: 4, borderColor: palette.panelBorder }} />
+        <Typography sx={{ fontSize: { xs: '1.8rem', md: '2.2rem' }, fontWeight: 900, color: palette.text, mb: 3 }}>
+          Privacy & Data Protection
+        </Typography>
+        <Typography sx={{ fontSize: '1rem', color: palette.textMuted, lineHeight: 1.8, maxWidth: 820, mb: 4 }}>
+          MaatriSahayak is fully compliant with the Digital Personal Data Protection Act (DPDPA) 2023.
+          We prioritize patient privacy, data security, and transparent consent management.
+        </Typography>
+
+        <Grid container spacing={2.5}>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{
+              p: 3, borderRadius: '16px', border: `1px solid ${palette.panelBorder}`,
+              background: palette.panel, height: '100%',
+            }}>
+              <Box sx={{ color: palette.accent, mb: 1.5 }}><StorageOutlined fontSize="large" /></Box>
+              <Typography sx={{ fontWeight: 700, color: palette.text, mb: 1 }}>Data Residency</Typography>
+              <Typography sx={{ fontSize: '0.9rem', color: palette.textMuted, lineHeight: 1.7 }}>
+                All patient data is stored exclusively in AWS Mumbai Region (ap-south-1), ensuring compliance
+                with Indian data localization requirements. No data crosses international borders.
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper sx={{
+              p: 3, borderRadius: '16px', border: `1px solid ${palette.panelBorder}`,
+              background: palette.panel, height: '100%',
+            }}>
+              <Box sx={{ color: palette.accent, mb: 1.5 }}><LockOutlined fontSize="large" /></Box>
+              <Typography sx={{ fontWeight: 700, color: palette.text, mb: 1 }}>Encryption Standards</Typography>
+              <Typography sx={{ fontSize: '0.9rem', color: palette.textMuted, lineHeight: 1.7 }}>
+                Data at rest: AES-256 encryption on DynamoDB and S3<br />
+                Data in transit: TLS 1.3 for all API communications<br />
+                Authentication: AWS Cognito with secure token management
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper sx={{
+              p: 3, borderRadius: '16px', border: `1px solid ${palette.panelBorder}`,
+              background: palette.panel, height: '100%',
+            }}>
+              <Box sx={{ color: palette.accent, mb: 1.5 }}><VerifiedUserOutlined fontSize="large" /></Box>
+              <Typography sx={{ fontWeight: 700, color: palette.text, mb: 1 }}>Patient Consent Flow</Typography>
+              <Typography sx={{ fontSize: '0.9rem', color: palette.textMuted, lineHeight: 1.7 }}>
+                • Explicit consent obtained during pregnancy registration<br />
+                • Clear disclosure of data usage for emergency coordination<br />
+                • Right to withdraw consent and request data deletion<br />
+                • Consent records maintained with audit trails
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper sx={{
+              p: 3, borderRadius: '16px', border: `1px solid ${palette.panelBorder}`,
+              background: palette.panel, height: '100%',
+            }}>
+              <Box sx={{ color: palette.accent, mb: 1.5 }}><AdminPanelSettingsOutlined fontSize="large" /></Box>
+              <Typography sx={{ fontWeight: 700, color: palette.text, mb: 1 }}>Role-Based Access Control</Typography>
+              <Typography sx={{ fontSize: '0.9rem', color: palette.textMuted, lineHeight: 1.7 }}>
+                • ASHA Workers: View assigned pregnancies only<br />
+                • District Officers: Full district-level access<br />
+                • Drivers: Emergency location data only<br />
+                • Hospital Staff: Patient data upon admission only
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        <Paper sx={{
+          p: { xs: 3, md: 4 },
+          borderRadius: '18px',
+          background: palette.panel,
+          border: `1px solid ${palette.panelBorder}`,
+          mt: 3,
+        }}>
+          <Typography sx={{ fontWeight: 800, color: palette.text, mb: 1.5 }}>DPDPA 2023 Compliance Measures</Typography>
+          <Box sx={{ display: 'grid', gap: 1.5 }}>
+            {[
+              { title: 'Purpose Limitation', desc: 'Data collected solely for maternal emergency response and healthcare coordination' },
+              { title: 'Data Minimization', desc: 'Only essential health information collected; no unnecessary personal data' },
+              { title: 'Accuracy & Updates', desc: 'ASHA workers can update patient records; patients can request corrections' },
+              { title: 'Retention Policy', desc: 'Data retained for 5 years post-delivery as per medical record guidelines, then securely deleted' },
+              { title: 'Security Safeguards', desc: 'Multi-layer security with encryption, access logs, and regular security audits' },
+              { title: 'Breach Notification', desc: 'Incident response plan with 72-hour notification protocol to affected individuals' },
+              { title: 'Data Principal Rights', desc: 'Patients can access, correct, and request deletion of their data through ASHA workers or district officers' },
+            ].map((item, i) => (
+              <Box key={i} sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                <Typography sx={{ fontWeight: 700, color: palette.accent, minWidth: 24 }}>{String(i + 1).padStart(2, '0')}</Typography>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, color: palette.text }}>{item.title}</Typography>
+                  <Typography sx={{ fontSize: '0.9rem', color: palette.textMuted }}>{item.desc}</Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </Paper>
+
+        <Paper sx={{
+          p: { xs: 3, md: 4 },
+          borderRadius: '18px',
+          background: palette.mode === 'light' ? '#FFF9E6' : '#2A2416',
+          border: `1px solid ${palette.mode === 'light' ? '#FFE082' : '#4A3A16'}`,
+          mt: 3,
+        }}>
+          <Typography sx={{ fontWeight: 800, color: palette.text, mb: 1 }}>Contact Data Protection Officer</Typography>
+          <Typography sx={{ fontSize: '0.9rem', color: palette.textMuted, lineHeight: 1.7 }}>
+            For data protection queries, consent withdrawal, or data access requests, contact our Data Protection Officer at{' '}
+            <Box component="span" sx={{ fontWeight: 600, color: palette.accent }}>privacy@maatrisahayak.in</Box>
+          </Typography>
         </Paper>
       </Box>
     </>

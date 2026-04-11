@@ -27,13 +27,15 @@ BEDROCK_MODEL_ID = os.getenv('BEDROCK_MODEL_ID', 'anthropic.claude-v2')
 
 def lambda_handler(event, context):
     """
-    Analyze pregnancy-related symptoms using AI.
+    Analyze pregnancy-related symptoms using AI with multilingual support.
     
     Expected Input:
     {
-        "symptoms": "string or array of strings",
+        "symptoms": "string or array of strings (in Hindi or English)",
+        "language": "hi" or "en" (default: "en"),
         "gestational_age_weeks": int (optional),
-        "medical_history": {...} (optional)
+        "medical_history": {...} (optional),
+        "pregnancy_id": "string" (optional - for context)
     }
     
     Returns:
@@ -43,10 +45,15 @@ def lambda_handler(event, context):
             "analysis": "...",
             "severity": "LOW|MODERATE|HIGH|EMERGENCY",
             "recommendations": [...],
-            "requires_immediate_attention": boolean
+            "requires_immediate_attention": boolean,
+            "action_plan": "Plain language action recommendation",
+            "response_time_ms": int
         }
     }
     """
+    import time
+    start_time = time.time()
+    
     try:
         log_info("Analyze symptoms request received")
         
@@ -61,18 +68,31 @@ def lambda_handler(event, context):
         if isinstance(symptoms, str):
             symptoms = [symptoms]
         
+        language = body.get('language', 'en')
         gestational_age = body.get('gestational_age_weeks')
         medical_history = body.get('medical_history', {})
+        pregnancy_id = body.get('pregnancy_id')
         
-        log_info("Analyzing symptoms", symptom_count=len(symptoms))
+        log_info("Analyzing symptoms with AI", symptom_count=len(symptoms), language=language)
         
-        # Analyze symptoms using AI
-        analysis_result = analyze_symptoms_with_ai(symptoms, gestational_age, medical_history)
+        # Use AI-powered analysis with Bedrock
+        analysis_result = analyze_symptoms_with_bedrock(
+            symptoms, 
+            gestational_age, 
+            medical_history,
+            language,
+            pregnancy_id
+        )
+        
+        # Calculate response time
+        response_time_ms = int((time.time() - start_time) * 1000)
+        analysis_result['response_time_ms'] = response_time_ms
         
         log_info(
             "Symptom analysis completed",
             severity=analysis_result['severity'],
-            requires_attention=analysis_result['requires_immediate_attention']
+            requires_attention=analysis_result['requires_immediate_attention'],
+            response_time_ms=response_time_ms
         )
         
         return create_success_response(
@@ -228,39 +248,144 @@ def analyze_symptoms_with_ai(symptoms: list, gestational_age: int = None, medica
     }
 
 
-def invoke_bedrock_model(prompt: str) -> str:
+def invoke_bedrock_model(prompt: str, language: str = 'en') -> str:
     """
-    Invoke Amazon Bedrock model for symptom analysis.
-    
-    This is a placeholder for production implementation.
+    Invoke Amazon Bedrock Claude 3 for symptom analysis with multilingual support.
     
     Args:
         prompt: Prompt for the AI model
+        language: Language code ('en' or 'hi')
     
     Returns:
-        AI model response
+        AI model response in requested language
     """
     try:
-        # Prepare request body for Claude model
+        # Enhanced system context for maternal health
+        system_context = """You are an expert maternal health AI assistant specialized in obstetric emergencies in rural India.
+Analyze symptoms, assess severity using clinical guidelines, and provide clear action recommendations.
+Focus on: preeclampsia, eclampsia, postpartum hemorrhage, sepsis, obstructed labor, and fetal distress.
+Always prioritize patient safety. For critical symptoms, recommend immediate medical attention."""
+
+        language_instruction = ""
+        if language == 'hi':
+            language_instruction = "\n\nIMPORTANT: Provide your entire response in Hindi (Devanagari script). Use simple, clear medical terminology that ASHA workers and patients can understand. Avoid complex English medical terms."
+        
+        # Prepare request body for Claude 3 Sonnet
         request_body = {
-            "prompt": f"\n\nHuman: {prompt}\n\nAssistant:",
-            "max_tokens_to_sample": 500,
-            "temperature": 0.5,
-            "top_p": 0.9
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 1000,
+            "temperature": 0.3,
+            "top_p": 0.9,
+            "system": system_context + language_instruction,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
         }
         
         # Invoke Bedrock model
         response = bedrock_client.invoke_model(
-            modelId=BEDROCK_MODEL_ID,
+            modelId='anthropic.claude-3-sonnet-20240229-v1:0',
             body=json.dumps(request_body)
         )
         
         # Parse response
         response_body = json.loads(response['body'].read())
-        completion = response_body.get('completion', '')
-        
-        return completion.strip()
+        return response_body['content'][0]['text']
     
     except Exception as e:
         log_error("Failed to invoke Bedrock model", e)
+        # Fallback to rule-based if Bedrock fails
         raise
+
+
+def analyze_symptoms_with_bedrock(symptoms: list, gestational_age: int = None, 
+                                   medical_history: dict = None, language: str = 'en',
+                                   pregnancy_id: str = None) -> dict:
+    """
+    AI-powered symptom analysis using Amazon Bedrock with natural language understanding.
+    Parses symptoms in patient's own words (Hindi or English) and returns clinical assessment.
+    
+    Args:
+        symptoms: List of symptom descriptions in natural language
+        gestational_age: Gestational age in weeks
+        medical_history: Medical history dictionary
+        language: Response language ('en' or 'hi')
+        pregnancy_id: Optional pregnancy ID for context
+    
+    Returns:
+        Comprehensive analysis with severity, recommendations, and action plan
+    """
+    try:
+        # Build context for AI
+        context_parts = []
+        context_parts.append(f"Patient symptoms: {', '.join(symptoms)}")
+        
+        if gestational_age:
+            trimester = "first" if gestational_age < 13 else "second" if gestational_age < 28 else "third"
+            context_parts.append(f"Gestational age: {gestational_age} weeks ({trimester} trimester)")
+        
+        if medical_history:
+            history_items = []
+            if medical_history.get('diabetes'): history_items.append("diabetes")
+            if medical_history.get('hypertension'): history_items.append("hypertension")
+            if medical_history.get('previous_cesarean'): history_items.append("previous cesarean")
+            if medical_history.get('anemia'): history_items.append("anemia")
+            if history_items:
+                context_parts.append(f"Medical history: {', '.join(history_items)}")
+        
+        context = "\n".join(context_parts)
+        
+        # Create AI prompt
+        prompt = f"""{context}
+
+Task: Analyze these pregnancy symptoms and provide:
+1. Clinical assessment of severity (LOW, MODERATE, HIGH, or EMERGENCY)
+2. Specific clinical concerns identified
+3. Clear action recommendations for ASHA worker
+4. Whether immediate medical attention is required (yes/no)
+5. Plain language explanation for the patient
+
+Format your response as JSON:
+{{
+  "severity": "EMERGENCY|HIGH|MODERATE|LOW",
+  "clinical_concerns": ["concern1", "concern2"],
+  "requires_immediate_attention": true/false,
+  "action_plan": "Clear, actionable steps in simple language",
+  "recommendations": ["recommendation1", "recommendation2"],
+  "patient_explanation": "Simple explanation for patient"
+}}"""
+
+        # Get AI response
+        ai_response = invoke_bedrock_model(prompt, language)
+        
+        # Parse JSON from AI response
+        import re
+        json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
+        if json_match:
+            result = json.loads(json_match.group())
+        else:
+            # Fallback if JSON parsing fails
+            result = analyze_symptoms_with_ai(symptoms, gestational_age, medical_history)
+            result['ai_powered'] = False
+            return result
+        
+        # Enhance result with additional fields
+        result['symptoms_analyzed'] = symptoms
+        result['ai_powered'] = True
+        result['language'] = language
+        
+        # Ensure all required fields exist
+        if 'analysis' not in result:
+            result['analysis'] = result.get('patient_explanation', result.get('action_plan', ''))
+        
+        return result
+        
+    except Exception as e:
+        log_error("Bedrock analysis failed, using fallback", e)
+        # Fallback to rule-based analysis
+        result = analyze_symptoms_with_ai(symptoms, gestational_age, medical_history)
+        result['ai_powered'] = False
+        return result

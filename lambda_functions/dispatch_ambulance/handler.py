@@ -17,7 +17,8 @@ from shared import (
     get_item,
     update_item,
     get_current_timestamp,
-    validate_required_fields
+    validate_required_fields,
+    send_ambulance_dispatched_email,
 )
 from shared.constants import TABLE_NAMES, HTTP_STATUS
 
@@ -107,7 +108,22 @@ def lambda_handler(event, context):
         }
         
         log_info("Ambulance dispatched", emergency_id=emergency_id, ambulance_id=ambulance_id)
-        
+
+        # Notify the ASHA worker who triggered the emergency
+        asha_email = emergency.get('asha_email')
+        asha_name = emergency.get('asha_name', 'ASHA Worker')
+        if asha_email:
+            try:
+                send_ambulance_dispatched_email(
+                    asha_name=asha_name,
+                    asha_email=asha_email,
+                    driver_name=ambulance.get('driver_name', 'Driver'),
+                    vehicle_number=ambulance.get('vehicle_number', ambulance.get('registration_number', 'N/A')),
+                    eta_minutes=body.get('eta_minutes', 20)
+                )
+            except Exception as e:
+                log_error("Failed to send dispatch email (non-fatal)", e)
+
         return create_success_response(
             response_data,
             "Ambulance dispatched successfully"

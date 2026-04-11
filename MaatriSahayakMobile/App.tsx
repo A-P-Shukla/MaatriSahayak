@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StyleSheet, View } from 'react-native';
 import NetworkBanner from './src/components/NetworkBanner';
+import './src/config/i18n'; // Initialize i18n
 
 function App(): React.JSX.Element {
   return (

@@ -47,9 +47,15 @@ const PendingApprovalsPanel: React.FC<Props> = ({ open, onClose, onCountChange }
     }
   }, []);
 
-  useEffect(() => { if (open) fetchAll(); }, [open, fetchAll]);
+  useEffect(() => { 
+    if (open) {
+      fetchAll();
+    }
+  }, [open, fetchAll]);
 
-  useEffect(() => { onCountChange?.(totalPending); }, [totalPending, onCountChange]);
+  useEffect(() => { 
+    onCountChange?.(totalPending); 
+  }, [totalPending, onCountChange]);
 
   const handleAction = async () => {
     if (!confirm) return;

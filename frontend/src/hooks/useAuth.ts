@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, createContext, useContext, ReactNode,
 import {
   login as loginService,
   loginDriver as loginDriverService,
+  loginOfficer as loginOfficerService,
   logout as logoutService,
   getCurrentUser,
   isAuthenticated as checkAuth,
@@ -19,6 +20,7 @@ import type { LoginCredentials, AuthState } from '../types';
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   loginDriver: (credentials: LoginCredentials) => Promise<void>;
+  loginOfficer: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -40,11 +42,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initAuth = async () => {
       try {
         const isAuth = checkAuth();
-        
+
         if (isAuth) {
           // Try to get stored user first
           const storedUser = getStoredUser();
-          
+
           if (storedUser) {
             setAuthState({
               user: storedUser,
@@ -93,9 +95,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useCallback(async (credentials: LoginCredentials) => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
-      
+
       const { user, tokens } = await loginService(credentials);
-      
+
       setAuthState({
         user,
         tokens,
@@ -122,6 +124,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       const { user, tokens } = await loginDriverService(credentials);
+
+      setAuthState({
+        user,
+        tokens,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      setAuthState({
+        user: null,
+        tokens: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: errorMessage,
+      });
+      throw error;
+    }
+  }, []);
+
+  // Login as District Officer
+  const loginOfficer = useCallback(async (credentials: LoginCredentials) => {
+    try {
+      setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      const { user, tokens } = await loginOfficerService(credentials);
 
       setAuthState({
         user,
@@ -178,6 +207,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     ...authState,
     login,
     loginDriver,
+    loginOfficer,
     logout,
     refreshUser,
   };
@@ -188,11 +218,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 // Custom hook to use auth context
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
+
   return context;
 };
 

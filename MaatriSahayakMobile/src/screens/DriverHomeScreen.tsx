@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet,
-    ScrollView, StatusBar, Alert, useWindowDimensions,
+    ScrollView, StatusBar, Alert, useWindowDimensions, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,6 +13,7 @@ import {
     addNotificationResponseListener,
     removeNotificationSubscription,
 } from '../services/notificationService';
+import { StorageService } from '../services/storage';
 
 const BG = '#0A0F1A';
 const CARD = '#111827';
@@ -48,9 +49,26 @@ const DriverHomeScreen = ({ navigation }: any) => {
     const responseListener = useRef<any>(null);
     const [isAvailable, setIsAvailable] = useState(true);
     const [totalRides, setTotalRides] = useState(0);
+    const [showWelcome, setShowWelcome] = useState(false);
 
     const displayName = user?.name || 'Driver';
     const firstName = displayName.split(' ')[0];
+
+    // Show welcome screen on first login
+    useEffect(() => {
+        const checkFirstLogin = async () => {
+            try {
+                const hasSeenWelcome = await StorageService.getItem('hasSeenDriverWelcome');
+                if (!hasSeenWelcome) {
+                    setShowWelcome(true);
+                    await StorageService.setItem('hasSeenDriverWelcome', 'true');
+                }
+            } catch (error) {
+                console.error('Error checking first login:', error);
+            }
+        };
+        checkFirstLogin();
+    }, []);
 
     useEffect(() => {
         const initNotifications = async () => {
@@ -91,6 +109,39 @@ const DriverHomeScreen = ({ navigation }: any) => {
     return (
         <SafeAreaView style={styles.root} edges={['top']}>
             <StatusBar barStyle="light-content" backgroundColor={BG} />
+
+            {/* Welcome Modal */}
+            <Modal visible={showWelcome} transparent animationType="fade">
+                <View style={styles.welcomeOverlay}>
+                    <View style={styles.welcomeCard}>
+                        <View style={styles.welcomeIconBox}>
+                            <Text style={styles.welcomeIcon}>🎉</Text>
+                        </View>
+                        <Text style={styles.welcomeTitle}>Welcome, {firstName}!</Text>
+                        <Text style={styles.welcomeSubtitle}>Your driver account has been approved</Text>
+                        <View style={styles.welcomeMessageBox}>
+                            <Text style={styles.welcomeMessage}>You're ready to respond to maternal emergencies and save lives. Your service is vital to our mission.</Text>
+                        </View>
+                        <View style={styles.welcomeFeatures}>
+                            <View style={styles.welcomeFeature}>
+                                <Text style={styles.welcomeFeatureIcon}>🚨</Text>
+                                <Text style={styles.welcomeFeatureText}>Accept emergencies</Text>
+                            </View>
+                            <View style={styles.welcomeFeature}>
+                                <Text style={styles.welcomeFeatureIcon}>🗺️</Text>
+                                <Text style={styles.welcomeFeatureText}>Navigate to patients</Text>
+                            </View>
+                            <View style={styles.welcomeFeature}>
+                                <Text style={styles.welcomeFeatureIcon}>📍</Text>
+                                <Text style={styles.welcomeFeatureText}>Update your location</Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity style={styles.welcomeBtn} onPress={() => setShowWelcome(false)}>
+                            <Text style={styles.welcomeBtnText}>Get Started</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
@@ -383,6 +434,22 @@ const styles = StyleSheet.create({
     tabIcon: { fontSize: 18 },
     tabLabel: { fontSize: 10, color: DIM, fontWeight: '600' },
     tabLabelActive: { color: PURPLEL, fontWeight: '800' },
+
+    // Welcome Modal
+    welcomeOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+    welcomeCard: { backgroundColor: CARD, borderRadius: 24, padding: 32, width: '100%', maxWidth: 400, alignItems: 'center', borderWidth: 1, borderColor: BORDER },
+    welcomeIconBox: { width: 80, height: 80, borderRadius: 40, backgroundColor: PURPLE, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    welcomeIcon: { fontSize: 40 },
+    welcomeTitle: { fontSize: 26, fontWeight: '900', color: WHITE, marginBottom: 8, textAlign: 'center' },
+    welcomeSubtitle: { fontSize: 14, color: PURPLEL, marginBottom: 24, textAlign: 'center', fontWeight: '600' },
+    welcomeMessageBox: { backgroundColor: BG, borderRadius: 16, padding: 20, marginBottom: 24, borderLeftWidth: 4, borderLeftColor: PURPLE },
+    welcomeMessage: { fontSize: 14, color: DIM, lineHeight: 22, textAlign: 'center' },
+    welcomeFeatures: { width: '100%', gap: 12, marginBottom: 28 },
+    welcomeFeature: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: BG, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: BORDER },
+    welcomeFeatureIcon: { fontSize: 24 },
+    welcomeFeatureText: { fontSize: 14, color: WHITE, fontWeight: '600', flex: 1 },
+    welcomeBtn: { backgroundColor: PURPLE, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 48, width: '100%', alignItems: 'center' },
+    welcomeBtnText: { color: WHITE, fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
 });
 
 export default DriverHomeScreen;

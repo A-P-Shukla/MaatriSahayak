@@ -6,6 +6,7 @@
     "@react-navigation/stack": "^7.7.2",
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.5",
+    "lucide-react-native": "^1.7.0",
     "react-native-gesture-handler": "^2.30.0",
     "react-native-quick-crypto": "^1.0.18",
     "react-native-reanimated": "^4.2.2",

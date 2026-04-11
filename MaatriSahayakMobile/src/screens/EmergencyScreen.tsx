@@ -10,6 +10,7 @@ import { triggerEmergencyThunk, clearPregnancyError } from '../store/slices/preg
 import { PregnancyService } from '../services/pregnancyService';
 import api from '../services/api';
 import { AppDispatch, RootState } from '../store';
+import { useTranslation } from 'react-i18next';
 
 const BG = '#0A1F1A';
 const CARD = '#112920';
@@ -41,6 +42,7 @@ const typeLabel: Record<string, string> = {
 };
 
 const EmergencyScreen = ({ navigation, route }: any) => {
+    const { t } = useTranslation();
     const dispatch = useDispatch<AppDispatch>();
     const { submitting, error } = useSelector((s: RootState) => s.pregnancy);
     const { user } = useSelector((s: RootState) => s.auth);
@@ -64,7 +66,7 @@ const EmergencyScreen = ({ navigation, route }: any) => {
     const set = (key: string) => (val: string) => setForm(f => ({ ...f, [key]: val }));
 
     useEffect(() => {
-        if (error) Alert.alert('Error', error, [{ text: 'OK', onPress: () => dispatch(clearPregnancyError()) }]);
+        if (error) Alert.alert(t('common.error'), error, [{ text: t('common.ok'), onPress: () => dispatch(clearPregnancyError()) }]);
     }, [error]);
 
     useEffect(() => {
@@ -503,6 +505,9 @@ const styles = StyleSheet.create({
     tag: { backgroundColor: 'rgba(0,229,160,0.1)', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(0,229,160,0.2)' },
     tagText: { fontSize: 10, color: DIM, fontWeight: '600' },
     hospitalRight: { alignItems: 'center', gap: 8, marginLeft: 8 },
+    distBadge: { backgroundColor: 'rgba(0,229,160,0.1)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(0,229,160,0.2)', marginBottom: 4 },
+    distKm: { fontSize: 14, fontWeight: '900', color: GREEN, textAlign: 'center' },
+    distUnit: { fontSize: 9, fontWeight: '600', color: DIM, textAlign: 'center' },
     selectedBadge: { width: 24, height: 24, borderRadius: 12, backgroundColor: GREEN, justifyContent: 'center', alignItems: 'center' },
     selectedBadgeText: { fontSize: 13, color: BG, fontWeight: '900' },
     callBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(0,229,160,0.1)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: BORDER },

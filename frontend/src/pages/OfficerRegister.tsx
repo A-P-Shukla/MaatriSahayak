@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Box, Typography, TextField, Button, Alert,
   InputAdornment, IconButton, Stack, Divider,
-  LinearProgress, CircularProgress,
+  CircularProgress,
 } from '@mui/material';
 import {
   Visibility, VisibilityOff, EmailOutlined, LockOutlined,
@@ -92,17 +92,36 @@ const OfficerRegister: React.FC = () => {
   };
 
   const validate = () => {
-    if (!form.name.trim())                                        return 'Full name is required';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))          return 'Enter a valid email address';
-    if (!/^\d{10}$/.test(form.phone))                            return 'Enter a valid 10-digit mobile number';
-    if (!form.district.trim())                                    return 'District is required';
-    if (!form.designation.trim())                                 return 'Designation is required';
-    if (!form.employee_id.trim())                                 return 'Employee ID is required';
-    if (form.password.length < 8)                                 return 'Password must be at least 8 characters';
-    if (!/[A-Z]/.test(form.password))                            return 'Password must contain an uppercase letter';
-    if (!/[0-9]/.test(form.password))                            return 'Password must contain a number';
-    if (!/[^A-Za-z0-9]/.test(form.password))                     return 'Password must contain a special character';
-    if (form.password !== form.confirmPassword)                   return 'Passwords do not match';
+    // Enhanced name validation
+    const name = form.name.trim();
+    if (!name) return 'Full name is required';
+    if (name.length < 3) return 'Name must be at least 3 characters';
+    if (name.split(/\s+/).length < 2) return 'Please enter first and last name';
+    if (/^(mr\.?|mrs\.?|ms\.?|dr\.?|test|demo|user|admin|sample|officer)\s/i.test(name)) return 'Please enter your real name (no titles or test names)';
+    if (/(.)\1{2,}/.test(name.replace(/\s/g, ''))) return 'Please enter a valid name';
+    if (/\d/.test(name)) return 'Name cannot contain numbers';
+    if (/[^a-zA-Z\s\-']/.test(name)) return 'Name contains invalid characters';
+    if (name.split(/\s+/).some(word => word.length < 2)) return 'Each name part must be at least 2 characters';
+
+    // Email validation - block disposable/temporary email domains
+    const disposableDomains = ['tempmail', 'throwaway', '10minutemail', 'guerrillamail', 'mailinator', 'trashmail', 'fakeinbox'];
+    const emailDomain = form.email.toLowerCase().split('@')[1];
+    if (disposableDomains.some(d => emailDomain?.includes(d))) return 'Please use a valid email address (temporary emails not allowed)';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Enter a valid email address';
+
+    // Phone validation - check for repeated digits
+    if (!/^\d{10}$/.test(form.phone)) return 'Enter a valid 10-digit mobile number';
+    if (/^(\d)\1{9}$/.test(form.phone)) return 'Please enter a valid phone number (not all same digits)';
+    if (/^(0{10}|1{10}|9{10})$/.test(form.phone)) return 'Please enter a valid phone number';
+
+    if (!form.district.trim()) return 'District is required';
+    if (!form.designation.trim()) return 'Designation is required';
+    if (!form.employee_id.trim()) return 'Employee ID is required';
+    if (form.password.length < 8) return 'Password must be at least 8 characters';
+    if (!/[A-Z]/.test(form.password)) return 'Password must contain an uppercase letter';
+    if (!/[0-9]/.test(form.password)) return 'Password must contain a number';
+    if (!/[^A-Za-z0-9]/.test(form.password)) return 'Password must contain a special character';
+    if (form.password !== form.confirmPassword) return 'Passwords do not match';
     return null;
   };
 
@@ -123,7 +142,6 @@ const OfficerRegister: React.FC = () => {
         password: form.password,
       });
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
     } finally {
@@ -161,13 +179,26 @@ const OfficerRegister: React.FC = () => {
             <CelebrationOutlined sx={{ fontSize: '1.3rem', color: C.rose }} />
           </Box>
           <Typography sx={{ color: C.textMid, fontSize: '0.9rem', lineHeight: 1.6, mb: 3 }}>
-            Account created! Check your email to verify, then log in.
+            Your account has been created successfully! Please check your email to verify your account, then you can log in.
           </Typography>
-          <LinearProgress sx={{
-            borderRadius: 4, height: 3,
-            bgcolor: 'rgba(192,57,91,0.1)',
-            '& .MuiLinearProgress-bar': { background: `linear-gradient(90deg, ${C.roseDark}, ${C.rose})` },
-          }} />
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => navigate('/login')}
+            sx={{
+              py: '13px',
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              borderRadius: '10px',
+              textTransform: 'none',
+              background: `linear-gradient(135deg, ${C.roseDark} 0%, ${C.rose} 55%, ${C.roseLight} 100%)`,
+              '&:hover': {
+                background: `linear-gradient(135deg, #881E3C 0%, ${C.roseDark} 100%)`,
+              },
+            }}
+          >
+            Go to Login
+          </Button>
         </Box>
       </Box>
     );

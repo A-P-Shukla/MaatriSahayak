@@ -17,7 +17,8 @@ from shared import (
     get_item,
     update_item,
     get_current_timestamp,
-    validate_required_fields
+    validate_required_fields,
+    send_hospital_alert_email,
 )
 from shared.constants import TABLE_NAMES, HTTP_STATUS
 
@@ -90,6 +91,18 @@ def lambda_handler(event, context):
         
         # TODO: Send actual notification to hospital (SMS/Email/Push)
         # This would integrate with SNS or other notification service
+        hospital_email = hospital.get('email')
+        if hospital_email:
+            try:
+                send_hospital_alert_email(
+                    hospital_email=hospital_email,
+                    hospital_name=hospital.get('name', 'Hospital'),
+                    patient_risk=emergency.get('risk_level', 'HIGH'),
+                    eta_minutes=body.get('estimated_arrival_time', 20),
+                    emergency_id=emergency_id
+                )
+            except Exception as e:
+                log_error("Failed to send hospital alert email (non-fatal)", e)
         
         response_data = {
             'emergency_id': emergency_id,

@@ -7,6 +7,7 @@ AI-powered risk assessment using the pre-trained Random Forest model.
 import os
 import pickle
 import pandas as pd
+import boto3
 from fastapi import FastAPI, HTTPException, Path, Body
 from pydantic import BaseModel, Field
 from mangum import Mangum
@@ -136,3 +137,182 @@ def assess_risk(
 # Wrap the FastAPI app in Mangum for AWS Lambda
 lambda_handler = Mangum(app)
 
+
+
+# ==================== CONTINUOUS RISK MONITORING ====================
+# This function is triggered by DynamoDB Streams on VitalSigns table
+# It automatically reassesses risk whenever new vitals are recorded
+
+def continuous_risk_monitor_handler(event, context):
+    """
+    DynamoDB Stream handler for continuous risk monitoring.
+    Triggered automatically when vitals are recorded or pregnancy data changes.
+    
+    This implements the "AI model watches data between visits" feature.
+    """
+    try:
+        log_info("Continuous risk monitoring triggered", record_count=len(event['Records']))
+        
+        for record in event['Records']:
+            if record['eventName'] in ['INSERT', 'MODIFY']:
+                # Get the new data
+                new_image = record['dynamodb'].get('NewImage', {})
+                old_image = record['dynamodb'].get('OldImage', {})
+                
+                # Extract pregnancy_id
+                pregnancy_id = new_image.get('pregnancy_id', {}).get('S')
+                
+                if not pregnancy_id:
+                    continue
+                
+                log_info("Processing risk update", pregnancy_id=pregnancy_id)
+                
+                # Get full pregnancy and vitals data
+                pregnancy_table = TABLE_NAMES.get('PREGNANCIES')
+                vitals_table = TABLE_NAMES.get('VITAL_SIGNS')
+                
+                pregnancy = get_item(pregnancy_table, {'id': pregnancy_id})
+                if not pregnancy:
+                    continue
+                
+                # Get latest vitals
+                from shared.db_helper import query_items
+                latest_vitals = query_items(
+                    vitals_table,
+                    'pregnancy-events-index',
+                    'pregnancy_id = :pid',
+                    {':pid': pregnancy_id},
+                    scan_index_forward=False,
+                    limit=1
+                )
+                
+                if not latest_vitals:
+                    continue
+                
+                vital = latest_vitals[0]
+                
+                # Build patient data for ML model
+                patient_data = {
+                    'Age': pregnancy.get('age', 25),
+                    'Systolic_BP': vital.get('blood_pressure_systolic', 120),
+                    'Diastolic': vital.get('blood_pressure_diastolic', 80),
+                    'BS': vital.get('blood_sugar', 5.0),
+                    'Body_Temp': vital.get('temperature', 98.6),
+                    'BMI': pregnancy.get('bmi', 22.0),
+                    'Previous_Complications': 1 if pregnancy.get('previous_complications') else 0,
+                    'Preexisting_Diabetes': 1 if pregnancy.get('medical_history', {}).get('diabetes') else 0,
+                    'Gestational_Diabetes': 1 if pregnancy.get('gestational_diabetes') else 0,
+                    'Mental_Health': 1 if pregnancy.get('mental_health_concerns') else 0,
+                    'Heart_Rate': vital.get('heart_rate', 75)
+                }
+                
+                # Run ML prediction
+                if model:
+                    input_df = pd.DataFrame([{
+                        'Age': patient_data['Age'],
+                        'Systolic BP': patient_data['Systolic_BP'],
+                        'Diastolic': patient_data['Diastolic'],
+                        'BS': patient_data['BS'],
+                        'Body Temp': patient_data['Body_Temp'],
+                        'BMI': patient_data['BMI'],
+                        'Previous Complications': patient_data['Previous_Complications'],
+                        'Preexisting Diabetes': patient_data['Preexisting_Diabetes'],
+                        'Gestational Diabetes': patient_data['Gestational_Diabetes'],
+                        'Mental Health': patient_data['Mental_Health'],
+                        'Heart Rate': patient_data['Heart_Rate']
+                    }])
+                    
+                    prediction = int(model.predict(input_df)[0])
+                    new_risk_level = "HIGH" if prediction == 1 else "LOW"
+                    new_risk_score = 0.85 if prediction == 1 else 0.15
+                    
+                    old_risk_level = pregnancy.get('risk_level')
+                    
+                    # Update if risk changed
+                    if old_risk_level != new_risk_level:
+                        update_item(
+                            pregnancy_table,
+                            {'id': pregnancy_id},
+                            {
+                                'risk_level': new_risk_level,
+                                'risk_score': new_risk_score,
+                                'risk_updated_at': get_current_timestamp(),
+                                'risk_change_detected': True
+                            }
+                        )
+                        
+                        log_info(
+                            "RISK LEVEL CHANGED - Alert triggered",
+                            pregnancy_id=pregnancy_id,
+                            old_risk=old_risk_level,
+                            new_risk=new_risk_level
+                        )
+                        
+                        # Trigger alert if risk increased to HIGH
+                        if new_risk_level == "HIGH" and old_risk_level != "HIGH":
+                            send_risk_alert(pregnancy_id, pregnancy, new_risk_level, new_risk_score)
+                    else:
+                        # Update score even if level didn't change
+                        update_item(
+                            pregnancy_table,
+                            {'id': pregnancy_id},
+                            {
+                                'risk_score': new_risk_score,
+                                'risk_updated_at': get_current_timestamp()
+                            }
+                        )
+        
+        log_info("Continuous risk monitoring completed")
+        return {'statusCode': 200, 'body': 'Risk monitoring completed'}
+        
+    except Exception as e:
+        log_error("Error in continuous risk monitoring", e)
+        return {'statusCode': 500, 'body': str(e)}
+
+
+def send_risk_alert(pregnancy_id: str, pregnancy: dict, risk_level: str, risk_score: float):
+    """
+    Send alert when risk level increases.
+    This implements the "raises the alarm when it detects a pattern heading toward danger" feature.
+    """
+    try:
+        # Get ASHA worker details
+        asha_id = pregnancy.get('asha_worker_id')
+        if not asha_id:
+            return
+        
+        asha_table = TABLE_NAMES.get('ASHA_WORKERS')
+        asha = get_item(asha_table, {'id': asha_id})
+        
+        if not asha:
+            return
+        
+        # Send SNS notification
+        sns_client = boto3.client('sns')
+        
+        message = f"""
+RISK ALERT - MaatriSahayak
+
+Patient: {pregnancy.get('patient_name', 'Unknown')}
+Pregnancy ID: {pregnancy_id}
+New Risk Level: {risk_level}
+Risk Score: {risk_score:.2f}
+
+The AI model has detected a pattern indicating increased risk.
+Please review the patient's recent vitals and consider scheduling an immediate check-up.
+
+ASHA Worker: {asha.get('name')}
+District: {pregnancy.get('district')}
+"""
+        
+        # Send to ASHA worker
+        if asha.get('phone'):
+            sns_client.publish(
+                PhoneNumber=asha.get('phone'),
+                Message=message
+            )
+        
+        log_info("Risk alert sent", pregnancy_id=pregnancy_id, asha_id=asha_id)
+        
+    except Exception as e:
+        log_error("Failed to send risk alert", e)

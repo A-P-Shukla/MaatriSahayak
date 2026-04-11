@@ -15,19 +15,19 @@ import logo from '../assets/logo.png';
 
 /* ─── Design tokens (from Stitch) ──────────────────────────────────────── */
 const C = {
-  purple:      '#2D0A4E',
-  purpleMid:   '#4A1272',
+  purple: '#2D0A4E',
+  purpleMid: '#4A1272',
   purpleLight: '#6B2FA0',
-  roseDark:    '#A0294A',
-  rose:        '#C0395B',
-  roseLight:   '#E05578',
-  pink:        '#F9A8D4',
-  bgForm:      '#F8F4FF',
-  cardBg:      '#FFFFFF',
-  textDark:    '#1A0A2E',
-  textMid:     '#5C3A7A',
-  textLight:   '#9580AA',
-  border:      'rgba(160,41,74,0.14)',
+  roseDark: '#A0294A',
+  rose: '#C0395B',
+  roseLight: '#E05578',
+  pink: '#F9A8D4',
+  bgForm: '#F8F4FF',
+  cardBg: '#FFFFFF',
+  textDark: '#1A0A2E',
+  textMid: '#5C3A7A',
+  textLight: '#9580AA',
+  border: 'rgba(160,41,74,0.14)',
 };
 
 /* ─── Field style ───────────────────────────────────────────────────────── */
@@ -74,15 +74,15 @@ const TrustRow = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 const Login: React.FC = () => {
-  const [email, setEmail]     = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPw, setShowPw]   = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
-  const navigate     = useNavigate();
-  const location     = useLocation();
+  const { loginOfficer, isAuthenticated, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const from = (location.state as any)?.from?.pathname;
   const authPages = ['/login', '/register', '/drivers/register'];
   const redirectTo = from && !authPages.includes(from) ? from : '/dashboard';
@@ -95,7 +95,7 @@ const Login: React.FC = () => {
     setError(null);
     setIsLoading(true);
     try {
-      await login({ email, password });
+      await loginOfficer({ email, password });
       setTimeout(() => navigate(redirectTo, { replace: true }), 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
@@ -214,8 +214,10 @@ const Login: React.FC = () => {
         {/* Mobile logo */}
         <Box sx={{ display: { xs: 'flex', lg: 'none' }, flexDirection: 'column', alignItems: 'center', mb: 4 }}>
           <Box component="img" src={logo} alt="MaatriSahayak"
-            sx={{ width: 64, height: 64, objectFit: 'contain', borderRadius: '14px', mb: 1.5,
-                  bgcolor: '#fff', p: '7px', boxShadow: '0 4px 12px rgba(45,10,78,0.25)' }} />
+            sx={{
+              width: 64, height: 64, objectFit: 'contain', borderRadius: '14px', mb: 1.5,
+              bgcolor: '#fff', p: '7px', boxShadow: '0 4px 12px rgba(45,10,78,0.25)'
+            }} />
           <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: C.purple }}>
             Maatri<Box component="span" sx={{ color: C.rose }}>Sahayak</Box>
           </Typography>
@@ -282,8 +284,10 @@ const Login: React.FC = () => {
               <Typography
                 component="button" type="button"
                 onClick={() => navigate('/forgot-password')}
-                sx={{ fontSize: '0.78rem', color: C.rose, fontWeight: 500, cursor: 'pointer',
-                      background: 'none', border: 'none', p: 0, '&:hover': { textDecoration: 'underline' } }}>
+                sx={{
+                  fontSize: '0.78rem', color: C.rose, fontWeight: 500, cursor: 'pointer',
+                  background: 'none', border: 'none', p: 0, '&:hover': { textDecoration: 'underline' }
+                }}>
                 Forgot Password?
               </Typography>
             </Box>

@@ -10,7 +10,6 @@ import {
   Plus, Navigation, Clock, LocateFixed, AlertTriangle, Ambulance,
 } from 'lucide-react';
 import { getHospitals, updateHospitalCapacity, registerHospital, type Hospital } from '../services/hospital';
-import useAuth from '../hooks/useAuth';
 import { fetchAllExternalHospitals, type ExternalHospital } from '../services/externalHospitals';
 import { KNOWN_HOSPITALS, type KnownHospital } from '../data/knownHospitals';
 
@@ -53,7 +52,6 @@ const Hospitals: React.FC = () => {
     name: '', district: '', type: 'CHC', maternity_beds: '',
     contact_number: '', latitude: '', longitude: '',
   });
-  const { user } = useAuth();
   const [nearbyLat, setNearbyLat] = useState('');
   const [nearbyLng, setNearbyLng] = useState('');
   const [nearbyHospitals, setNearbyHospitals] = useState<(Hospital & { distance_km?: number; estimated_time_minutes?: number })[]>([]);
@@ -477,38 +475,57 @@ const Hospitals: React.FC = () => {
             ))}
           </Grid>
         )}
-        <Card elevation={0} sx={{ border: '1px solid #d1fae5', borderRadius: 3, mb: 3, bgcolor: '#f0faf7' }}>
-          <CardContent sx={{ p: 2.5 }}>
-            <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-              <Navigation size={20} color="#1B6B4A" />
-              <Box>
-                <Typography fontWeight={700} color="#0f172a">Find Nearby Hospitals</Typography>
-                <Typography variant="caption" color="text.secondary">Real-time bed availability • Sorted by distance • Auto-detect location</Typography>
-              </Box>
-            </Stack>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
+
+        {/* Nearby Hospital Search Card */}
+        <Card elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3, overflow: 'hidden', bgcolor: 'white' }}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight={700} mb={2}>
+              Find Nearby Hospitals
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2}>
               <TextField
-                label="Latitude" size="small" value={nearbyLat}
+                label="Latitude"
+                value={nearbyLat}
                 onChange={(e) => setNearbyLat(e.target.value)}
-                placeholder={user?.district ? `e.g. 23.2599` : '23.2599'}
-                sx={{ ...fldSx, minWidth: 150 }}
+                placeholder="26.8467"
+                sx={{ flex: 1, ...fldSx }}
               />
               <TextField
-                label="Longitude" size="small" value={nearbyLng}
+                label="Longitude"
+                value={nearbyLng}
                 onChange={(e) => setNearbyLng(e.target.value)}
-                placeholder="e.g. 77.4126"
-                sx={{ ...fldSx, minWidth: 150 }}
+                placeholder="80.9462"
+                sx={{ flex: 1, ...fldSx }}
               />
-              <Tooltip title="Use my current GPS location">
-                <Button variant="outlined" size="small" startIcon={<LocateFixed size={14} />} onClick={handleUseMyLocation}
-                  sx={{ borderColor: '#0d9488', color: '#0d9488', textTransform: 'none', fontWeight: 600, borderRadius: 2, height: 40 }}>
-                  Use My Location
-                </Button>
-              </Tooltip>
-              <Button variant="contained" size="small" startIcon={nearbyLoading ? <CircularProgress size={14} sx={{ color: '#fff' }} /> : <Navigation size={14} />}
-                onClick={handleFindNearby} disabled={nearbyLoading}
-                sx={{ bgcolor: '#1B6B4A', '&:hover': { bgcolor: '#0F4A32' }, textTransform: 'none', fontWeight: 700, borderRadius: 2, height: 40 }}>
-                Find Nearby
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="contained"
+                startIcon={<LocateFixed size={18} />}
+                onClick={handleUseMyLocation}
+                disabled={nearbyLoading}
+                sx={{
+                  bgcolor: '#0d9488',
+                  '&:hover': { bgcolor: '#0f766e' },
+                  textTransform: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                Use My Location
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={nearbyLoading ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <Navigation size={18} />}
+                onClick={handleFindNearby}
+                disabled={nearbyLoading}
+                sx={{
+                  bgcolor: '#1B6B4A',
+                  '&:hover': { bgcolor: '#0F4A32' },
+                  textTransform: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                {nearbyLoading ? 'Searching...' : 'Find Nearby'}
               </Button>
             </Stack>
             {nearbyError && <Alert severity="error" sx={{ mt: 1.5, borderRadius: 2 }} onClose={() => setNearbyError(null)}>{nearbyError}</Alert>}
