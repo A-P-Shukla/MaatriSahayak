@@ -62,6 +62,8 @@ const EmergencyScreen = ({ navigation, route }: any) => {
     const [selectedHospital, setSelectedHospital] = useState<string | null>(null);
     const [drivers, setDrivers] = useState<any[]>([]);
     const [driversLoading, setDriversLoading] = useState(false);
+    const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+    const [analyzingSymptoms, setAnalyzingSymptoms] = useState(false);
 
     const set = (key: string) => (val: string) => setForm(f => ({ ...f, [key]: val }));
 
@@ -122,6 +124,22 @@ const EmergencyScreen = ({ navigation, route }: any) => {
             setDrivers(data?.data?.ambulances || []);
         } catch { /* non-blocking */ }
         setDriversLoading(false);
+    };
+
+    const analyzeSymptoms = async () => {
+        if (!form.description.trim()) return;
+        setAnalyzingSymptoms(true);
+        try {
+            const { data } = await api.post('/symptoms/analyze', {
+                symptoms: form.description,
+                language: 'hi',
+            });
+            setAiAnalysis(data?.data);
+            if (data?.data?.severity) {
+                set('severity')(data.data.severity);
+            }
+        } catch { /* non-blocking */ }
+        setAnalyzingSymptoms(false);
     };
 
     const handleSubmit = async () => {
@@ -219,7 +237,14 @@ const EmergencyScreen = ({ navigation, route }: any) => {
 
                 {/* Description */}
                 <View style={styles.card}>
-                    <Text style={styles.sectionLabel}>Description</Text>
+                    <View style={styles.sectionRow}>
+                        <Text style={styles.sectionLabel}>Description</Text>
+                        {form.description.trim() && (
+                            <TouchableOpacity onPress={analyzeSymptoms} disabled={analyzingSymptoms}>
+                                <Text style={styles.refreshText}>{analyzingSymptoms ? 'Analyzing...' : '🤖 AI Analysis'}</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                     <TextInput
                         style={[styles.input, styles.textArea]}
                         value={form.description}
@@ -228,6 +253,17 @@ const EmergencyScreen = ({ navigation, route }: any) => {
                         placeholderTextColor={PLACEHOLDER}
                         multiline numberOfLines={4} textAlignVertical="top"
                     />
+                    {aiAnalysis && (
+                        <View style={styles.aiAnalysisBox}>
+                            <Text style={styles.aiAnalysisTitle}>🤖 AI Analysis</Text>
+                            <Text style={styles.aiAnalysisText}>{aiAnalysis.action_plan || aiAnalysis.analysis}</Text>
+                            {aiAnalysis.requires_immediate_attention && (
+                                <View style={styles.urgentBadge}>
+                                    <Text style={styles.urgentBadgeText}>⚠️ Immediate Attention Required</Text>
+                                </View>
+                            )}
+                        </View>
+                    )}
                 </View>
 
                 {/* Nearby Hospitals */}
@@ -567,6 +603,12 @@ const styles = StyleSheet.create({
 
     submitBtn: { borderRadius: 12, paddingVertical: 18, alignItems: 'center', elevation: 4, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
     submitText: { color: WHITE, fontSize: 16, fontWeight: '800', letterSpacing: 0.4 },
+
+    aiAnalysisBox: { marginTop: 12, backgroundColor: 'rgba(0,229,160,0.08)', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: 'rgba(0,229,160,0.2)' },
+    aiAnalysisTitle: { fontSize: 12, fontWeight: '700', color: GREEN, marginBottom: 6 },
+    aiAnalysisText: { fontSize: 13, color: DIM, lineHeight: 18 },
+    urgentBadge: { marginTop: 8, backgroundColor: 'rgba(255,107,107,0.15)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, alignSelf: 'flex-start' },
+    urgentBadgeText: { fontSize: 11, fontWeight: '700', color: RED },
 });
 
 export default EmergencyScreen;

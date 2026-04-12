@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerThunk, clearError } from '../store/slices/authSlice';
 import { AppDispatch, RootState } from '../store';
+import { getAllDistricts, searchVillages } from '../services/locationService';
 
 const BG = '#0A1F1A';
 const CARD = '#112920';
@@ -102,6 +103,8 @@ interface FieldProps {
     inputRef?: React.RefObject<RNTextInput>; secure?: boolean;
     showToggle?: boolean; toggleLabel?: string; onToggle?: () => void;
     returnKeyType?: any; autoCapitalize?: any;
+    suggestions?: string[]; onSelectSuggestion?: (v: string) => void;
+    showSuggestions?: boolean;
 }
 
 // Returns 0-4 strength score
@@ -123,6 +126,7 @@ const Field = ({
     keyboardType = 'default', nextRef, inputRef, secure,
     showToggle, toggleLabel, onToggle,
     returnKeyType = 'next', autoCapitalize = 'none',
+    suggestions, onSelectSuggestion, showSuggestions,
 }: FieldProps) => (
     <View style={styles.fieldGroup}>
         <Text style={styles.label}>{label}</Text>
@@ -147,6 +151,23 @@ const Field = ({
                 </TouchableOpacity>
             )}
         </View>
+        {showSuggestions && suggestions && suggestions.length > 0 && (
+            <View style={styles.dropdown}>
+                <ScrollView 
+                    style={styles.dropdownScroll}
+                    nestedScrollEnabled={true}
+                    keyboardShouldPersistTaps="handled">
+                    {suggestions.map((item) => (
+                        <TouchableOpacity
+                            key={item}
+                            style={styles.dropdownItem}
+                            onPress={() => onSelectSuggestion?.(item)}>
+                            <Text style={styles.dropdownText}>{item}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+        )}
         {!!error && <Text style={styles.errorText}>{error}</Text>}
     </View>
 );
@@ -164,6 +185,12 @@ const AshaRegisterScreen = ({ navigation }: any) => {
     const [showPassword, setShowPassword] = useState(false);
     const [photo, setPhoto] = useState<string | null>(null);
     const confirmMatch = form.confirmPassword.length > 0 && form.confirmPassword === form.password;
+    
+    const [villageSuggestions, setVillageSuggestions] = useState<string[]>([]);
+    const [districtSuggestions, setDistrictSuggestions] = useState<string[]>([]);
+    const [showVillageDropdown, setShowVillageDropdown] = useState(false);
+    const [showDistrictDropdown, setShowDistrictDropdown] = useState(false);
+    const [loadingVillages, setLoadingVillages] = useState(false);
 
     const pickPhoto = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -207,6 +234,49 @@ const AshaRegisterScreen = ({ navigation }: any) => {
     const set = (key: keyof FormData) => (val: string) => {
         setForm(f => ({ ...f, [key]: val }));
         if (errors[key as keyof FormErrors]) setErrors(e => ({ ...e, [key]: undefined }));
+        
+        // Handle autocomplete for village - fetch from API based on district
+        if (key === 'village') {
+            if (val.trim().length > 0 && form.district.trim()) {
+                setLoadingVillages(true);
+                searchVillages(form.district, val)
+                    .then(villages => {
+                        setVillageSuggestions(villages);
+                        setShowVillageDropdown(true);
+                    })
+                    .catch(() => setShowVillageDropdown(false))
+                    .finally(() => setLoadingVillages(false));
+            } else {
+                setShowVillageDropdown(false);
+            }
+        }
+        
+        // Handle autocomplete for district
+        if (key === 'district') {
+            if (val.trim().length > 0) {
+                const allDistricts = getAllDistricts();
+                const filtered = allDistricts.filter(d => 
+                    d.toLowerCase().startsWith(val.toLowerCase())
+                );
+                setDistrictSuggestions(filtered);
+                setShowDistrictDropdown(true);
+            } else {
+                setShowDistrictDropdown(false);
+            }
+        }
+    };
+    
+    const selectVillage = (village: string) => {
+        setForm(f => ({ ...f, village }));
+        setShowVillageDropdown(false);
+        ageRef.current?.focus();
+    };
+    
+    const selectDistrict = (district: string) => {
+        setForm(f => ({ ...f, district, village: '' }));
+        setShowDistrictDropdown(false);
+        setVillageSuggestions([]);
+        villageRef.current?.focus();
     };
 
     const validate = (): boolean => {
@@ -343,7 +413,10 @@ const AshaRegisterScreen = ({ navigation }: any) => {
 
                     <Field label={S.village} placeholder={S.villagePH} value={form.village}
                         onChangeText={set('village')} error={errors.village}
-                        inputRef={villageRef} nextRef={ageRef} autoCapitalize="words" />
+                        inputRef={villageRef} nextRef={ageRef} autoCapitalize="words"
+                        suggestions={villageSuggestions}
+                        onSelectSuggestion={selectVillage}
+                        showSuggestions={showVillageDropdown} />
 
                     <Field label={S.age} placeholder={S.agePH} value={form.age}
                         onChangeText={set('age')} error={errors.age}
@@ -351,7 +424,10 @@ const AshaRegisterScreen = ({ navigation }: any) => {
 
                     <Field label={S.district} placeholder={S.districtPH} value={form.district}
                         onChangeText={set('district')} error={errors.district}
-                        inputRef={districtRef} nextRef={passwordRef} autoCapitalize="words" />
+                        inputRef={districtRef} nextRef={passwordRef} autoCapitalize="words"
+                        suggestions={districtSuggestions}
+                        onSelectSuggestion={selectDistrict}
+                        showSuggestions={showDistrictDropdown} />
 
                     <Field label={S.password} placeholder={S.passwordPH} value={form.password}
                         onChangeText={set('password')} error={errors.password}
@@ -517,6 +593,33 @@ const styles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center',
     },
     photoBadgeText: { fontSize: 13, color: BG, fontWeight: '900' },
+    dropdown: {
+        backgroundColor: CARD,
+        borderWidth: 1,
+        borderColor: BORDER,
+        borderRadius: 8,
+        marginTop: 4,
+        maxHeight: 200,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    dropdownScroll: {
+        maxHeight: 200,
+    },
+    dropdownItem: {
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: BORDER,
+    },
+    dropdownText: {
+        fontSize: 15,
+        color: WHITE,
+        fontWeight: '500',
+    },
 });
 
 export default AshaRegisterScreen;

@@ -78,23 +78,30 @@ export const getPregnancyById = async (pregnancyId: string): Promise<Pregnancy> 
       `/pregnancies/${pregnancyId}`
     );
 
+    console.log('Pregnancy API Response:', response.data);
+
     if (!response.data.data) {
       throw new Error('Pregnancy not found');
     }
 
-    const item = response.data.data;
+    const rawData = response.data.data;
+    console.log('Raw pregnancy item:', rawData);
+
+    // The API returns data nested in a 'pregnancy' object
+    const item = rawData.pregnancy || rawData;
+    console.log('Extracted pregnancy data:', item);
 
     // Map backend field names to frontend field names
     const pregnancy: Pregnancy = {
-      pregnancy_id: item.id || item.pregnancy_id,
-      patient_name: item.patient_name,
+      pregnancy_id: item.pregnancy_id || item.id,
+      patient_name: item.patient_name || item.name,
       age: item.age,
-      phone: item.phone,
+      phone: item.phone || item.patient_phone,
       district: item.district,
       village: item.village,
       lmp_date: item.lmp_date,
-      edd: item.edd,
-      blood_type: item.blood_type,
+      edd: item.edd || item.expected_delivery_date,
+      blood_type: item.blood_type || item.blood_group,
       asha_worker_id: item.asha_worker_id,
       risk_score: item.risk_score || 0,
       risk_category: (item.risk_level || item.risk_category || 'low').toLowerCase() as any,
@@ -104,8 +111,10 @@ export const getPregnancyById = async (pregnancyId: string): Promise<Pregnancy> 
       last_updated: item.updated_at || item.last_updated,
     };
 
+    console.log('Mapped pregnancy:', pregnancy);
     return pregnancy;
   } catch (error) {
+    console.error('Error fetching pregnancy:', error);
     throw new Error(handleApiError(error));
   }
 };

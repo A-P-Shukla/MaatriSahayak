@@ -130,13 +130,19 @@ const PregnancyDetails: React.FC = () => {
   };
 
   // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch {
+      return 'N/A';
+    }
   };
 
   // Format vitals data for chart
@@ -223,7 +229,7 @@ const PregnancyDetails: React.FC = () => {
                 Age
               </Typography>
               <Typography variant="body1" fontWeight={500}>
-                {pregnancy.age} years
+                {pregnancy.age || 'N/A'} years
               </Typography>
             </Box>
             <Box sx={{ mb: 2 }}>
@@ -231,7 +237,7 @@ const PregnancyDetails: React.FC = () => {
                 Blood Type
               </Typography>
               <Typography variant="body1" fontWeight={500}>
-                {pregnancy.blood_type}
+                {pregnancy.blood_type || 'N/A'}
               </Typography>
             </Box>
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
@@ -241,7 +247,7 @@ const PregnancyDetails: React.FC = () => {
                   Phone
                 </Typography>
                 <Typography variant="body1" fontWeight={500}>
-                  {pregnancy.phone}
+                  {pregnancy.phone || 'N/A'}
                 </Typography>
               </Box>
             </Box>
@@ -254,7 +260,7 @@ const PregnancyDetails: React.FC = () => {
                   Location
                 </Typography>
                 <Typography variant="body1" fontWeight={500}>
-                  {pregnancy.village}, {pregnancy.district}
+                  {pregnancy.village || 'N/A'}, {pregnancy.district || 'N/A'}
                 </Typography>
               </Box>
             </Box>
@@ -271,7 +277,7 @@ const PregnancyDetails: React.FC = () => {
                 Risk Score
               </Typography>
               <Typography variant="body1" fontWeight={500}>
-                {pregnancy.risk_score}/100
+                {pregnancy.risk_score || 0}/100
               </Typography>
             </Box>
           </Grid>

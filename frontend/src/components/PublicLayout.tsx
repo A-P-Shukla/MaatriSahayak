@@ -134,6 +134,7 @@ const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1.5 }}>
             <Button component={RouterLink} to="/home" sx={navLinkSx(location.pathname === '/home', palette.text, palette.textMuted)}>Home</Button>
             <Button component={RouterLink} to="/about" sx={navLinkSx(location.pathname === '/about', palette.text, palette.textMuted)}>About</Button>
+            <Button component={RouterLink} to="/rollout" sx={navLinkSx(location.pathname === '/rollout', palette.text, palette.textMuted)}>Rollout Plan</Button>
             <Button component={RouterLink} to="/contact" sx={navLinkSx(location.pathname === '/contact', palette.text, palette.textMuted)}>Contact</Button>
             <Button
               component={RouterLink}

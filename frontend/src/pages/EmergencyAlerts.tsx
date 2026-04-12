@@ -218,7 +218,11 @@ const EmergencyAlerts: React.FC = () => {
                         transition: 'all 0.2s',
                         borderRadius: 2,
                       }}
-                      onClick={() => { setSelectedEmergencyId(e.event_id); setModalOpen(true); }}
+                      onClick={() => { 
+                        console.log('Clicked emergency:', e.event_id, e);
+                        setSelectedEmergencyId(e.event_id); 
+                        setModalOpen(true); 
+                      }}
                     >
                       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -264,7 +268,11 @@ const EmergencyAlerts: React.FC = () => {
                         '&:last-child td': { border: 0 },
                         cursor: 'pointer',
                       }}
-                      onClick={() => { setSelectedEmergencyId(e.event_id); setModalOpen(true); }}
+                      onClick={() => { 
+                        console.log('Clicked emergency:', e.event_id, e);
+                        setSelectedEmergencyId(e.event_id); 
+                        setModalOpen(true); 
+                      }}
                     >
                       <TableCell>
                         <Typography variant="body2" fontWeight={600}>{e.patient_name}</Typography>
@@ -282,6 +290,7 @@ const EmergencyAlerts: React.FC = () => {
                         <Tooltip title="View details">
                           <IconButton size="small" onClick={(event) => {
                             event.stopPropagation();
+                            console.log('Clicked eye icon for emergency:', e.event_id, e);
                             setSelectedEmergencyId(e.event_id);
                             setModalOpen(true);
                           }}>

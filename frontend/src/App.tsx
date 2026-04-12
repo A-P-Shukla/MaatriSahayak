@@ -33,6 +33,7 @@ import DriverRegister from '@pages/DriverRegister';
 import Home from '@pages/Home';
 import About from '@pages/About';
 import Contact from '@pages/Contact';
+import Rollout from '@pages/Rollout';
 
 
 const queryClient = new QueryClient({
@@ -193,6 +194,7 @@ const App: React.FC = () => (
               <Route path="/home" element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/rollout" element={<Rollout />} />
               <Route path="/role-select" element={<RoleSelect />} />
               <Route path="/login" element={<Login />} />
               <Route path="/driver/login" element={<DriverLogin />} />

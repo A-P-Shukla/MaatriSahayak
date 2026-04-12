@@ -5,12 +5,13 @@ import {
   TableHead, TableRow, TablePagination, Chip, IconButton, Tooltip,
   Card, CardContent, Stack, useTheme, useMediaQuery, Grid,
 } from '@mui/material';
-import { Plus, Eye, RefreshCw } from 'lucide-react';
+import { Plus, Eye, RefreshCw, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePregnancies } from '../hooks/usePregnancies';
 import FilterBar from '../components/FilterBar';
 import SearchInput from '../components/SearchInput';
 import RegisterPregnancyModal from '../components/RegisterPregnancyModal';
+import AssignAshaModal from '../components/AssignAshaModal';
 import type { RiskCategory, PregnancyFilters, Pregnancy } from '../types';
 
 const DRAWER_WIDTH = 270;
@@ -25,6 +26,8 @@ const PregnanciesList: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedPregnancy, setSelectedPregnancy] = useState<Pregnancy | null>(null);
 
   const { data: pregnanciesData, isLoading, isError, error } = usePregnancies(filters);
   const pregnancies = pregnanciesData?.items || [];
@@ -227,6 +230,7 @@ const PregnanciesList: React.FC = () => {
                     <TableCell>Patient Name</TableCell>
                     <TableCell>Age</TableCell>
                     <TableCell>Location</TableCell>
+                    <TableCell>ASHA Worker</TableCell>
                     <TableCell>Risk Level</TableCell>
                     <TableCell>Risk Score</TableCell>
                     <TableCell>Expected Delivery</TableCell>
@@ -249,6 +253,13 @@ const PregnanciesList: React.FC = () => {
                         <Typography variant="caption" color="text.secondary">{p.district}</Typography>
                       </TableCell>
                       <TableCell>
+                        {p.asha_worker_id ? (
+                          <Chip label="Assigned" color="success" size="small" variant="outlined" />
+                        ) : (
+                          <Chip label="Unassigned" color="warning" size="small" variant="outlined" />
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <Chip label={p.risk_category.toUpperCase()} color={getRiskColor(p.risk_category)} size="small" />
                       </TableCell>
                       <TableCell><Typography variant="body2" fontWeight={500}>{p.risk_score}/100</Typography></TableCell>
@@ -257,11 +268,26 @@ const PregnanciesList: React.FC = () => {
                         <Chip label={p.current_status} size="small" variant="outlined" />
                       </TableCell>
                       <TableCell align="center">
-                        <Tooltip title="View details">
-                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); navigate(`/pregnancies/${p.pregnancy_id}`); }}>
-                            <Eye size={16} />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                          <Tooltip title="View details">
+                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); navigate(`/pregnancies/${p.pregnancy_id}`); }}>
+                              <Eye size={16} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Assign ASHA Worker">
+                            <IconButton 
+                              size="small" 
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                setSelectedPregnancy(p);
+                                setAssignModalOpen(true);
+                              }}
+                              color={p.asha_worker_id ? 'success' : 'default'}
+                            >
+                              <UserPlus size={16} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -285,6 +311,14 @@ const PregnanciesList: React.FC = () => {
       </Box>
 
       <RegisterPregnancyModal open={registerModalOpen} onClose={() => setRegisterModalOpen(false)} />
+      <AssignAshaModal 
+        open={assignModalOpen} 
+        onClose={() => {
+          setAssignModalOpen(false);
+          setSelectedPregnancy(null);
+        }} 
+        pregnancy={selectedPregnancy}
+      />
     </Box>
   );
 };

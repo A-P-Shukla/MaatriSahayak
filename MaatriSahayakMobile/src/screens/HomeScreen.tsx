@@ -12,6 +12,7 @@ import { DatabaseService } from '../services/database';
 import { SyncService } from '../services/sync';
 import { PregnancyService } from '../services/pregnancyService';
 import { StorageService } from '../services/storage';
+import SyncStatusIndicator from '../components/SyncStatusIndicator';
 
 const BG = '#0A1F1A';
 const CARD = '#112920';
@@ -286,6 +287,9 @@ const HomeScreen = ({ navigation, route }: any) => {
                         </TouchableOpacity>
                     </View>
                 </View>
+
+                {/* ── Sync Status Indicator ── */}
+                <SyncStatusIndicator onSyncPress={handleRefresh} />
 
                 {/* ── Hero Banner ── */}
                 <View style={[styles.heroBanner, { width: width - 40 }]}>

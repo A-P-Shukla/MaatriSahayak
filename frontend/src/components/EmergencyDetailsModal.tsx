@@ -51,6 +51,9 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
     error,
   } = useEmergency(emergencyId || '');
 
+  // Don't render if modal is not open
+  if (!open) return null;
+
   // Get status color
   const getStatusColor = (status: EmergencyStatus): 'default' | 'primary' | 'warning' | 'success' | 'error' => {
     switch (status) {
@@ -86,15 +89,21 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
   };
 
   // Format timestamp
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatTimestamp = (timestamp?: string) => {
+    if (!timestamp) return 'N/A';
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return 'N/A';
+    }
   };
 
   // Format response time
@@ -106,17 +115,23 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
   };
 
   // Calculate time elapsed
-  const calculateTimeElapsed = (startTime: string) => {
-    const start = new Date(startTime);
-    const now = new Date();
-    const diffMs = now.getTime() - start.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    
-    if (diffHours > 0) {
-      return `${diffHours}h ${diffMins % 60}m ago`;
+  const calculateTimeElapsed = (startTime?: string) => {
+    if (!startTime) return 'N/A';
+    try {
+      const start = new Date(startTime);
+      if (isNaN(start.getTime())) return 'N/A';
+      const now = new Date();
+      const diffMs = now.getTime() - start.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      
+      if (diffHours > 0) {
+        return `${diffHours}h ${diffMins % 60}m ago`;
+      }
+      return `${diffMins}m ago`;
+    } catch {
+      return 'N/A';
     }
-    return `${diffMins}m ago`;
   };
 
   // Generate status timeline
@@ -185,22 +200,29 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
 
       {/* Dialog Content */}
       <DialogContent sx={{ pt: 3 }}>
+        {/* No emergency ID */}
+        {!emergencyId && (
+          <Alert severity="warning">
+            No emergency selected. Please select an emergency from the list.
+          </Alert>
+        )}
+
         {/* Loading state */}
-        {isLoading && (
+        {emergencyId && isLoading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
           </Box>
         )}
 
         {/* Error state */}
-        {isError && (
+        {emergencyId && isError && (
           <Alert severity="error">
             Failed to load emergency details: {error instanceof Error ? error.message : 'Unknown error'}
           </Alert>
         )}
 
         {/* Emergency data */}
-        {!isLoading && !isError && emergency && (
+        {emergencyId && !isLoading && !isError && emergency && (
           <Box>
             {/* Status and Severity */}
             <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
@@ -209,11 +231,13 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
                 color={getStatusColor(emergency.status)}
                 size="medium"
               />
-              <Chip
-                label={`${emergency.severity_level.toUpperCase()} SEVERITY`}
-                color={getSeverityColor(emergency.severity_level)}
-                size="medium"
-              />
+              {emergency.severity_level && (
+                <Chip
+                  label={`${emergency.severity_level.toUpperCase()} SEVERITY`}
+                  color={getSeverityColor(emergency.severity_level)}
+                  size="medium"
+                />
+              )}
             </Box>
 
             {/* Event Information */}
@@ -326,7 +350,7 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
             <Divider sx={{ my: 3 }} />
 
             {/* Ambulance Details */}
-            {emergency.ambulance_id && (
+            {emergency.ambulance_id && emergency.ambulance_id !== 'PENDING' && (
               <>
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>

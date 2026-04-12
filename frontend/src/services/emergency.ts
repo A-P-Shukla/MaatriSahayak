@@ -25,7 +25,13 @@ export const getEmergencies = async (
     );
 
     const d = response.data.data;
-    return (d?.emergencies ?? d?.items ?? (Array.isArray(d) ? d : []));
+    const rawArray = (d?.emergencies ?? d?.items ?? (Array.isArray(d) ? d : []));
+    
+    // Map to ensure event_id field exists
+    return rawArray.map((item: any) => ({
+      ...item,
+      event_id: item.event_id || item.id || item.emergency_id,
+    }));
   } catch (error) {
     throw new Error(handleApiError(error));
   }
@@ -34,15 +40,33 @@ export const getEmergencies = async (
 // Get a specific emergency by ID
 export const getEmergencyById = async (emergencyId: string): Promise<Emergency> => {
   try {
-    const response = await apiClient.get<ApiResponse<Emergency>>(
-      `/emergency/${emergencyId}/status`
+    // First try to get all emergencies and filter client-side
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/emergencies`
     );
 
-    if (!response.data.data) {
+    const d = response.data.data;
+    const emergencies = (d?.emergencies ?? d?.items ?? (Array.isArray(d) ? d : []));
+    
+    // Find the specific emergency by ID
+    const emergency = emergencies.find((e: any) => 
+      e.event_id === emergencyId || 
+      e.id === emergencyId || 
+      e.emergency_id === emergencyId
+    );
+    
+    if (!emergency) {
       throw new Error('Emergency not found');
     }
 
-    return response.data.data;
+    return {
+      ...emergency,
+      event_id: emergency.event_id || emergency.id || emergency.emergency_id,
+      trigger_timestamp: emergency.trigger_timestamp || emergency.created_at || emergency.timestamp,
+      dispatch_timestamp: emergency.dispatch_timestamp || emergency.dispatched_at,
+      arrival_timestamp: emergency.arrival_timestamp || emergency.arrived_at,
+      completion_timestamp: emergency.completion_timestamp || emergency.completed_at,
+    };
   } catch (error) {
     throw new Error(handleApiError(error));
   }

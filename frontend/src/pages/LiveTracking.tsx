@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import { useAmbulances } from '../hooks/useAmbulances';
 import { useWebSocket } from '../hooks/useWebSocket';
-import AmbulanceMap from '../components/AmbulanceMap';
+import LiveAmbulanceMap from '../components/LiveAmbulanceMap';
 import type { AmbulanceStatus } from '../types';
 
 const DRAWER_WIDTH = 270;
@@ -272,7 +272,7 @@ const LiveTracking: React.FC = () => {
             </Box>
           ) : (
             <Box sx={{ p: 2 }}>
-              <AmbulanceMap ambulances={ambulances} height="600px" />
+              <LiveAmbulanceMap ambulances={ambulances} height="600px" />
             </Box>
           )}
         </Paper>
@@ -316,7 +316,7 @@ const LiveTracking: React.FC = () => {
           </Box>
         </DialogTitle>
         <DialogContent sx={{ p: 0, height: '100%' }}>
-          <AmbulanceMap ambulances={ambulances} height="100%" />
+          <LiveAmbulanceMap ambulances={ambulances} height="100%" />
         </DialogContent>
       </Dialog>
     </Box>

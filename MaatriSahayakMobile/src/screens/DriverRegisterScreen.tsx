@@ -20,6 +20,13 @@ const WHITE = '#FFFFFF';
 const BORDER = '#3D2A5A';
 const PLACEHOLDER = '#7A6A9A';
 
+// Sample ambulance IDs - replace with actual API data
+const AMBULANCE_IDS = [
+    'AMB-001', 'AMB-002', 'AMB-003', 'AMB-004', 'AMB-005',
+    'AMB-101', 'AMB-102', 'AMB-103', 'AMB-201', 'AMB-202',
+    'AMB-301', 'AMB-302', 'AMB-401', 'AMB-501', 'AMB-601',
+];
+
 const STRINGS = {
     EN: {
         title: 'Driver Registration',
@@ -116,6 +123,8 @@ interface FieldProps {
     nextRef?: React.RefObject<RNTextInput>; secure?: boolean;
     showToggle?: boolean; toggleLabel?: string; onToggle?: () => void;
     returnKeyType?: any; autoCapitalize?: any; autoCorrect?: boolean;
+    suggestions?: string[]; onSelectSuggestion?: (v: string) => void;
+    showSuggestions?: boolean;
 }
 
 const Field = ({
@@ -123,6 +132,7 @@ const Field = ({
     keyboardType = 'default', inputRef, nextRef, secure,
     showToggle, toggleLabel, onToggle,
     returnKeyType = 'next', autoCapitalize = 'none', autoCorrect = false,
+    suggestions, onSelectSuggestion, showSuggestions,
 }: FieldProps) => (
     <View style={styles.fieldGroup}>
         <Text style={styles.label}>{label}</Text>
@@ -147,6 +157,23 @@ const Field = ({
                 </TouchableOpacity>
             )}
         </View>
+        {showSuggestions && suggestions && suggestions.length > 0 && (
+            <View style={styles.dropdown}>
+                <ScrollView 
+                    style={styles.dropdownScroll}
+                    nestedScrollEnabled={true}
+                    keyboardShouldPersistTaps="handled">
+                    {suggestions.map((item) => (
+                        <TouchableOpacity
+                            key={item}
+                            style={styles.dropdownItem}
+                            onPress={() => onSelectSuggestion?.(item)}>
+                            <Text style={styles.dropdownText}>{item}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+        )}
         {!!error && <Text style={styles.errorText}>{error}</Text>}
     </View>
 );
@@ -164,6 +191,9 @@ const DriverRegisterScreen = ({ navigation }: any) => {
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [showPassword, setShowPassword] = useState(false);
+    
+    const [vehicleSuggestions, setVehicleSuggestions] = useState<string[]>([]);
+    const [showVehicleDropdown, setShowVehicleDropdown] = useState(false);
 
     const phoneRef = useRef<RNTextInput>(null);
     const emailRef = useRef<RNTextInput>(null);
@@ -180,6 +210,25 @@ const DriverRegisterScreen = ({ navigation }: any) => {
     const set = (key: keyof FormData) => (val: string) => {
         setForm(f => ({ ...f, [key]: val }));
         if (errors[key as keyof FormErrors]) setErrors(e => ({ ...e, [key]: undefined }));
+        
+        // Handle autocomplete for vehicle/ambulance ID
+        if (key === 'vehicle') {
+            if (val.trim().length > 0) {
+                const filtered = AMBULANCE_IDS.filter(v => 
+                    v.toLowerCase().startsWith(val.toLowerCase())
+                );
+                setVehicleSuggestions(filtered);
+                setShowVehicleDropdown(true);
+            } else {
+                setShowVehicleDropdown(false);
+            }
+        }
+    };
+    
+    const selectVehicle = (vehicle: string) => {
+        setForm(f => ({ ...f, vehicle }));
+        setShowVehicleDropdown(false);
+        experienceRef.current?.focus();
     };
 
     const validate = (): boolean => {
@@ -336,7 +385,10 @@ const DriverRegisterScreen = ({ navigation }: any) => {
 
                     <Field label={S.vehicle} placeholder={S.vehiclePH} value={form.vehicle}
                         onChangeText={set('vehicle')} error={errors.vehicle}
-                        inputRef={vehicleRef} nextRef={experienceRef} autoCapitalize="none" />
+                        inputRef={vehicleRef} nextRef={experienceRef} autoCapitalize="characters"
+                        suggestions={vehicleSuggestions}
+                        onSelectSuggestion={selectVehicle}
+                        showSuggestions={showVehicleDropdown} />
 
                     <Field label={S.experience} placeholder={S.experiencePH} value={form.experience}
                         onChangeText={set('experience')} error={errors.experience}
@@ -503,6 +555,34 @@ const styles = StyleSheet.create({
     footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
     footerText: { fontSize: 14, color: DIM },
     footerLink: { fontSize: 14, color: PURPLE_LIGHT, fontWeight: '700' },
+    
+    dropdown: {
+        backgroundColor: CARD,
+        borderWidth: 1,
+        borderColor: BORDER,
+        borderRadius: 8,
+        marginTop: 4,
+        maxHeight: 200,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    dropdownScroll: {
+        maxHeight: 200,
+    },
+    dropdownItem: {
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: BORDER,
+    },
+    dropdownText: {
+        fontSize: 15,
+        color: WHITE,
+        fontWeight: '500',
+    },
 });
 
 export default DriverRegisterScreen;
