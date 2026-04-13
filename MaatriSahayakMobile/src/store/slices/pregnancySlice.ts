@@ -3,9 +3,9 @@ import { PregnancyService, RegisterPregnancyPayload, VitalsPayload, EmergencyPay
 
 export const fetchPregnanciesThunk = createAsyncThunk(
     'pregnancy/fetchAll',
-    async (_, { rejectWithValue }) => {
+    async (district?: string, { rejectWithValue }) => {
         try {
-            return await PregnancyService.list();
+            return await PregnancyService.list(district);
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || 'Failed to load pregnancies');
         }

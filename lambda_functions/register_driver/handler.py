@@ -163,8 +163,7 @@ def lambda_handler(event, context):
                 {'Name': 'email', 'Value': body['email']},
                 {'Name': 'email_verified', 'Value': 'true'},
                 {'Name': 'phone_number', 'Value': body['phone']},
-                {'Name': 'custom:role', 'Value': 'DRIVER'},
-                {'Name': 'custom:driver_id', 'Value': driver_id}
+                {'Name': 'custom:role', 'Value': 'DRIVER'}
             ]
             
             # Use email as username — created disabled until officer approves

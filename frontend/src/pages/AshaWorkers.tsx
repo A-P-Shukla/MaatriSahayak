@@ -4,7 +4,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Stack, TextField, InputAdornment, CircularProgress, Alert,
   useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent,
-  DialogActions, DialogContentText, Grid,
+  DialogActions, DialogContentText, Grid, MenuItem,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -15,6 +15,7 @@ import {
   VerifiedUser as ActiveIcon, People as PatientsIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
+import SendNotificationButton from '../components/SendNotificationButton';
 import { useNavigate } from 'react-router-dom';
 import { useAshaWorkers, useAshaStats } from '../hooks/useAsha';
 import { verifyAshaRegistration } from '../services/asha';
@@ -33,6 +34,7 @@ const AshaWorkers: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [district, setDistrict] = useState<string>('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ worker: AshaWorker; action: 'APPROVE' | 'REJECT' } | null>(null);
@@ -59,10 +61,11 @@ const AshaWorkers: React.FC = () => {
     overrides[worker.asha_id] ?? (worker as any).verificationStatus ?? 'APPROVED';
 
   const filtered = workers.filter((w) =>
-    w.name.toLowerCase().includes(search.toLowerCase()) ||
+    (w.name.toLowerCase().includes(search.toLowerCase()) ||
     w.phone?.includes(search) ||
     w.district?.toLowerCase().includes(search.toLowerCase()) ||
-    w.village?.toLowerCase().includes(search.toLowerCase())
+    w.village?.toLowerCase().includes(search.toLowerCase())) &&
+    (!district || w.district === district)
   );
 
   const pendingCount = workers.filter((w) => getVerificationStatus(w) === 'PENDING').length;
@@ -124,6 +127,15 @@ const AshaWorkers: React.FC = () => {
             <Typography variant="caption" color="text.secondary">{worker.assigned_patients_count} patients</Typography>
           </Stack>
           <VerifyButtons worker={worker} />
+          {vs === 'APPROVED' && (
+            <Box mt={1}>
+              <SendNotificationButton
+                ashaWorkerId={worker.asha_id}
+                ashaWorkerName={worker.name}
+                variant="icon"
+              />
+            </Box>
+          )}
           <Button
             size="small" variant="outlined" fullWidth
             onClick={() => navigate(`/asha/${worker.asha_id}`)}
@@ -237,30 +249,52 @@ const AshaWorkers: React.FC = () => {
           ))}
         </Grid>
 
-        {/* Search Bar */}
-        <TextField
-          fullWidth
-          placeholder="Search by name, phone, district or village..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: '#0d9488' }} />
-              </InputAdornment>
-            ),
-          }}
-          sx={{
-            mb: 3,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 3,
-              bgcolor: 'white',
-              '& fieldset': { borderColor: '#e5e7eb' },
-              '&:hover fieldset': { borderColor: '#0d9488' },
-              '&.Mui-focused fieldset': { borderColor: '#0d9488' },
-            },
-          }}
-        />
+        {/* Search and District Filter */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          <TextField
+            placeholder="Search by name, phone, or village..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: '#0d9488' }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              flex: 1,
+              minWidth: 250,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 3,
+                bgcolor: 'white',
+                '& fieldset': { borderColor: '#e5e7eb' },
+                '&:hover fieldset': { borderColor: '#0d9488' },
+                '&.Mui-focused fieldset': { borderColor: '#0d9488' },
+              },
+            }}
+          />
+          <TextField
+            select
+            label="Filter by District"
+            value={district}
+            onChange={(e) => setDistrict(e.target.value)}
+            sx={{
+              minWidth: 200,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 3,
+                bgcolor: 'white',
+              },
+            }}
+          >
+            <MenuItem value="">All Districts</MenuItem>
+            <MenuItem value="Lucknow">Lucknow</MenuItem>
+            <MenuItem value="Kanpur">Kanpur</MenuItem>
+            <MenuItem value="Varanasi">Varanasi</MenuItem>
+            <MenuItem value="Agra">Agra</MenuItem>
+            <MenuItem value="Sitapur">Sitapur</MenuItem>
+          </TextField>
+        </Box>
 
         {actionError && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setActionError(null)}>
@@ -335,6 +369,13 @@ const AshaWorkers: React.FC = () => {
                       <TableCell>
                         <Stack direction="row" spacing={0.5} alignItems="center">
                           <VerifyButtons worker={worker} />
+                          {vs === 'APPROVED' && (
+                            <SendNotificationButton
+                              ashaWorkerId={worker.asha_id}
+                              ashaWorkerName={worker.name}
+                              variant="icon"
+                            />
+                          )}
                           <Button
                             size="small"
                             variant="outlined"

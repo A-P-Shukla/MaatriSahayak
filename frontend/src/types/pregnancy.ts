@@ -22,6 +22,8 @@ export interface Pregnancy {
   medical_history?: string;
   registration_date: string; // ISO 8601 date string
   last_updated: string; // ISO 8601 date string
+  latitude?: number; // Optional location data
+  longitude?: number; // Optional location data
 }
 
 export interface VitalSigns {

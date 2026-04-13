@@ -64,13 +64,21 @@ def lambda_handler(event, context):
         query_params = event.get('queryStringParameters') or {}
         include_stats = query_params.get('include_stats', 'false').lower() == 'true'
         
+        # Get statistics (always include assigned_patients_count)
+        stats = get_asha_statistics(asha_id)
+        
+        # Add assigned_patients_count to asha object
+        asha['assigned_patients_count'] = stats['total_pregnancies']
+        asha['active_pregnancies'] = stats['active_pregnancies']
+        asha['high_risk_cases'] = stats['high_risk_pregnancies']
+        asha['total_emergencies_handled'] = stats['emergencies_handled']
+        
         response_data = {
             'asha': asha
         }
         
-        # Get statistics if requested
+        # Include full stats if requested
         if include_stats:
-            stats = get_asha_statistics(asha_id)
             response_data['stats'] = stats
         
         log_info(

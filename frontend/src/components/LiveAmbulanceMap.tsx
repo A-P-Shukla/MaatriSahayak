@@ -32,6 +32,7 @@ interface LiveAmbulanceMapProps {
     center?: LatLngExpression;
     zoom?: number;
     height?: string | number;
+    selectedAmbulanceId?: string | null;
 }
 
 // Simulate route between two points
@@ -64,6 +65,7 @@ const LiveAmbulanceMap: React.FC<LiveAmbulanceMapProps> = ({
     center = [26.8467, 80.9462],
     zoom = 12,
     height = '600px',
+    selectedAmbulanceId = null,
 }) => {
     const [animatedAmbulances, setAnimatedAmbulances] = useState<AnimatedAmbulance[]>([]);
     const animationFrameRef = useRef<number>();
@@ -171,7 +173,7 @@ const LiveAmbulanceMap: React.FC<LiveAmbulanceMapProps> = ({
     }, []);
 
     // Custom ambulance icon
-    const getAmbulanceIcon = (status: string, isMoving: boolean) => {
+    const getAmbulanceIcon = (status: string, isMoving: boolean, isSelected: boolean) => {
         const colors: Record<string, string> = {
             available: '#4caf50',
             dispatched: '#ff9800',
@@ -180,29 +182,30 @@ const LiveAmbulanceMap: React.FC<LiveAmbulanceMapProps> = ({
         };
 
         const color = colors[status.toLowerCase()] || '#2196f3';
+        const size = isSelected ? 50 : 40;
         const pulseAnimation = isMoving ? `
-      <animate attributeName="r" values="10;12;10" dur="1s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="${isSelected ? 12 : 10};${isSelected ? 15 : 12};${isSelected ? 12 : 10}" dur="1s" repeatCount="indefinite"/>
     ` : '';
 
         return new Icon({
             iconUrl: `data:image/svg+xml;base64,${btoa(`
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
           <defs>
             <filter id="shadow">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+              <feDropShadow dx="0" dy="2" stdDeviation="${isSelected ? 3 : 2}" flood-opacity="${isSelected ? 0.5 : 0.3}"/>
             </filter>
           </defs>
-          <circle cx="20" cy="20" r="10" fill="${color}" opacity="0.3">
+          <circle cx="${size / 2}" cy="${size / 2}" r="${isSelected ? 12 : 10}" fill="${color}" opacity="0.3">
             ${pulseAnimation}
           </circle>
-          <circle cx="20" cy="20" r="14" fill="${color}" filter="url(#shadow)"/>
-          <path d="M15 20 L20 15 L25 20 L20 18 L20 25 Z" fill="white"/>
-          <circle cx="20" cy="20" r="2" fill="white"/>
+          <circle cx="${size / 2}" cy="${size / 2}" r="${isSelected ? 18 : 14}" fill="${color}" filter="url(#shadow)" stroke="${isSelected ? 'white' : 'none'}" stroke-width="${isSelected ? 3 : 0}"/>
+          <path d="M${size / 2 - 5} ${size / 2} L${size / 2} ${size / 2 - 5} L${size / 2 + 5} ${size / 2} L${size / 2} ${size / 2 - 2} L${size / 2} ${size / 2 + 5} Z" fill="white"/>
+          <circle cx="${size / 2}" cy="${size / 2}" r="2" fill="white"/>
         </svg>
       `)}`,
-            iconSize: [40, 40],
-            iconAnchor: [20, 20],
-            popupAnchor: [0, -20],
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2],
+            popupAnchor: [0, -size / 2],
         });
     };
 
@@ -234,6 +237,7 @@ const LiveAmbulanceMap: React.FC<LiveAmbulanceMapProps> = ({
 
                 {animatedAmbulances.map((ambulance) => {
                     const isMoving = ambulance.status.toLowerCase() === 'dispatched' || ambulance.status.toLowerCase() === 'busy';
+                    const isSelected = selectedAmbulanceId === ambulance.ambulance_id;
 
                     return (
                         <React.Fragment key={ambulance.ambulance_id}>
@@ -241,9 +245,9 @@ const LiveAmbulanceMap: React.FC<LiveAmbulanceMapProps> = ({
                             {isMoving && (
                                 <Polyline
                                     positions={ambulance.route.map(p => [p.lat, p.lng])}
-                                    color="#1B6B4A"
-                                    weight={3}
-                                    opacity={0.6}
+                                    color={isSelected ? '#0d9488' : '#1B6B4A'}
+                                    weight={isSelected ? 4 : 3}
+                                    opacity={isSelected ? 0.8 : 0.6}
                                     dashArray="10, 10"
                                 />
                             )}
@@ -265,7 +269,7 @@ const LiveAmbulanceMap: React.FC<LiveAmbulanceMapProps> = ({
                             {/* Ambulance marker */}
                             <Marker
                                 position={[ambulance.animatedPosition.lat, ambulance.animatedPosition.lng]}
-                                icon={getAmbulanceIcon(ambulance.status, isMoving)}
+                                icon={getAmbulanceIcon(ambulance.status, isMoving, isSelected)}
                             >
                                 <Popup>
                                     <Paper elevation={0} sx={{ p: 2, minWidth: 280 }}>

@@ -3,7 +3,7 @@
  */
 
 export const API_CONFIG = {
-    BASE_URL: 'https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev',
+    BASE_URL: 'https://q5u5grjknj.execute-api.ap-south-1.amazonaws.com/dev',
     TIMEOUT: 10000,
     RETRY_ATTEMPTS: 3,
 };

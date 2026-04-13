@@ -28,6 +28,7 @@ import EmergencyScreen from '../screens/EmergencyScreen';
 import PregnancyListScreen from '../screens/PregnancyListScreen';
 import AlertsScreen from '../screens/AlertsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import OfficerInfoScreen from '../screens/OfficerInfoScreen';
 import AncCardScreen from '../screens/AncCardScreen';
 import NearbyPatientsScreen from '../screens/NearbyPatientsScreen';
 
@@ -96,6 +97,7 @@ const AppStack = () => (
         <Stack.Screen name="NearbyPatients" component={NearbyPatientsScreen} />
         <Stack.Screen name="Alerts" component={AlertsScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="OfficerInfo" component={OfficerInfoScreen} />
         <Stack.Screen name="AncCard" component={AncCardScreen} />
     </Stack.Navigator>
 );

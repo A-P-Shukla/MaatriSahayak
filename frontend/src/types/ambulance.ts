@@ -19,6 +19,7 @@ export interface Ambulance {
   battery_level?: number; // 0-100
   speed?: number; // km/h
   heading?: number; // degrees 0-360
+  type?: string; // Ambulance type (e.g., 'BASIC', 'ADVANCED', 'ICU')
 }
 
 export interface AmbulanceFilters {

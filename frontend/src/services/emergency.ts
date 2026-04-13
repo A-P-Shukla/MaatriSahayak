@@ -12,7 +12,7 @@ export const getEmergencies = async (
 ): Promise<Emergency[]> => {
   try {
     const params = new URLSearchParams();
-    
+
     if (filters.status) params.append('status', filters.status);
     if (filters.severity_level) params.append('severity_level', filters.severity_level);
     if (filters.start_date) params.append('start_date', filters.start_date);
@@ -26,7 +26,7 @@ export const getEmergencies = async (
 
     const d = response.data.data;
     const rawArray = (d?.emergencies ?? d?.items ?? (Array.isArray(d) ? d : []));
-    
+
     // Map to ensure event_id field exists
     return rawArray.map((item: any) => ({
       ...item,
@@ -47,14 +47,14 @@ export const getEmergencyById = async (emergencyId: string): Promise<Emergency> 
 
     const d = response.data.data;
     const emergencies = (d?.emergencies ?? d?.items ?? (Array.isArray(d) ? d : []));
-    
+
     // Find the specific emergency by ID
-    const emergency = emergencies.find((e: any) => 
-      e.event_id === emergencyId || 
-      e.id === emergencyId || 
+    const emergency = emergencies.find((e: any) =>
+      e.event_id === emergencyId ||
+      e.id === emergencyId ||
       e.emergency_id === emergencyId
     );
-    
+
     if (!emergency) {
       throw new Error('Emergency not found');
     }
@@ -82,7 +82,7 @@ export const getEmergenciesByPregnancyId = async (
     );
 
     const rawData = response.data.data;
-    
+
     // Handle different response formats
     let emergenciesArray: any[] = [];
     if (Array.isArray(rawData)) {
@@ -120,12 +120,11 @@ export const getEmergenciesByPregnancyId = async (
 export const triggerEmergency = async (emergencyData: {
   pregnancy_id: string;
   event_type: string;
-  severity_level: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
+  severity: string;
+  latitude: number;
+  longitude: number;
   symptoms?: string;
+  triggered_by?: string;
 }): Promise<Emergency> => {
   try {
     const response = await apiClient.post<ApiResponse<Emergency>>(

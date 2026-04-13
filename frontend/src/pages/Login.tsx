@@ -95,10 +95,13 @@ const Login: React.FC = () => {
     setError(null);
     setIsLoading(true);
     try {
+      console.log('Attempting login with email:', email);
       await loginOfficer({ email, password });
       setTimeout(() => navigate(redirectTo, { replace: true }), 100);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
+      const errorMsg = err instanceof Error ? err.message : 'Login failed. Please check your credentials.';
+      console.error('Login error:', errorMsg);
+      setError(errorMsg);
       setIsLoading(false);
     }
   };

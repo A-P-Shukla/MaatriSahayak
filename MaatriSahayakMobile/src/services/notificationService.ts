@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import apiClient from './api';
 
 const FCM_TOKEN_KEY = 'fcm_push_token';
 
@@ -46,6 +47,14 @@ export const registerForPushNotifications = async (): Promise<string | null> => 
 
   const token = (await Notifications.getExpoPushTokenAsync()).data;
   await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
+  
+  // Send token to backend
+  try {
+    await apiClient.post('/asha/push-token', { push_token: token });
+  } catch (error) {
+    console.error('Failed to register push token with backend:', error);
+  }
+  
   return token;
 };
 

@@ -6,13 +6,14 @@ import {
 } from '@mui/material';
 import {
   Baby, AlertTriangle, Ambulance, HeartPulse, ArrowRight, RefreshCw,
-  Bell, TrendingUp, Circle, Clock, MapPin, Gauge, ShieldPlus, Activity, Brain,
+  Bell, TrendingUp, Circle, Clock, MapPin, Gauge, ShieldPlus, Brain,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useWebSocket } from '../hooks/useWebSocket';
 import EmergencyDetailsModal from '../components/EmergencyDetailsModal';
 import PendingApprovalsPanel from '../components/PendingApprovalsPanel';
+import EmergencyNotificationPanel from '../components/EmergencyNotificationPanel';
 import { listDrivers } from '../services/driver';
 import { getAshaWorkers } from '../services/asha';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
@@ -47,9 +48,9 @@ const buildMetricsConfig = (stats: any) => [
     title: 'Total Pregnancies',
     value: stats.total_pregnancies || 0,
     icon: <Baby size={24} />,
-    color: '#1B6B4A',
-    bg: 'linear-gradient(135deg, #1B6B4A 0%, #2E9E6E 100%)',
-    lightBg: '#E8F5EE',
+    color: '#0d9488',
+    bg: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
+    lightBg: '#f0fdfa',
     trend: '+12%',
     sub: 'Registered patients',
     path: '/pregnancies',
@@ -91,7 +92,7 @@ const buildMetricsConfig = (stats: any) => [
 ];
 
 const buildQuickActionsConfig = () => [
-  { label: 'Pregnancies', path: '/pregnancies', icon: <Baby size={22} />, color: '#1B6B4A', bg: '#E8F5EE' },
+  { label: 'Pregnancies', path: '/pregnancies', icon: <Baby size={22} />, color: '#0d9488', bg: '#f0fdfa' },
   { label: 'Emergencies', path: '/emergencies', icon: <HeartPulse size={22} />, color: '#C62828', bg: '#FFEBEE' },
   { label: 'Live Tracking', path: '/tracking', icon: <Ambulance size={22} />, color: '#0277BD', bg: '#E3F2FD' },
   { label: 'Analytics', path: '/analytics', icon: <TrendingUp size={22} />, color: '#6A1B9A', bg: '#F3E5F5' },
@@ -213,7 +214,7 @@ const Dashboard: React.FC = () => {
   const renderHeader = () => (
     <Box
       sx={{
-        background: 'linear-gradient(135deg, #1B6B4A 0%, #2E8B62 100%)',
+        background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
         pt: 4,
         pb: 4,
         px: 3,
@@ -249,6 +250,7 @@ const Dashboard: React.FC = () => {
           </Box>
 
           <Stack direction="row" spacing={1.5} alignItems="center">
+            <EmergencyNotificationPanel />
             <Tooltip title="Check for New Registrations">
               <IconButton
                 onClick={async () => {
@@ -466,23 +468,23 @@ const Dashboard: React.FC = () => {
               {metrics.map((m, i) => renderMetricCard(m, i))}
             </Grid>
 
-            {/* AI Risk Score Dashboard */}
+            {/* AI Risk Assessment Dashboard - Redesigned */}
             <Paper
               elevation={0}
               sx={{
-                border: '2px solid #1B6B4A',
                 borderRadius: 3,
                 mb: 4,
                 overflow: 'hidden',
                 bgcolor: 'white',
+                border: '1px solid #e5e7eb',
               }}
             >
-              {/* Header */}
+              {/* Compact Header */}
               <Box
                 sx={{
-                  background: 'linear-gradient(135deg, #1B6B4A 0%, #2E8B62 100%)',
                   px: 3,
-                  py: 2.5,
+                  py: 2,
+                  borderBottom: '1px solid #e5e7eb',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -490,55 +492,54 @@ const Dashboard: React.FC = () => {
                   gap: 2,
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Box
                     sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 2,
-                      bgcolor: 'rgba(255,255,255,0.2)',
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Brain size={26} color="white" />
+                    <Brain size={20} color="white" />
                   </Box>
                   <Box>
-                    <Typography variant="h6" fontWeight={800} color="white" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      AI Risk Assessment Dashboard
+                    <Typography variant="subtitle2" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      AI Risk Assessment
                       <Chip
-                        label="LIVE"
+                        label="Live"
                         size="small"
-                        icon={<Activity size={12} />}
                         sx={{
-                          bgcolor: 'rgba(255,255,255,0.25)',
-                          color: 'white',
+                          bgcolor: '#f0fdfa',
+                          color: '#0d9488',
                           fontWeight: 700,
                           fontSize: '0.65rem',
-                          height: 22,
-                          '& .MuiChip-icon': { color: 'white' },
+                          height: 20,
+                          border: '1px solid #99f6e4',
                         }}
                       />
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.95)' }}>
-                      Real-time ML-powered risk prediction and trajectory analysis
+                    <Typography variant="caption" color="text.secondary">
+                      ML-powered risk prediction & monitoring
                     </Typography>
                   </Box>
                 </Box>
                 <Button
                   size="small"
-                  endIcon={<ArrowRight size={16} />}
+                  endIcon={<ArrowRight size={14} />}
                   onClick={() => navigate('/analytics')}
                   sx={{
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                    color: 'white',
-                    fontWeight: 700,
+                    color: '#0d9488',
+                    fontWeight: 600,
                     textTransform: 'none',
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                    fontSize: '0.8rem',
+                    '&:hover': { bgcolor: '#f0fdfa' },
                   }}
                 >
-                  Full Analytics
+                  View Analytics
                 </Button>
               </Box>
 
@@ -547,56 +548,49 @@ const Dashboard: React.FC = () => {
                 <Grid container spacing={3}>
                   {/* Risk Level Cards */}
                   <Grid item xs={12} md={8}>
-                    <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Gauge size={18} />
-                      Risk Level Distribution
+                    <Typography variant="body2" fontWeight={700} color="text.secondary" sx={{ mb: 2, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem' }}>
+                      Risk Distribution
                     </Typography>
                     <Grid container spacing={2}>
                       {[
-                        { level: 'Critical', range: '80-100%', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 80).length || 0, color: '#C62828', bg: '#FFEBEE' },
-                        { level: 'High', range: '60-79%', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 60 && (p.risk_score || 0) < 80).length || 0, color: '#E65100', bg: '#FFF3E0' },
-                        { level: 'Medium', range: '40-59%', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 40 && (p.risk_score || 0) < 60).length || 0, color: '#F9A825', bg: '#FFF8E1' },
-                        { level: 'Low', range: '0-39%', count: (stats.total_pregnancies || 0) - (stats.high_risk_count || 0), color: '#2E7D32', bg: '#E8F5E9' },
+                        { level: 'Critical', range: '80-100', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 80).length || 0, color: '#dc2626', bg: '#fef2f2', icon: '🔴' },
+                        { level: 'High', range: '60-79', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 60 && (p.risk_score || 0) < 80).length || 0, color: '#ea580c', bg: '#fff7ed', icon: '🟠' },
+                        { level: 'Medium', range: '40-59', count: stats.high_risk_pregnancies?.filter((p: any) => (p.risk_score || 0) >= 40 && (p.risk_score || 0) < 60).length || 0, color: '#f59e0b', bg: '#fffbeb', icon: '🟡' },
+                        { level: 'Low', range: '0-39', count: (stats.total_pregnancies || 0) - (stats.high_risk_count || 0), color: '#16a34a', bg: '#f0fdf4', icon: '🟢' },
                       ].map((risk, idx) => (
                         <Grid item xs={6} sm={3} key={idx}>
                           <Paper
                             elevation={0}
                             sx={{
-                              p: 2.5,
+                              p: 2,
                               borderRadius: 2,
-                              border: `2px solid ${risk.color}`,
+                              border: '1px solid',
+                              borderColor: risk.color + '30',
                               bgcolor: risk.bg,
                               cursor: 'pointer',
-                              transition: 'all 0.3s',
+                              transition: 'all 0.2s',
                               '&:hover': {
-                                transform: 'translateY(-4px)',
-                                boxShadow: `0 8px 24px ${risk.color}40`,
+                                transform: 'translateY(-2px)',
+                                boxShadow: `0 4px 12px ${risk.color}20`,
+                                borderColor: risk.color,
                               },
                             }}
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                              <Typography variant="caption" fontWeight={700} sx={{ color: risk.color, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              <Typography variant="caption" fontWeight={700} sx={{ color: risk.color, fontSize: '0.7rem' }}>
                                 {risk.level}
                               </Typography>
-                              <Box
-                                sx={{
-                                  width: 12,
-                                  height: 12,
-                                  borderRadius: '50%',
-                                  bgcolor: risk.color,
-                                  animation: risk.level === 'Critical' && risk.count > 0 ? 'pulse 2s ease-in-out infinite' : 'none',
-                                }}
-                              />
+                              <Typography sx={{ fontSize: '1rem' }}>{risk.icon}</Typography>
                             </Box>
                             <Typography
-                              variant="h4"
-                              fontWeight={900}
+                              variant="h5"
+                              fontWeight={800}
                               sx={{ color: risk.color, mb: 0.5, lineHeight: 1 }}
                             >
                               {risk.count}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                              {risk.range}
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                              Score {risk.range}
                             </Typography>
                           </Paper>
                         </Grid>
@@ -606,9 +600,8 @@ const Dashboard: React.FC = () => {
 
                   {/* Risk Trend Chart */}
                   <Grid item xs={12} md={4}>
-                    <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <TrendingUp size={18} />
-                      7-Day Risk Trend
+                    <Typography variant="body2" fontWeight={700} color="text.secondary" sx={{ mb: 2, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem' }}>
+                      7-Day Trend
                     </Typography>
                     <Paper
                       elevation={0}
@@ -665,6 +658,9 @@ const Dashboard: React.FC = () => {
                       const riskColor = score >= 80 ? '#C62828' : score >= 60 ? '#E65100' : score >= 40 ? '#F9A825' : '#2E7D32';
                       const riskLabel = score >= 80 ? 'CRITICAL' : score >= 60 ? 'HIGH' : score >= 40 ? 'MEDIUM' : 'LOW';
 
+                      // Use pregnancy_id field
+                      const pregnancyId = p.pregnancy_id;
+
                       // Generate mock trajectory data (in production, this would come from API)
                       const trajectoryData = [
                         { week: 'W-4', score: Math.max(20, score - 25 + Math.random() * 10) },
@@ -675,10 +671,10 @@ const Dashboard: React.FC = () => {
                       ];
 
                       return (
-                        <Grid item xs={12} key={p.pregnancy_id}>
+                        <Grid item xs={12} key={pregnancyId}>
                           <Paper
                             elevation={0}
-                            onClick={() => navigate(`/pregnancies/${p.pregnancy_id}`)}
+                            onClick={() => navigate(`/pregnancies/${pregnancyId}`)}
                             sx={{
                               p: 2.5,
                               borderRadius: 2,
@@ -1025,10 +1021,11 @@ const Dashboard: React.FC = () => {
                         const score = p.risk_score || 0;
                         const riskColor =
                           score >= 80 ? '#C62828' : score >= 60 ? '#E65100' : score >= 40 ? '#F9A825' : '#2E7D32';
+                        const pregnancyId = p.pregnancy_id;
                         return (
                           <Box
-                            key={p.pregnancy_id}
-                            onClick={() => navigate(`/pregnancies/${p.pregnancy_id}`)}
+                            key={pregnancyId}
+                            onClick={() => navigate(`/pregnancies/${pregnancyId}`)}
                             sx={{
                               p: 2,
                               mb: 1,

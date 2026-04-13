@@ -28,9 +28,12 @@ export const usePregnancy = (pregnancyId: string) => {
  * Custom hook to fetch vital signs for a pregnancy
  */
 export const useVitals = (pregnancyId: string) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['vitals', pregnancyId],
     queryFn: () => getVitalsByPregnancyId(pregnancyId),
-    enabled: !!pregnancyId, // Only fetch if pregnancyId is provided
+    enabled: !!pregnancyId,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
+  
+  return query;
 };

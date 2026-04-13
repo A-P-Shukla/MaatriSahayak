@@ -529,14 +529,47 @@ Resources:
       Environment:
         Variables:
           SNS_TOPIC_ARN: !Ref EmergencyNotificationsTopic
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt EmergencyNotificationsTopic.TopicName
+        - DynamoDBReadPolicy:
+            TableName: !Ref ASHAWorkersTable
         - Statement:
             - Effect: Allow
               Action:
                 - sns:Publish
               Resource: "*"
+      Events:
+        SendNotifications:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /notifications
+            Method: POST
+
+  UpdatePushTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambda_functions/update_push_token/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Description: Update ASHA worker push notification token
+      Layers:
+        - !Ref SharedDependenciesLayer
+      Environment:
+        Variables:
+          ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ASHAWorkersTable
+      Events:
+        UpdatePushToken:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MaatriSahayakApi
+            Path: /asha/push-token
+            Method: POST
 
   # ==================== User Management Functions ====================
   RegisterASHAFunction:
@@ -1477,10 +1510,7 @@ Resources:
             Path: /driver/register
             Method: POST
 
-  # LoginDriverFunction is managed manually via AWS CLI (not via SAM)
-  # to avoid EarlyValidation::ResourceExistenceCheck hook conflicts.
-  # Function ARN: arn:aws:lambda:ap-south-1:053549819347:function:maatrisahayak-v2-LoginDriverFunction
-  # API route: POST /driver/login (resource h8mwi8 on API 73qjqd2j7c)
+
 
   GetDriverProfileFunction:
     Type: AWS::Serverless::Function

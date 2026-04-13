@@ -147,11 +147,12 @@ const PregnanciesList: React.FC = () => {
                 label="District"
                 onChange={(e) => { setFilters({ ...filters, district: e.target.value || undefined }); setPage(0); }}
               >
-                <MenuItem value="">All</MenuItem>
+                <MenuItem value="">All Districts</MenuItem>
                 <MenuItem value="Lucknow">Lucknow</MenuItem>
                 <MenuItem value="Kanpur">Kanpur</MenuItem>
                 <MenuItem value="Varanasi">Varanasi</MenuItem>
                 <MenuItem value="Agra">Agra</MenuItem>
+                <MenuItem value="Sitapur">Sitapur</MenuItem>
               </Select>
             </FormControl>
           </FilterBar>

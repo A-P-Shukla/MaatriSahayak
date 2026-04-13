@@ -83,6 +83,27 @@ def lambda_handler(event, context):
         total_beds = sum(h.get('maternity_beds', 0) for h in hospitals)
         available_beds = sum(h.get('available_maternity_beds', 0) for h in hospitals)
         
+        available_ambulances = total_ambulances - busy_ambulances
+        
+        # Get recent emergencies (last 10, sorted by timestamp)
+        recent_emergencies = sorted(
+            emergencies,
+            key=lambda e: e.get('timestamp', ''),
+            reverse=True
+        )[:10]
+        
+        # Get high-risk pregnancies with risk scores
+        high_risk_pregnancies = [
+            p for p in pregnancies 
+            if p.get('risk_level') in ['HIGH', 'CRITICAL']
+        ]
+        # Sort by risk score if available
+        high_risk_pregnancies = sorted(
+            high_risk_pregnancies,
+            key=lambda p: p.get('risk_score', 0),
+            reverse=True
+        )
+        
         response_data = {
             'total_pregnancies': total_pregnancies,
             'active_pregnancies': active_pregnancies,
@@ -90,10 +111,11 @@ def lambda_handler(event, context):
             'high_risk_percentage': round((high_risk_count / total_pregnancies * 100) if total_pregnancies > 0 else 0, 2),
             'emergency_count': emergency_count,
             'active_emergencies': active_emergencies,
+            'available_ambulances': available_ambulances,
             'ambulance_stats': {
                 'total': total_ambulances,
                 'busy': busy_ambulances,
-                'available': total_ambulances - busy_ambulances,
+                'available': available_ambulances,
                 'utilization_percentage': round(ambulance_utilization, 2)
             },
             'hospital_capacity': {
@@ -102,6 +124,8 @@ def lambda_handler(event, context):
                 'available_maternity_beds': available_beds,
                 'occupancy_percentage': round(((total_beds - available_beds) / total_beds * 100) if total_beds > 0 else 0, 2)
             },
+            'recent_emergencies': recent_emergencies,
+            'high_risk_pregnancies': high_risk_pregnancies,
             'district': district
         }
         

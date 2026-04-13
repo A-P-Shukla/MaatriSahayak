@@ -111,6 +111,14 @@ const SettingsScreen = ({ navigation }: any) => {
                 <Text style={styles.sectionLabel}>ACCOUNT</Text>
                 <View style={styles.card}>
                     <Row
+                        icon="👮"
+                        label="District Officer"
+                        sub="View assigned officer details"
+                        onPress={() => navigation.navigate('OfficerInfo')}
+                        arrow
+                    />
+                    <Divider />
+                    <Row
                         icon="🔑"
                         label="Change PIN"
                         sub="Update your 4-digit login PIN"

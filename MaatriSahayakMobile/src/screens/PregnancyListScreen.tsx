@@ -28,14 +28,17 @@ const PregnancyListScreen = ({ navigation }: any) => {
     const { t } = useTranslation();
     const dispatch = useDispatch<AppDispatch>();
     const { pregnancies, loading, error } = useSelector((s: RootState) => s.pregnancy);
+    const { user } = useSelector((s: RootState) => s.auth);
     const [query, setQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => { dispatch(fetchPregnanciesThunk()); }, []);
+    useEffect(() => { 
+        dispatch(fetchPregnanciesThunk(user?.district)); 
+    }, [user?.district]);
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await dispatch(fetchPregnanciesThunk());
+        await dispatch(fetchPregnanciesThunk(user?.district));
         setRefreshing(false);
     };
 

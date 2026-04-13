@@ -1,6 +1,6 @@
 export const Config = {
     // API Configuration
-    API_BASE_URL: 'https://73qjqd2j7c.execute-api.ap-south-1.amazonaws.com/dev',
+    API_BASE_URL: 'https://q5u5grjknj.execute-api.ap-south-1.amazonaws.com/dev',
     API_TIMEOUT: 10000,
 
     // App Configuration

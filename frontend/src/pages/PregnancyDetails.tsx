@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { ArrowLeft, AlertTriangle, Phone, MapPin, Activity } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   LineChart,
   Line,
@@ -30,6 +30,7 @@ import type { RiskCategory } from '../types';
 const PregnancyDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Fetch pregnancy data
   const {
@@ -81,10 +82,14 @@ const PregnancyDetails: React.FC = () => {
         temperature: vitalsForm.temperature ? parseFloat(vitalsForm.temperature) : 0,
         weight: vitalsForm.weight ? parseFloat(vitalsForm.weight) : 0,
         recorded_by: 'officer',
-      });
+      }, queryClient);
       setVitalsOpen(false);
       setVitalsForm({ bp_systolic: '', bp_diastolic: '', heart_rate: '', temperature: '', weight: '' });
       setActionSuccess('Vitals recorded successfully');
+      // Refetch vitals after recording
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['vitals', pregnancy.pregnancy_id] });
+      }, 500);
     } catch (e: any) {
       setActionError(e.message ?? 'Failed to record vitals');
     } finally {
@@ -98,16 +103,32 @@ const PregnancyDetails: React.FC = () => {
     setActionError(null);
     try {
       const { triggerEmergency } = await import('../services/emergency');
-      await triggerEmergency({
+
+      // Get user info for triggered_by field
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const triggeredBy = user?.email || 'officer';
+
+      const result = await triggerEmergency({
         pregnancy_id: pregnancy.pregnancy_id,
         event_type: emergencyForm.event_type,
-        severity_level: emergencyForm.severity_level,
-        location: { latitude: 0, longitude: 0 },
+        severity: emergencyForm.severity_level,
+        latitude: pregnancy.latitude || 0,
+        longitude: pregnancy.longitude || 0,
         symptoms: emergencyForm.symptoms || undefined,
+        triggered_by: triggeredBy,
       });
+
+      console.log('Emergency triggered successfully:', result);
+
       setEmergencyOpen(false);
       setActionSuccess('Emergency triggered successfully');
+
+      // Invalidate emergency queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['emergencies'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
     } catch (e: any) {
+      console.error('Failed to trigger emergency:', e);
       setActionError(e.message ?? 'Failed to trigger emergency');
     } finally {
       setActionLoading(false);
@@ -398,8 +419,8 @@ const PregnancyDetails: React.FC = () => {
                           emergency.severity_level === 'critical'
                             ? 'error'
                             : emergency.severity_level === 'high'
-                            ? 'warning'
-                            : 'default'
+                              ? 'warning'
+                              : 'default'
                         }
                       />
                     </TableCell>
@@ -478,8 +499,8 @@ const PregnancyDetails: React.FC = () => {
             </TextField>
             <TextField fullWidth select label="Severity" value={emergencyForm.severity_level}
               onChange={(e) => setEmergencyForm({ ...emergencyForm, severity_level: e.target.value })}>
-              {['low', 'medium', 'high', 'critical'].map((s) => (
-                <MenuItem key={s} value={s}>{s.toUpperCase()}</MenuItem>
+              {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((s) => (
+                <MenuItem key={s} value={s}>{s}</MenuItem>
               ))}
             </TextField>
             <TextField fullWidth label="Symptoms / Notes" multiline rows={2} value={emergencyForm.symptoms}

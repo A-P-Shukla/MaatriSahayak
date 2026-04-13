@@ -7,6 +7,7 @@ Sends SMS/WhatsApp notifications to stakeholders.
 import json
 import os
 import boto3
+from datetime import datetime
 from shared import (
     ValidationError,
     create_success_response,
@@ -20,8 +21,8 @@ from shared import (
 from shared.constants import HTTP_STATUS
 from shared.models import NotificationModel
 
-# Initialize AWS SNS client
 sns_client = boto3.client('sns')
+dynamodb = boto3.resource('dynamodb')
 
 
 def lambda_handler(event, context):
@@ -72,8 +73,11 @@ def lambda_handler(event, context):
         
         notification_type = body.get('notification_type', 'GENERAL')
         
+        # Handle push notification to ASHA worker
+        if notification_type == 'PUSH_NOTIFICATION':
+            return handle_push_notification(body)
         # Handle different notification types
-        if notification_type == 'EMERGENCY_ALERT':
+        elif notification_type == 'EMERGENCY_ALERT':
             return handle_emergency_alert(body.get('data', {}))
         elif notification_type == 'RISK_UPDATE':
             return handle_risk_update(body.get('data', {}))
@@ -97,6 +101,84 @@ def lambda_handler(event, context):
             "An unexpected error occurred while sending notifications",
             {'error': str(e)}
         )
+
+
+def handle_push_notification(body: dict) -> dict:
+    """Send push notification to ASHA worker's mobile app."""
+    try:
+        validate_required_fields(body, ['asha_worker_id', 'title', 'message'])
+        
+        asha_worker_id = body['asha_worker_id']
+        title = body['title']
+        message = body['message']
+        notification_type = body.get('type', 'GENERAL')
+        data = body.get('data', {})
+        
+        # Get ASHA worker's push token from DynamoDB
+        asha_table_name = os.environ.get('ASHA_WORKERS_TABLE', 'MaatriSahayak-AshaWorkersTable')
+        asha_table = dynamodb.Table(asha_table_name)
+        
+        # Try with both possible key names
+        try:
+            response = asha_table.get_item(Key={'asha_worker_id': asha_worker_id})
+        except:
+            # Try with 'id' as key if 'asha_worker_id' doesn't work
+            response = asha_table.get_item(Key={'id': asha_worker_id})
+        
+        if 'Item' not in response:
+            return create_error_response(
+                HTTP_STATUS['NOT_FOUND'],
+                "AshaWorkerNotFound",
+                f"ASHA worker {asha_worker_id} not found"
+            )
+        
+        asha_worker = response['Item']
+        push_token = asha_worker.get('push_token')
+        
+        if not push_token:
+            return create_error_response(
+                HTTP_STATUS['BAD_REQUEST'],
+                "NoPushToken",
+                "ASHA worker has not registered for push notifications"
+            )
+        
+        # Send push notification via Expo Push API
+        notification_payload = {
+            'to': push_token,
+            'title': title,
+            'body': message,
+            'sound': 'default',
+            'priority': 'high',
+            'data': {
+                'type': notification_type,
+                **data
+            }
+        }
+        
+        # Use SNS to send to Expo Push service or direct HTTP call
+        import requests
+        expo_response = requests.post(
+            'https://exp.host/--/api/v2/push/send',
+            json=notification_payload,
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        if expo_response.status_code != 200:
+            raise Exception(f"Expo push failed: {expo_response.text}")
+        
+        log_info("Push notification sent", 
+                 asha_worker_id=asha_worker_id,
+                 notification_type=notification_type)
+        
+        return create_success_response({
+            'asha_worker_id': asha_worker_id,
+            'notification_sent': True,
+            'asha_worker_name': asha_worker.get('name')
+        })
+        
+    except Exception as e:
+        log_error("Error sending push notification", e)
+        raise
 
 
 def handle_emergency_alert(data: dict) -> dict:

@@ -27,7 +27,7 @@ const EmergencyAlerts: React.FC = () => {
   const { data: emergencies = [], isLoading, isError, error, refetch } = useEmergencies(filters);
 
   const filteredEmergencies = emergencies.filter((e) =>
-    e.patient_name.toLowerCase().includes(searchQuery.toLowerCase())
+    e.patient_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const activeCount = emergencies.filter((e) => e.status !== 'completed').length;
@@ -218,10 +218,10 @@ const EmergencyAlerts: React.FC = () => {
                         transition: 'all 0.2s',
                         borderRadius: 2,
                       }}
-                      onClick={() => { 
+                      onClick={() => {
                         console.log('Clicked emergency:', e.event_id, e);
-                        setSelectedEmergencyId(e.event_id); 
-                        setModalOpen(true); 
+                        setSelectedEmergencyId(e.event_id);
+                        setModalOpen(true);
                       }}
                     >
                       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -268,10 +268,10 @@ const EmergencyAlerts: React.FC = () => {
                         '&:last-child td': { border: 0 },
                         cursor: 'pointer',
                       }}
-                      onClick={() => { 
+                      onClick={() => {
                         console.log('Clicked emergency:', e.event_id, e);
-                        setSelectedEmergencyId(e.event_id); 
-                        setModalOpen(true); 
+                        setSelectedEmergencyId(e.event_id);
+                        setModalOpen(true);
                       }}
                     >
                       <TableCell>

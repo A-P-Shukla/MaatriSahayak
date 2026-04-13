@@ -12,7 +12,7 @@ export const getPregnancies = async (
 ): Promise<PaginatedResponse<Pregnancy>> => {
   try {
     const params = new URLSearchParams();
-    
+
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.limit) params.append('limit', filters.limit.toString());
     if (filters.search) params.append('search', filters.search);
@@ -30,7 +30,7 @@ export const getPregnancies = async (
     // Handle both array and nested object response formats
     let rawItems: any[] = [];
     const data = response.data.data;
-    
+
     if (Array.isArray(data)) {
       rawItems = data;
     } else if (data && Array.isArray(data.pregnancies)) {
@@ -57,6 +57,8 @@ export const getPregnancies = async (
       medical_history: item.medical_history,
       registration_date: item.created_at || item.registration_date,
       last_updated: item.updated_at || item.last_updated,
+      latitude: item.latitude,
+      longitude: item.longitude,
     }));
 
     return {
@@ -109,6 +111,8 @@ export const getPregnancyById = async (pregnancyId: string): Promise<Pregnancy> 
       medical_history: item.medical_history,
       registration_date: item.created_at || item.registration_date,
       last_updated: item.updated_at || item.last_updated,
+      latitude: item.latitude,
+      longitude: item.longitude,
     };
 
     console.log('Mapped pregnancy:', pregnancy);
@@ -143,20 +147,26 @@ export const registerPregnancy = async (
 export const getVitalsByPregnancyId = async (pregnancyId: string): Promise<VitalSigns[]> => {
   try {
     const response = await apiClient.get<ApiResponse<any>>(
-      `/pregnancies/${pregnancyId}/vitals-history`
+      `/pregnancies/${pregnancyId}?include_vitals=true&vitals_limit=50`
     );
 
+    console.log('Vitals API Response:', response.data);
     const rawData = response.data.data;
-    
+    console.log('Raw vitals data:', rawData);
+
     // Handle different response formats
     let vitalsArray: any[] = [];
-    if (Array.isArray(rawData)) {
-      vitalsArray = rawData;
+    if (rawData && Array.isArray(rawData.recent_vitals)) {
+      vitalsArray = rawData.recent_vitals;
     } else if (rawData && Array.isArray(rawData.vitals)) {
       vitalsArray = rawData.vitals;
+    } else if (Array.isArray(rawData)) {
+      vitalsArray = rawData;
     } else if (rawData && Array.isArray(rawData.items)) {
       vitalsArray = rawData.items;
     }
+
+    console.log('Extracted vitals array:', vitalsArray);
 
     // Map to VitalSigns type
     return vitalsArray.map((item: any) => ({
@@ -181,7 +191,8 @@ export const getVitalsByPregnancyId = async (pregnancyId: string): Promise<Vital
 
 // Record vital signs for a pregnancy
 export const recordVitals = async (
-  vitalsData: Omit<VitalSigns, 'vital_id' | 'timestamp'>
+  vitalsData: Omit<VitalSigns, 'vital_id' | 'timestamp'>,
+  queryClient?: any
 ): Promise<VitalSigns> => {
   try {
     const response = await apiClient.post<ApiResponse<VitalSigns>>(
@@ -191,6 +202,10 @@ export const recordVitals = async (
 
     if (!response.data.data) {
       throw new Error('Failed to record vital signs');
+    }
+
+    if (queryClient) {
+      queryClient.invalidateQueries({ queryKey: ['vitals', vitalsData.pregnancy_id] });
     }
 
     return response.data.data;

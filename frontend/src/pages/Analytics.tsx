@@ -1,11 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box, Typography, Paper, Button, Select, MenuItem, FormControl, InputLabel,
   Alert, Grid, Chip, LinearProgress, CircularProgress, Stack,
+  Avatar, IconButton, Tooltip as MuiTooltip,
 } from '@mui/material';
-import { Download, TrendingUp, Clock, CheckCircle, AlertTriangle, MapPin, Activity, Building2 } from 'lucide-react';
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  Download, TrendingUp, Clock, CheckCircle, AlertTriangle, MapPin, Activity,
+  Building2, RefreshCw, Calendar,
+} from 'lucide-react';
+import {
+  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import { useCloudAnalytics, useComputedAnalytics } from '../hooks/useAnalytics';
@@ -25,6 +29,8 @@ const COLORS = {
 
 const Analytics: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRangePreset>('last_30_days');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
   const filters = useMemo(() => {
     const end = new Date();
@@ -37,11 +43,28 @@ const Analytics: React.FC = () => {
     };
   }, [dateRange]);
 
-  const { data: cloudData, isLoading: cloudLoading, isError: cloudError } = useCloudAnalytics();
-  const { data: computed, isLoading: computedLoading, isError: computedError } = useComputedAnalytics(filters);
+  const { data: cloudData, isLoading: cloudLoading, isError: cloudError, refetch: refetchCloud } = useCloudAnalytics();
+  const { data: computed, isLoading: computedLoading, isError: computedError, refetch: refetchComputed } = useComputedAnalytics(filters);
 
   const isLoading = cloudLoading || computedLoading;
   const isError = cloudError || computedError;
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      refetchCloud();
+      refetchComputed();
+      setLastRefresh(new Date());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, refetchCloud, refetchComputed]);
+
+  const handleManualRefresh = () => {
+    refetchCloud();
+    refetchComputed();
+    setLastRefresh(new Date());
+  };
 
   const fmtSec = (s: number) => {
     const m = Math.floor(s / 60);
@@ -155,28 +178,60 @@ const Analytics: React.FC = () => {
         <Box maxWidth={1400} mx="auto">
           <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
             <Box>
-              <Typography variant="h4" fontWeight={700} color="white" mb={0.5}>
-                Analytics & Reports
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+                <Typography variant="h4" fontWeight={700} color="white">
+                  Analytics & Reports
+                </Typography>
+                <Chip
+                  label="Live"
+                  size="small"
+                  sx={{
+                    bgcolor: '#4CAF50',
+                    color: 'white',
+                    fontWeight: 700,
+                    fontSize: '0.65rem',
+                    height: 24,
+                    animation: 'pulse 2s ease-in-out infinite',
+                    '@keyframes pulse': {
+                      '0%, 100%': { opacity: 1 },
+                      '50%': { opacity: 0.7 },
+                    },
+                  }}
+                />
+              </Box>
               <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-                Real-time performance metrics and insights from your maternal health system
+                Real-time performance metrics and insights • Last updated: {lastRefresh.toLocaleTimeString()}
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<Download size={18} />}
-              onClick={handleExport}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.2)',
-                color: 'white',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
-              }}
-            >
-              Export CSV
-            </Button>
+            <Stack direction="row" spacing={1.5}>
+              <MuiTooltip title={autoRefresh ? 'Auto-refresh enabled' : 'Auto-refresh disabled'}>
+                <IconButton
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  sx={{
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                  }}
+                >
+                  <RefreshCw size={18} className={autoRefresh ? 'animate-spin' : ''} />
+                </IconButton>
+              </MuiTooltip>
+              <Button
+                variant="contained"
+                startIcon={<Download size={18} />}
+                onClick={handleExport}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                }}
+              >
+                Export CSV
+              </Button>
+            </Stack>
           </Stack>
         </Box>
       </Box>
@@ -190,29 +245,68 @@ const Analytics: React.FC = () => {
         )}
 
         {/* Period selector */}
-        <Paper elevation={0} sx={{ p: 2.5, mb: 4, border: '1px solid #e5e7eb', borderRadius: 3, bgcolor: 'white' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ minWidth: 90 }}>
-              Report Period
-            </Typography>
-            <FormControl sx={{ minWidth: 180 }} size="small">
-              <InputLabel>Date Range</InputLabel>
-              <Select
-                label="Date Range"
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value as DateRangePreset)}
-              >
-                <MenuItem value="last_7_days">Last 7 days</MenuItem>
-                <MenuItem value="last_30_days">Last 30 days</MenuItem>
-                <MenuItem value="last_90_days">Last 90 days</MenuItem>
-              </Select>
-            </FormControl>
-            <Chip
-              label={`${filters.start_date} → ${filters.end_date}`}
-              size="small"
-              sx={{ bgcolor: '#F5F5F5', color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem' }}
-            />
-          </Box>
+        <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid #e5e7eb', borderRadius: 3, bgcolor: 'white' }}>
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar sx={{ bgcolor: '#E8F5EE', width: 40, height: 40 }}>
+                    <Calendar size={20} color={COLORS.primary} />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={700}>
+                      Report Period
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Select date range for analysis
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Stack direction="row" spacing={2} justifyContent={{ xs: 'flex-start', md: 'flex-end' }} flexWrap="wrap">
+                <FormControl sx={{ minWidth: 180 }} size="small">
+                  <InputLabel>Date Range</InputLabel>
+                  <Select
+                    label="Date Range"
+                    value={dateRange}
+                    onChange={(e) => setDateRange(e.target.value as DateRangePreset)}
+                  >
+                    <MenuItem value="last_7_days">Last 7 days</MenuItem>
+                    <MenuItem value="last_30_days">Last 30 days</MenuItem>
+                    <MenuItem value="last_90_days">Last 90 days</MenuItem>
+                  </Select>
+                </FormControl>
+                <Chip
+                  icon={<Calendar size={14} />}
+                  label={`${filters.start_date} → ${filters.end_date}`}
+                  sx={{
+                    bgcolor: '#E8F5EE',
+                    color: COLORS.primary,
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    height: 40,
+                  }}
+                />
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshCw size={16} />}
+                  onClick={handleManualRefresh}
+                  disabled={isLoading}
+                  sx={{
+                    borderColor: '#e5e7eb',
+                    color: 'text.secondary',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': { borderColor: COLORS.primary, color: COLORS.primary },
+                  }}
+                >
+                  Refresh
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
         </Paper>
 
         {/* KPI Cards */}
@@ -263,18 +357,35 @@ const Analytics: React.FC = () => {
               <Box sx={{ p: 3 }}>
                 {computed && computed.response_time_trend.length > 0 ? (
                   <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={computed.response_time_trend}>
+                    <AreaChart data={computed.response_time_trend}>
+                      <defs>
+                        <linearGradient id="colorResponse" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={COLORS.blue} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={COLORS.blue} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                       <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} label={{ value: 'Minutes', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} />
-                      <Tooltip formatter={(v: number) => [`${v} min`, 'Avg Response']} />
+                      <Tooltip
+                        formatter={(v: number) => [`${v} min`, 'Avg Response']}
+                        contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
+                      />
                       <Legend />
-                      <Line type="monotone" dataKey="avg_response_min" stroke={COLORS.blue} strokeWidth={2.5} name="Avg Response (min)" dot={false} />
-                    </LineChart>
+                      <Area
+                        type="monotone"
+                        dataKey="avg_response_min"
+                        stroke={COLORS.blue}
+                        strokeWidth={2.5}
+                        fill="url(#colorResponse)"
+                        name="Avg Response (min)"
+                      />
+                    </AreaChart>
                   </ResponsiveContainer>
                 ) : (
                   <Box sx={{ textAlign: 'center', py: 8 }}>
-                    <Typography variant="body2" color="text.secondary">No data available for selected period</Typography>
+                    <Clock size={48} color="#e5e7eb" />
+                    <Typography variant="body2" color="text.secondary" mt={2}>No data available for selected period</Typography>
                   </Box>
                 )}
               </Box>
@@ -310,12 +421,13 @@ const Analytics: React.FC = () => {
                       >
                         {[COLORS.error, COLORS.orange, COLORS.warning, COLORS.success].map((color, i) => <Cell key={i} fill={color} />)}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
                   <Box sx={{ textAlign: 'center', py: 8 }}>
-                    <Typography variant="body2" color="text.secondary">No data available</Typography>
+                    <AlertTriangle size={48} color="#e5e7eb" />
+                    <Typography variant="body2" color="text.secondary" mt={2}>No data available</Typography>
                   </Box>
                 )}
               </Box>
@@ -344,7 +456,7 @@ const Analytics: React.FC = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                       <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }} />
                       <Legend />
                       <Bar dataKey="completed" stackId="a" fill={COLORS.success} name="Completed" radius={[0, 0, 0, 0]} />
                       <Bar dataKey="active" stackId="a" fill={COLORS.warning} name="Active" radius={[3, 3, 0, 0]} />
@@ -352,7 +464,8 @@ const Analytics: React.FC = () => {
                   </ResponsiveContainer>
                 ) : (
                   <Box sx={{ textAlign: 'center', py: 8 }}>
-                    <Typography variant="body2" color="text.secondary">No data available for selected period</Typography>
+                    <TrendingUp size={48} color="#e5e7eb" />
+                    <Typography variant="body2" color="text.secondary" mt={2}>No data available for selected period</Typography>
                   </Box>
                 )}
               </Box>
@@ -376,21 +489,30 @@ const Analytics: React.FC = () => {
                   computed.by_district.map((d) => {
                     const rateColor = d.completion_rate >= 90 ? COLORS.success : d.completion_rate >= 70 ? COLORS.warning : COLORS.error;
                     return (
-                      <Box key={d.district} sx={{ mb: 2 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      <Box key={d.district} sx={{ mb: 2.5 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <MapPin size={16} color={rateColor} />
                             <Typography variant="body2" fontWeight={600}>{d.district}</Typography>
                             <Chip label={`${d.count} cases`} size="small"
-                              sx={{ height: 18, fontSize: '0.65rem', bgcolor: '#F5F5F5', color: 'text.secondary' }} />
+                              sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#F5F5F5', color: 'text.secondary', fontWeight: 600 }} />
                           </Box>
-                          <Typography variant="caption" fontWeight={800} sx={{ color: rateColor }}>
-                            {d.completion_rate}%
-                          </Typography>
+                          <Chip
+                            label={`${d.completion_rate}%`}
+                            size="small"
+                            sx={{
+                              height: 24,
+                              bgcolor: rateColor + '20',
+                              color: rateColor,
+                              fontWeight: 800,
+                              fontSize: '0.75rem',
+                            }}
+                          />
                         </Box>
                         <LinearProgress
                           variant="determinate" value={d.completion_rate}
                           sx={{
-                            height: 5, borderRadius: 3, bgcolor: rateColor + '20',
+                            height: 6, borderRadius: 3, bgcolor: rateColor + '15',
                             '& .MuiLinearProgress-bar': { bgcolor: rateColor, borderRadius: 3 },
                           }}
                         />
@@ -399,7 +521,8 @@ const Analytics: React.FC = () => {
                   })
                 ) : (
                   <Box sx={{ textAlign: 'center', py: 6 }}>
-                    <Typography variant="body2" color="text.secondary">No district data available</Typography>
+                    <MapPin size={48} color="#e5e7eb" />
+                    <Typography variant="body2" color="text.secondary" mt={2}>No district data available</Typography>
                   </Box>
                 )}
               </Box>

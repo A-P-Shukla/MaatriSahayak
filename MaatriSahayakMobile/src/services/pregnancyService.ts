@@ -55,8 +55,11 @@ export interface EmergencyPayload {
 }
 
 export const PregnancyService = {
-    async list(): Promise<Pregnancy[]> {
-        const { data } = await api.get(ENDPOINTS.PREGNANCIES);
+    async list(district?: string): Promise<Pregnancy[]> {
+        const params = new URLSearchParams();
+        if (district) params.append('district', district);
+        const qs = params.toString();
+        const { data } = await api.get(`${ENDPOINTS.PREGNANCIES}${qs ? '?' + qs : ''}`);
         const result = data.data;
         if (Array.isArray(result)) return result;
         if (result && Array.isArray(result.pregnancies)) return result.pregnancies;

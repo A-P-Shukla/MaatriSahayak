@@ -43,6 +43,13 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
   open,
   onClose,
 }) => {
+  // Log when modal opens with emergency ID
+  React.useEffect(() => {
+    if (open) {
+      console.log('EmergencyDetailsModal opened with ID:', emergencyId);
+    }
+  }, [open, emergencyId]);
+
   // Fetch emergency data
   const {
     data: emergency,
@@ -50,6 +57,13 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
     isError,
     error,
   } = useEmergency(emergencyId || '');
+
+  // Log emergency data when it changes
+  React.useEffect(() => {
+    if (emergency) {
+      console.log('Emergency data loaded:', emergency);
+    }
+  }, [emergency]);
 
   // Don't render if modal is not open
   if (!open) return null;
@@ -124,7 +138,7 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
       const diffMs = now.getTime() - start.getTime();
       const diffMins = Math.floor(diffMs / 60000);
       const diffHours = Math.floor(diffMins / 60);
-      
+
       if (diffHours > 0) {
         return `${diffHours}h ${diffMins % 60}m ago`;
       }
@@ -137,7 +151,7 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
   // Generate status timeline
   const getStatusTimeline = () => {
     if (!emergency) return [];
-    
+
     const timeline = [
       {
         status: 'initiated',
@@ -218,6 +232,9 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
         {emergencyId && isError && (
           <Alert severity="error">
             Failed to load emergency details: {error instanceof Error ? error.message : 'Unknown error'}
+            <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+              Emergency ID: {emergencyId}
+            </Typography>
           </Alert>
         )}
 
@@ -439,7 +456,7 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
                         <RadioButtonUncheckedIcon color="disabled" fontSize="small" />
                       )}
                     </Box>
-                    
+
                     {/* Timeline connector */}
                     {index < getStatusTimeline().length - 1 && (
                       <Box
@@ -453,7 +470,7 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
                         }}
                       />
                     )}
-                    
+
                     {/* Content */}
                     <Box>
                       <Typography

@@ -125,7 +125,13 @@ export const handleApiError = (error: unknown): string => {
       const d = error.response.data;
       return d?.message || d?.error || d?.detail || `Server error (${error.response.status})`;
     } else if (error.request) {
-      return 'Unable to connect. Please check your internet connection.';
+      console.error('Network error - no response from server:', {
+        baseURL: API_BASE_URL,
+        timeout: API_TIMEOUT,
+        code: error.code,
+        message: error.message
+      });
+      return 'Unable to connect to server. Please check your internet connection.';
     }
   }
   return 'An unexpected error occurred';

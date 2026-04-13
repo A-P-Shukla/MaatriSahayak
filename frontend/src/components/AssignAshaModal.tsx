@@ -42,7 +42,7 @@ const AssignAshaModal: React.FC<AssignAshaModalProps> = ({ open, onClose, pregna
   const [ashaWorkers, setAshaWorkers] = useState<AshaWorker[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const queryClient = useQueryClient();
 
   // Fetch ASHA workers for the patient's district
@@ -54,20 +54,20 @@ const AssignAshaModal: React.FC<AssignAshaModalProps> = ({ open, onClose, pregna
 
   const fetchAshaWorkers = async () => {
     if (!pregnancy) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       console.log('Fetching ASHA workers for district:', pregnancy.district);
       const response = await apiClient.get(`/asha?district=${pregnancy.district}`);
       console.log('ASHA workers response:', response.data);
-      
+
       const data = response.data.data;
       let workers = data?.workers || data?.asha_workers || data?.items || (Array.isArray(data) ? data : []);
-      
+
       console.log('Extracted workers:', workers);
-      
+
       // Map to ensure correct field names
       workers = workers.map((w: any) => ({
         asha_worker_id: w.asha_worker_id || w.asha_id || w.id,
@@ -76,16 +76,20 @@ const AssignAshaModal: React.FC<AssignAshaModalProps> = ({ open, onClose, pregna
         district: w.district,
         assigned_patients_count: w.assigned_patients_count || w.patient_count || 0,
       }));
-      
+
       setAshaWorkers(workers);
-      
+
       // Pre-select current ASHA if assigned
       if (pregnancy.asha_worker_id) {
         setSelectedAshaId(pregnancy.asha_worker_id);
       }
     } catch (err: any) {
       console.error('Error fetching ASHA workers:', err);
-      setError(err.response?.data?.message || 'Failed to load ASHA workers');
+      const errorMessage = err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to load ASHA workers. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -94,7 +98,7 @@ const AssignAshaModal: React.FC<AssignAshaModalProps> = ({ open, onClose, pregna
   const assignMutation = useMutation({
     mutationFn: async (ashaWorkerId: string) => {
       console.log('Assigning ASHA worker:', ashaWorkerId, 'to pregnancy:', pregnancy?.pregnancy_id);
-      
+
       // Try the assignment endpoint
       try {
         const response = await apiClient.post(
@@ -120,7 +124,10 @@ const AssignAshaModal: React.FC<AssignAshaModalProps> = ({ open, onClose, pregna
     },
     onError: (err: any) => {
       console.error('Assignment error:', err);
-      const errorMsg = err.response?.data?.message || err.message || 'Failed to assign ASHA worker';
+      const errorMsg = err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to assign ASHA worker. Please try again.';
       setError(errorMsg);
     },
   });
@@ -204,7 +211,7 @@ const AssignAshaModal: React.FC<AssignAshaModalProps> = ({ open, onClose, pregna
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {asha.phone} • {asha.district}
-                        {asha.assigned_patients_count !== undefined && 
+                        {asha.assigned_patients_count !== undefined &&
                           ` • ${asha.assigned_patients_count} patients assigned`}
                       </Typography>
                     </Box>
