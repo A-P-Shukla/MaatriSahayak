@@ -49,14 +49,14 @@ const Analytics: React.FC = () => {
   const isLoading = cloudLoading || computedLoading;
   const isError = cloudError || computedError;
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh every 1 second for real-time data
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
       refetchCloud();
       refetchComputed();
       setLastRefresh(new Date());
-    }, 30000);
+    }, 1000);
     return () => clearInterval(interval);
   }, [autoRefresh, refetchCloud, refetchComputed]);
 

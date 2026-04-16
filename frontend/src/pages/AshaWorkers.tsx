@@ -62,9 +62,9 @@ const AshaWorkers: React.FC = () => {
 
   const filtered = workers.filter((w) =>
     (w.name.toLowerCase().includes(search.toLowerCase()) ||
-    w.phone?.includes(search) ||
-    w.district?.toLowerCase().includes(search.toLowerCase()) ||
-    w.village?.toLowerCase().includes(search.toLowerCase())) &&
+      w.phone?.includes(search) ||
+      w.district?.toLowerCase().includes(search.toLowerCase()) ||
+      w.village?.toLowerCase().includes(search.toLowerCase())) &&
     (!district || w.district === district)
   );
 
@@ -104,8 +104,11 @@ const AshaWorkers: React.FC = () => {
       <Card elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3, mb: 2, '&:hover': { boxShadow: 2 }, transition: 'all 0.2s' }}>
         <CardContent sx={{ p: 2.5 }}>
           <Stack direction="row" alignItems="center" spacing={2} mb={1.5}>
-            <Avatar sx={{ bgcolor: '#1B6B4A', width: 44, height: 44, fontWeight: 700 }}>
-              {worker.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+            <Avatar
+              src={worker.photo_url}
+              sx={{ bgcolor: '#1B6B4A', width: 44, height: 44, fontWeight: 700 }}
+            >
+              {!worker.photo_url && worker.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
             </Avatar>
             <Box flex={1} minWidth={0}>
               <Typography fontWeight={700} noWrap>{worker.name}</Typography>
@@ -338,8 +341,11 @@ const AshaWorkers: React.FC = () => {
                     <TableRow key={worker.asha_id} hover sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
                       <TableCell>
                         <Stack direction="row" alignItems="center" spacing={1.5}>
-                          <Avatar sx={{ bgcolor: '#1B6B4A', width: 40, height: 40, fontSize: '0.85rem', fontWeight: 700 }}>
-                            {worker.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                          <Avatar
+                            src={worker.photo_url}
+                            sx={{ bgcolor: '#1B6B4A', width: 40, height: 40, fontSize: '0.85rem', fontWeight: 700 }}
+                          >
+                            {!worker.photo_url && worker.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                           </Avatar>
                           <Box>
                             <Typography fontWeight={600} fontSize="0.9rem">

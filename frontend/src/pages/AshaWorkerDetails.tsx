@@ -215,7 +215,13 @@ const AshaWorkerDetails: React.FC = () => {
                   p: 2, border: '1px solid #e2e8f0', borderRadius: 2, bgcolor: '#fafafa',
                   cursor: 'pointer', '&:hover': { bgcolor: '#f0faf7', borderColor: '#0d9488' },
                   transition: 'all 0.15s',
-                }} onClick={() => navigate(`/pregnancies/${p.pregnancy_id}`)}>
+                }} onClick={() => {
+                  if (p.pregnancy_id) {
+                    navigate(`/pregnancies/${p.pregnancy_id}`);
+                  } else {
+                    console.error('Pregnancy ID is undefined for:', p);
+                  }
+                }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Box>
                       <Typography fontWeight={700} fontSize="0.9rem">{p.patient_name}</Typography>

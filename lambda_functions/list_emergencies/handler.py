@@ -16,6 +16,7 @@ from shared import (
     validate_pagination_params
 )
 from shared.constants import TABLE_NAMES, HTTP_STATUS, PAGINATION
+from shared.auth_helper import get_user_from_event
 
 
 def lambda_handler(event, context):
@@ -49,14 +50,25 @@ def lambda_handler(event, context):
     try:
         log_info("List emergencies request received")
         
+        # Get user info and enforce district-based access
+        user = get_user_from_event(event)
+        user_district = user.get('district')
+        user_role = user.get('role', 'ASHA')
+        
         # Parse query parameters
         query_params = event.get('queryStringParameters') or {}
         
         status = query_params.get('status')
         severity_level = query_params.get('severity_level')
-        district = query_params.get('district')
         start_date = query_params.get('start_date')
         end_date = query_params.get('end_date')
+        
+        # For non-admin users, enforce their district
+        if user_role not in ['ADMIN', 'SUPER_ADMIN']:
+            district = user_district
+        else:
+            # Admins can optionally filter by district
+            district = query_params.get('district')
         
         page = int(query_params.get('page', '1'))
         page_size = int(query_params.get('page_size', str(PAGINATION['DEFAULT_PAGE_SIZE'])))

@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { recordVitalsThunk, clearPregnancyError } from '../store/slices/pregnancySlice';
 import { AppDispatch, RootState } from '../store';
 import { useTranslation } from 'react-i18next';
+import { predictRisk, prepareMLInput } from '../services/mlService';
 
 const BG = '#0A1F1A';
 const CARD = '#112920';
@@ -32,6 +33,8 @@ const VitalsScreen = ({ navigation, route }: any) => {
         hemoglobin: '', temperature: '', heartRate: '',
         oxygenSaturation: '', notes: '',
     });
+    const [mlAssessing, setMlAssessing] = useState(false);
+    const [mlResult, setMlResult] = useState<{ risk_level: string; prediction: number } | null>(null);
 
     const set = (key: string) => (val: string) => setVitals(v => ({ ...v, [key]: val }));
 
@@ -74,9 +77,48 @@ const VitalsScreen = ({ navigation, route }: any) => {
         }));
 
         if (recordVitalsThunk.fulfilled.match(result)) {
+            // Try ML risk assessment after successful vitals recording
+            await performMLAssessment();
+
             Alert.alert(t('vitals.saved'), t('vitals.successMessage'), [
                 { text: t('common.ok'), onPress: () => navigation.goBack() },
             ]);
+        }
+    };
+
+    const performMLAssessment = async () => {
+        if (!vitals.bpSystolic || !vitals.bpDiastolic || !vitals.heartRate) {
+            return; // Need minimum vitals for ML
+        }
+
+        setMlAssessing(true);
+        try {
+            const pregnancy = route?.params?.pregnancy || {};
+            const vitalsData = {
+                systolic: parseInt(vitals.bpSystolic, 10),
+                diastolic: parseInt(vitals.bpDiastolic, 10),
+                heartRate: vitals.heartRate ? parseInt(vitals.heartRate, 10) : 75,
+                temperature: vitals.temperature ? parseFloat(vitals.temperature) : 98.6,
+                bloodSugar: 5.5, // Default if not provided
+            };
+
+            const mlInput = prepareMLInput(pregnancy, vitalsData);
+            const result = await predictRisk(mlInput);
+
+            setMlResult(result);
+
+            // Show ML result to user
+            const riskColor = result.risk_level === 'High' ? '🔴' : '🟢';
+            Alert.alert(
+                `${riskColor} ML Risk Assessment`,
+                `Risk Level: ${result.risk_level}\nPrediction: ${result.prediction === 1 ? 'High Risk' : 'Low Risk'}`,
+                [{ text: t('common.ok') }]
+            );
+        } catch (error) {
+            console.error('ML assessment failed:', error);
+            // Don't show error to user - ML is optional
+        } finally {
+            setMlAssessing(false);
         }
     };
 
@@ -143,10 +185,22 @@ const VitalsScreen = ({ navigation, route }: any) => {
                     />
                 </View>
 
+                {mlResult && (
+                    <View style={[styles.card, { backgroundColor: mlResult.risk_level === 'High' ? 'rgba(255,107,107,0.1)' : 'rgba(0,229,160,0.1)' }]}>
+                        <Text style={styles.sectionLabel}>🤖 {t('vitals.mlAssessment', 'ML Risk Assessment')}</Text>
+                        <Text style={[styles.mlResultText, { color: mlResult.risk_level === 'High' ? RED : GREEN }]}>
+                            {mlResult.risk_level === 'High' ? '🔴' : '🟢'} {mlResult.risk_level} Risk
+                        </Text>
+                        <Text style={styles.mlDetailText}>
+                            {t('vitals.prediction', 'Prediction')}: {mlResult.prediction === 1 ? t('vitals.highRisk', 'High Risk') : t('vitals.lowRisk', 'Low Risk')}
+                        </Text>
+                    </View>
+                )}
+
                 <TouchableOpacity
-                    style={[styles.submitBtn, submitting && { opacity: 0.7 }]}
-                    onPress={handleSubmit} disabled={submitting} activeOpacity={0.9}>
-                    {submitting
+                    style={[styles.submitBtn, (submitting || mlAssessing) && { opacity: 0.7 }]}
+                    onPress={handleSubmit} disabled={submitting || mlAssessing} activeOpacity={0.9}>
+                    {(submitting || mlAssessing)
                         ? <ActivityIndicator color={BG} size="small" />
                         : <Text style={styles.submitText}>{t('vitals.saveButton')}</Text>}
                 </TouchableOpacity>
@@ -183,6 +237,8 @@ const styles = StyleSheet.create({
         shadowColor: GREEN, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
     },
     submitText: { color: BG, fontSize: 16, fontWeight: '700', letterSpacing: 0.4 },
+    mlResultText: { fontSize: 18, fontWeight: '700', marginBottom: 4 },
+    mlDetailText: { fontSize: 13, color: DIM, fontWeight: '500' },
 });
 
 export default VitalsScreen;

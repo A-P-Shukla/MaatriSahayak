@@ -1,0 +1,4 @@
+{
+    "httpMethod": "POST",
+    "body": "{\"action\":\"request\",\"email\":\"krishnatripathi07042005@gmail.com\"}"
+}

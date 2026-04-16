@@ -99,6 +99,7 @@ const AppStack = () => (
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="OfficerInfo" component={OfficerInfoScreen} />
         <Stack.Screen name="AncCard" component={AncCardScreen} />
+        <Stack.Screen name="SetPin" component={SetPinScreen} />
     </Stack.Navigator>
 );
 
@@ -109,9 +110,16 @@ const AppNavigator = () => {
 
     useEffect(() => {
         const init = async () => {
-            await dispatch(restoreSessionThunk());
-            await dispatch(checkPinThunk());
-            setReady(true);
+            try {
+                // Temporarily disable session restore to fix reload loop
+                // await dispatch(restoreSessionThunk());
+                // await dispatch(checkPinThunk());
+                console.log('App initialized - session restore disabled temporarily');
+            } catch (error) {
+                console.error('Session restore failed:', error);
+            } finally {
+                setReady(true);
+            }
         };
         init();
     }, []);

@@ -33,12 +33,18 @@ const PregnancyListScreen = ({ navigation }: any) => {
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => { 
-        dispatch(fetchPregnanciesThunk(user?.district)); 
-    }, [user?.district]);
+        dispatch(fetchPregnanciesThunk({ 
+            district: user?.district, 
+            ashaWorkerId: user?.ashaId 
+        })); 
+    }, [user?.district, user?.ashaId]);
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await dispatch(fetchPregnanciesThunk(user?.district));
+        await dispatch(fetchPregnanciesThunk({ 
+            district: user?.district, 
+            ashaWorkerId: user?.ashaId 
+        }));
         setRefreshing(false);
     };
 
@@ -78,7 +84,10 @@ const PregnancyListScreen = ({ navigation }: any) => {
             {!!error && (
                 <View style={styles.errorWrap}>
                     <Text style={styles.errorText}>{error}</Text>
-                    <TouchableOpacity onPress={() => dispatch(fetchPregnanciesThunk())}>
+                    <TouchableOpacity onPress={() => dispatch(fetchPregnanciesThunk({ 
+                        district: user?.district, 
+                        ashaWorkerId: user?.ashaId 
+                    }))}>
                         <Text style={styles.retryText}>{t('common.retry')}</Text>
                     </TouchableOpacity>
                 </View>

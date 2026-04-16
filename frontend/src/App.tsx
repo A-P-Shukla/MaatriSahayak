@@ -34,6 +34,7 @@ import Home from '@pages/Home';
 import About from '@pages/About';
 import Contact from '@pages/Contact';
 import Rollout from '@pages/Rollout';
+import AdminPortal from '@pages/AdminPortal';
 
 
 const queryClient = new QueryClient({
@@ -51,15 +52,15 @@ const queryClient = new QueryClient({
 const theme = createTheme({
   palette: {
     mode: 'light',
-    primary:    { main: '#1B6B4A', light: '#2E8B62', dark: '#0F4A32', contrastText: '#fff' },
-    secondary:  { main: '#E8F5EE', light: '#F0FAF4', dark: '#C8E6D4', contrastText: '#1B6B4A' },
+    primary: { main: '#1B6B4A', light: '#2E8B62', dark: '#0F4A32', contrastText: '#fff' },
+    secondary: { main: '#E8F5EE', light: '#F0FAF4', dark: '#C8E6D4', contrastText: '#1B6B4A' },
     background: { default: '#F4F7F5', paper: '#FFFFFF' },
-    text:       { primary: '#1A2E25', secondary: '#5A7A6A' },
-    error:      { main: '#D32F2F' },
-    warning:    { main: '#E65100' },
-    success:    { main: '#1B6B4A' },
-    info:       { main: '#0277BD' },
-    divider:    '#DDE8E2',
+    text: { primary: '#1A2E25', secondary: '#5A7A6A' },
+    error: { main: '#D32F2F' },
+    warning: { main: '#E65100' },
+    success: { main: '#1B6B4A' },
+    info: { main: '#0277BD' },
+    divider: '#DDE8E2',
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -75,9 +76,9 @@ const theme = createTheme({
   components: {
     MuiButton: {
       styleOverrides: {
-        root: { 
-          textTransform: 'none', 
-          fontWeight: 600, 
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
           borderRadius: 10,
           fontSize: '0.95rem',
           padding: '10px 20px',
@@ -109,7 +110,7 @@ const theme = createTheme({
           borderBottom: '2px solid #DDE8E2',
           padding: '16px',
         },
-        root: { 
+        root: {
           borderBottomColor: '#EEF3F0',
           fontSize: '0.9rem',
           padding: '16px',
@@ -117,12 +118,12 @@ const theme = createTheme({
       },
     },
     MuiChip: {
-      styleOverrides: { 
-        root: { 
-          fontWeight: 600, 
+      styleOverrides: {
+        root: {
+          fontWeight: 600,
           fontSize: '0.8rem',
           height: '28px',
-        } 
+        }
       },
     },
     MuiTextField: {
@@ -214,6 +215,7 @@ const App: React.FC = () => (
               <Route path="/asha/:id" element={<ProtectedRoute><MainLayout><AshaWorkerDetails /></MainLayout></ProtectedRoute>} />
               <Route path="/hospitals" element={<ProtectedRoute><MainLayout><Hospitals /></MainLayout></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><MainLayout><Profile /></MainLayout></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><MainLayout><AdminPortal /></MainLayout></ProtectedRoute>} />
               <Route path="*" element={<ProtectedRoute><MainLayout><NotFound /></MainLayout></ProtectedRoute>} />
             </Routes>
           </Router>

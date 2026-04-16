@@ -43,53 +43,61 @@ const DRAWER_WIDTH = 270;
 // HELPER FUNCTIONS - Data Transformation
 // ============================================================================
 
-const buildMetricsConfig = (stats: any) => [
-  {
-    title: 'Total Pregnancies',
-    value: stats.total_pregnancies || 0,
-    icon: <Baby size={24} />,
-    color: '#0d9488',
-    bg: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
-    lightBg: '#f0fdfa',
-    trend: '+12%',
-    sub: 'Registered patients',
-    path: '/pregnancies',
-  },
-  {
-    title: 'High-Risk Cases',
-    value: stats.high_risk_count || 0,
-    icon: <AlertTriangle size={24} />,
-    color: '#E65100',
-    bg: 'linear-gradient(135deg, #E65100 0%, #FF8F00 100%)',
-    lightBg: '#FFF3E0',
-    trend: '-3%',
-    sub: 'Needs attention',
-    path: '/pregnancies',
-  },
-  {
-    title: 'Active Emergencies',
-    value: stats.active_emergencies || 0,
-    icon: <HeartPulse size={24} />,
-    color: '#C62828',
-    bg: 'linear-gradient(135deg, #C62828 0%, #EF5350 100%)',
-    lightBg: '#FFEBEE',
-    trend: stats.active_emergencies > 0 ? 'LIVE' : 'Clear',
-    sub: 'In progress now',
-    path: '/emergencies',
-    pulse: (stats.active_emergencies || 0) > 0,
-  },
-  {
-    title: 'Available Ambulances',
-    value: stats.available_ambulances || 0,
-    icon: <Ambulance size={24} />,
-    color: '#0277BD',
-    bg: 'linear-gradient(135deg, #0277BD 0%, #29B6F6 100%)',
-    lightBg: '#E3F2FD',
-    trend: 'Ready',
-    sub: 'On standby',
-    path: '/tracking',
-  },
-];
+const buildMetricsConfig = (stats: any) => {
+  const totalAmbulances = stats.ambulance_stats?.total || 0;
+  const availableAmbulances = stats.available_ambulances || 0;
+  const activePregnancies = stats.active_pregnancies || 0;
+  const totalPregnancies = stats.total_pregnancies || 0;
+  const highRiskPercentage = stats.high_risk_percentage || 0;
+
+  return [
+    {
+      title: 'Total Pregnancies',
+      value: totalPregnancies,
+      icon: <Baby size={24} />,
+      color: '#0d9488',
+      bg: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
+      lightBg: '#f0fdfa',
+      trend: `${activePregnancies} Active`,
+      sub: 'Registered patients',
+      path: '/pregnancies',
+    },
+    {
+      title: 'High-Risk Cases',
+      value: stats.high_risk_count || 0,
+      icon: <AlertTriangle size={24} />,
+      color: '#E65100',
+      bg: 'linear-gradient(135deg, #E65100 0%, #FF8F00 100%)',
+      lightBg: '#FFF3E0',
+      trend: `${highRiskPercentage.toFixed(1)}%`,
+      sub: 'Needs attention',
+      path: '/pregnancies',
+    },
+    {
+      title: 'Active Emergencies',
+      value: stats.active_emergencies || 0,
+      icon: <HeartPulse size={24} />,
+      color: '#C62828',
+      bg: 'linear-gradient(135deg, #C62828 0%, #EF5350 100%)',
+      lightBg: '#FFEBEE',
+      trend: stats.active_emergencies > 0 ? 'LIVE' : 'Clear',
+      sub: 'In progress now',
+      path: '/emergencies',
+      pulse: (stats.active_emergencies || 0) > 0,
+    },
+    {
+      title: 'Available Ambulances',
+      value: availableAmbulances,
+      icon: <Ambulance size={24} />,
+      color: '#0277BD',
+      bg: 'linear-gradient(135deg, #0277BD 0%, #29B6F6 100%)',
+      lightBg: '#E3F2FD',
+      trend: totalAmbulances > 0 ? `${totalAmbulances} Total` : 'Ready',
+      sub: 'On standby',
+      path: '/tracking',
+    },
+  ];
+};
 
 const buildQuickActionsConfig = () => [
   { label: 'Pregnancies', path: '/pregnancies', icon: <Baby size={22} />, color: '#0d9488', bg: '#f0fdfa' },
@@ -661,6 +669,11 @@ const Dashboard: React.FC = () => {
                       // Use pregnancy_id field
                       const pregnancyId = p.pregnancy_id;
 
+                      // Debug logging
+                      if (!pregnancyId) {
+                        console.error('Missing pregnancy_id in high_risk_pregnancies:', p);
+                      }
+
                       // Generate mock trajectory data (in production, this would come from API)
                       const trajectoryData = [
                         { week: 'W-4', score: Math.max(20, score - 25 + Math.random() * 10) },
@@ -674,7 +687,13 @@ const Dashboard: React.FC = () => {
                         <Grid item xs={12} key={pregnancyId}>
                           <Paper
                             elevation={0}
-                            onClick={() => navigate(`/pregnancies/${pregnancyId}`)}
+                            onClick={() => {
+                              if (pregnancyId) {
+                                navigate(`/pregnancies/${pregnancyId}`);
+                              } else {
+                                console.error('Pregnancy ID is undefined');
+                              }
+                            }}
                             sx={{
                               p: 2.5,
                               borderRadius: 2,
@@ -866,8 +885,10 @@ const Dashboard: React.FC = () => {
                           <Box
                             key={e.event_id}
                             onClick={() => {
-                              setSelectedEmergencyId(e.event_id);
-                              setModalOpen(true);
+                              if (e.event_id) {
+                                setSelectedEmergencyId(e.event_id);
+                                setModalOpen(true);
+                              }
                             }}
                             sx={{
                               display: 'flex',
@@ -1022,10 +1043,22 @@ const Dashboard: React.FC = () => {
                         const riskColor =
                           score >= 80 ? '#C62828' : score >= 60 ? '#E65100' : score >= 40 ? '#F9A825' : '#2E7D32';
                         const pregnancyId = p.pregnancy_id;
+
+                        // Debug logging
+                        if (!pregnancyId) {
+                          console.error('Missing pregnancy_id in sidebar high_risk_pregnancies:', p);
+                        }
+
                         return (
                           <Box
                             key={pregnancyId}
-                            onClick={() => navigate(`/pregnancies/${pregnancyId}`)}
+                            onClick={() => {
+                              if (pregnancyId) {
+                                navigate(`/pregnancies/${pregnancyId}`);
+                              } else {
+                                console.error('Pregnancy ID is undefined');
+                              }
+                            }}
                             sx={{
                               p: 2,
                               mb: 1,

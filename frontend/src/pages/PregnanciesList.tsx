@@ -32,6 +32,14 @@ const PregnanciesList: React.FC = () => {
   const { data: pregnanciesData, isLoading, isError, error } = usePregnancies(filters);
   const pregnancies = pregnanciesData?.items || [];
 
+  // Debug: Log pregnancy data to check IDs
+  React.useEffect(() => {
+    if (pregnancies.length > 0) {
+      console.log('Sample pregnancy data:', pregnancies[0]);
+      console.log('Pregnancy IDs:', pregnancies.map(p => ({ name: p.patient_name, id: p.pregnancy_id })));
+    }
+  }, [pregnancies]);
+
   const filteredPregnancies = pregnancies.filter((p: Pregnancy) =>
     p.patient_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -150,6 +158,7 @@ const PregnanciesList: React.FC = () => {
                 <MenuItem value="">All Districts</MenuItem>
                 <MenuItem value="Lucknow">Lucknow</MenuItem>
                 <MenuItem value="Kanpur">Kanpur</MenuItem>
+                <MenuItem value="Kanpur Nagar">Kanpur Nagar</MenuItem>
                 <MenuItem value="Varanasi">Varanasi</MenuItem>
                 <MenuItem value="Agra">Agra</MenuItem>
                 <MenuItem value="Sitapur">Sitapur</MenuItem>
@@ -199,7 +208,14 @@ const PregnanciesList: React.FC = () => {
                     <Card
                       variant="outlined"
                       sx={{ cursor: 'pointer', '&:hover': { borderColor: 'primary.main', boxShadow: 2 }, transition: 'all 0.2s' }}
-                      onClick={() => navigate(`/pregnancies/${p.pregnancy_id}`)}
+                      onClick={() => {
+                        if (p.pregnancy_id) {
+                          navigate(`/pregnancies/${p.pregnancy_id}`);
+                        } else {
+                          console.error('Pregnancy ID is undefined for:', p);
+                          alert('Unable to view details: Pregnancy ID is missing');
+                        }
+                      }}
                     >
                       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -245,7 +261,14 @@ const PregnanciesList: React.FC = () => {
                       key={p.pregnancy_id}
                       hover
                       sx={{ cursor: 'pointer', '&:last-child td': { border: 0 } }}
-                      onClick={() => navigate(`/pregnancies/${p.pregnancy_id}`)}
+                      onClick={() => {
+                        if (p.pregnancy_id) {
+                          navigate(`/pregnancies/${p.pregnancy_id}`);
+                        } else {
+                          console.error('Pregnancy ID is undefined for:', p);
+                          alert('Unable to view details: Pregnancy ID is missing');
+                        }
+                      }}
                     >
                       <TableCell><Typography variant="body2" fontWeight={500}>{p.patient_name}</Typography></TableCell>
                       <TableCell><Typography variant="body2">{p.age}</Typography></TableCell>
@@ -271,15 +294,23 @@ const PregnanciesList: React.FC = () => {
                       <TableCell align="center">
                         <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
                           <Tooltip title="View details">
-                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); navigate(`/pregnancies/${p.pregnancy_id}`); }}>
+                            <IconButton size="small" onClick={(e) => {
+                              e.stopPropagation();
+                              if (p.pregnancy_id) {
+                                navigate(`/pregnancies/${p.pregnancy_id}`);
+                              } else {
+                                console.error('Pregnancy ID is undefined for:', p);
+                                alert('Unable to view details: Pregnancy ID is missing');
+                              }
+                            }}>
                               <Eye size={16} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Assign ASHA Worker">
-                            <IconButton 
-                              size="small" 
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setSelectedPregnancy(p);
                                 setAssignModalOpen(true);
                               }}
@@ -312,12 +343,12 @@ const PregnanciesList: React.FC = () => {
       </Box>
 
       <RegisterPregnancyModal open={registerModalOpen} onClose={() => setRegisterModalOpen(false)} />
-      <AssignAshaModal 
-        open={assignModalOpen} 
+      <AssignAshaModal
+        open={assignModalOpen}
         onClose={() => {
           setAssignModalOpen(false);
           setSelectedPregnancy(null);
-        }} 
+        }}
         pregnancy={selectedPregnancy}
       />
     </Box>

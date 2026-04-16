@@ -12,6 +12,7 @@ import { DatabaseService } from '../services/database';
 import { SyncService } from '../services/sync';
 import { PregnancyService } from '../services/pregnancyService';
 import { StorageService } from '../services/storage';
+import { registerForPushNotifications } from '../services/notificationService';
 import SyncStatusIndicator from '../components/SyncStatusIndicator';
 
 const BG = '#0A1F1A';
@@ -132,12 +133,25 @@ const HomeScreen = ({ navigation, route }: any) => {
             try {
                 await DatabaseService.init();
                 SyncService.startBackgroundSync();
-                await dispatch(fetchPregnanciesThunk()).unwrap();
+                
+                // Register for push notifications
+                try {
+                    await registerForPushNotifications();
+                } catch (notifError) {
+                    console.error('Push notification registration failed:', notifError);
+                }
+                
+                console.log('Fetching pregnancies with:', { district: user?.district, ashaWorkerId: user?.ashaId });
+                await dispatch(fetchPregnanciesThunk({ 
+                    district: user?.district, 
+                    ashaWorkerId: user?.ashaId 
+                })).unwrap();
                 const count = await DatabaseService.getPendingSyncCount();
                 setPendingCount(count);
                 const online = await SyncService.isOnline();
                 setIsOnline(online);
-            } catch (error) {
+            } catch (error: any) {
+                console.error('Setup error details:', JSON.stringify(error));
                 console.error('Setup error:', error);
                 // Still show UI even if data fetch fails
                 const online = await SyncService.isOnline();
@@ -195,13 +209,17 @@ const HomeScreen = ({ navigation, route }: any) => {
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
-            await dispatch(fetchPregnanciesThunk()).unwrap();
+            console.log('Refreshing pregnancies with:', { district: user?.district, ashaWorkerId: user?.ashaId });
+            await dispatch(fetchPregnanciesThunk({ 
+                district: user?.district, 
+                ashaWorkerId: user?.ashaId 
+            })).unwrap();
             const count = await DatabaseService.getPendingSyncCount();
             setPendingCount(count);
             const online = await SyncService.isOnline();
             setIsOnline(online);
-        } catch (error) {
-            console.error('Refresh error:', error);
+        } catch (error: any) {
+            console.error('Refresh error:', error?.message || error);
         } finally {
             setRefreshing(false);
         }

@@ -12,11 +12,10 @@ from shared import (
     parse_event_body,
     log_info,
     log_error,
-    validate_required_fields
+    validate_required_fields,
+    get_item
 )
-from shared.constants import HTTP_STATUS
-
-dynamodb = boto3.resource('dynamodb')
+from shared.constants import HTTP_STATUS, TABLE_NAMES
 
 def lambda_handler(event, context):
     try:
@@ -32,17 +31,16 @@ def lambda_handler(event, context):
         data = body.get('data', {})
         
         # Get ASHA worker's push token from DynamoDB
-        asha_table = dynamodb.Table('MaatriSahayak-AshaWorkers')
-        response = asha_table.get_item(Key={'asha_worker_id': asha_worker_id})
+        table_name = TABLE_NAMES.get('ASHA_WORKERS', 'maatrisahayak-asha-workers-dev')
+        asha_worker = get_item(table_name, {'id': asha_worker_id})
         
-        if 'Item' not in response:
+        if not asha_worker:
             return create_error_response(
                 HTTP_STATUS['NOT_FOUND'],
                 "AshaWorkerNotFound",
                 f"ASHA worker {asha_worker_id} not found"
             )
         
-        asha_worker = response['Item']
         push_token = asha_worker.get('push_token')
         
         if not push_token:

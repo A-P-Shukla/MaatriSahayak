@@ -28,6 +28,7 @@ from shared import (
 )
 from shared.db_helper import update_item
 from shared.constants import TABLE_NAMES, HTTP_STATUS
+from shared.auth_helper import get_user_from_event
 
 cognito_client = boto3.client('cognito-idp')
 USER_POOL_ID = os.environ.get('USER_POOL_ID')
@@ -43,6 +44,19 @@ def lambda_handler(event, context):
         reg_type = body['type'].upper()   # DRIVER | ASHA
         action   = body['action'].upper() # APPROVE | REJECT
         reason   = body.get('reason', '')
+        
+        # Get officer info from JWT token
+        officer_info = {}
+        try:
+            user = get_user_from_event(event)
+            officer_info = {
+                'approved_by_id': user.get('user_id'),
+                'approved_by_name': user.get('name'),
+                'approved_by_email': user.get('email'),
+                'approved_by_district': user.get('district'),
+            }
+        except Exception as e:
+            log_error("Could not extract officer info (non-fatal)", e)
 
         if reg_type not in ('DRIVER', 'ASHA'):
             raise ValidationError("type must be DRIVER or ASHA", field='type')
@@ -69,11 +83,14 @@ def lambda_handler(event, context):
                 except Exception as e:
                     log_error("Failed to enable Cognito user (non-fatal)", e)
 
-            update_item(table_name, {'id': reg_id}, {
+            # Update with officer info
+            update_data = {
                 'verificationStatus': 'APPROVED',
                 'verifiedAt': timestamp,
                 'rejectionReason': '',
-            })
+                **officer_info  # Add officer details
+            }
+            update_item(table_name, {'id': reg_id}, update_data)
             message = f"{reg_type} approved successfully"
 
             if email:
@@ -96,11 +113,13 @@ def lambda_handler(event, context):
                 except Exception as e:
                     log_error("Failed to disable Cognito user (non-fatal)", e)
 
-            update_item(table_name, {'id': reg_id}, {
+            update_data = {
                 'verificationStatus': 'REJECTED',
                 'verifiedAt': timestamp,
                 'rejectionReason': reason,
-            })
+                **officer_info  # Add officer details
+            }
+            update_item(table_name, {'id': reg_id}, update_data)
             message = f"{reg_type} rejected"
 
             if email:
@@ -109,7 +128,7 @@ def lambda_handler(event, context):
                 except Exception as e:
                     log_error("Failed to send rejection email (non-fatal)", e)
 
-        log_info(message, id=reg_id, type=reg_type, action=action)
+        log_info(message, id=reg_id, type=reg_type, action=action, officer=officer_info.get('approved_by_name'))
         return create_success_response({'id': reg_id, 'status': action}, message)
 
     except ValidationError as e:

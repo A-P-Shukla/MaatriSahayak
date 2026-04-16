@@ -10,8 +10,8 @@ export const useEmergencies = (filters: EmergencyFilters = {}) => {
   return useQuery({
     queryKey: ['emergencies', filters],
     queryFn: () => getEmergencies(filters),
-    refetchInterval: 10000, // Auto-refresh every 10 seconds
-    staleTime: 5000, // Consider data stale after 5 seconds
+    refetchInterval: 1000, // Auto-refresh every 1 second for real-time updates
+    staleTime: 0, // Always consider data stale for real-time updates
   });
 };
 
@@ -23,5 +23,7 @@ export const useEmergency = (emergencyId: string) => {
     queryKey: ['emergency', emergencyId],
     queryFn: () => getEmergencyById(emergencyId),
     enabled: !!emergencyId, // Only fetch if emergencyId is provided
+    staleTime: 0, // Always consider data stale for real-time updates
+    refetchInterval: 1000, // Auto-refresh every 1 second for real-time data
   });
 };

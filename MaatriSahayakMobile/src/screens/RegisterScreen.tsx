@@ -132,7 +132,7 @@ const RegisterScreen = ({ navigation }: any) => {
             edd: edd.trim() || '',
             blood_type: bloodGroup.trim().toUpperCase(),
             gravida: form.gravida ? parseInt(form.gravida, 10) : undefined,
-            asha_worker_id: user?.id || '',
+            asha_worker_id: user?.ashaId || user?.id || '',
         }));
 
         if (registerPregnancyThunk.fulfilled.match(result)) {

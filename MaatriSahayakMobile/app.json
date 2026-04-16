@@ -22,8 +22,7 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "MaatriSahayak needs your location to track ambulances and provide emergency services.",
         "NSCameraUsageDescription": "MaatriSahayak needs camera access to scan ANC cards and capture photos.",
         "NSPhotoLibraryUsageDescription": "MaatriSahayak needs photo library access to upload ANC card images."
-      },
-      "runtimeVersion": "1.0.0"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -42,30 +41,18 @@
         "WRITE_EXTERNAL_STORAGE",
         "INTERNET",
         "ACCESS_NETWORK_STATE"
-      ],
-      "runtimeVersion": "1.0.0"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-sqlite",
-      "expo-notifications",
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow MaatriSahayak to use your location."
-        }
-      ]
-    ],
+    "plugins": [],
     "extra": {
       "eas": {
         "projectId": "f95e588d-14b6-44e9-a108-d4c0d7463d9b"
       }
     },
-    "updates": {
-      "url": "https://u.expo.dev/f95e588d-14b6-44e9-a108-d4c0d7463d9b"
-    }
+    "owner": "krishna_0704"
   },
   "name": "MaatriSahayakMobile"
 }

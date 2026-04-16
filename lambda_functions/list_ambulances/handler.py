@@ -15,6 +15,7 @@ from shared import (
     scan_items,
 )
 from shared.constants import TABLE_NAMES, HTTP_STATUS, GSI_NAMES
+from shared.auth_helper import get_user_from_event
 
 
 def lambda_handler(event, context):
@@ -38,10 +39,21 @@ def lambda_handler(event, context):
     """
     try:
         log_info("List ambulances request received")
+        
+        # Get user info and enforce district-based access
+        user = get_user_from_event(event)
+        user_district = user.get('district')
+        user_role = user.get('role', 'ASHA')
 
         query_params = event.get("queryStringParameters") or {}
-        district = query_params.get("district")
         status = query_params.get("status")
+        
+        # For non-admin users, enforce their district
+        if user_role not in ['ADMIN', 'SUPER_ADMIN']:
+            district = user_district
+        else:
+            # Admins can optionally filter by district
+            district = query_params.get("district")
 
         try:
             limit = int(query_params.get("limit", 100))

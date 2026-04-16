@@ -26,6 +26,14 @@ const EmergencyAlerts: React.FC = () => {
 
   const { data: emergencies = [], isLoading, isError, error, refetch } = useEmergencies(filters);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Emergencies data:', emergencies);
+    console.log('Is loading:', isLoading);
+    console.log('Is error:', isError);
+    console.log('Error:', error);
+  }, [emergencies, isLoading, isError, error]);
+
   const filteredEmergencies = emergencies.filter((e) =>
     e.patient_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );

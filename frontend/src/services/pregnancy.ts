@@ -23,6 +23,9 @@ export const getPregnancies = async (
       params.append('sort', `${filters.sort_field}:${filters.sort_order}`);
     }
 
+    // Add cache-busting timestamp to force fresh data
+    params.append('_t', Date.now().toString());
+
     const response = await apiClient.get<ApiResponse<any>>(
       `/pregnancies?${params.toString()}`
     );
@@ -41,7 +44,7 @@ export const getPregnancies = async (
 
     // Map backend field names to frontend field names
     const items: Pregnancy[] = rawItems.map((item: any) => ({
-      pregnancy_id: item.id || item.pregnancy_id,
+      pregnancy_id: item.pregnancy_id || item.id,
       patient_name: item.patient_name,
       age: item.age,
       phone: item.phone,

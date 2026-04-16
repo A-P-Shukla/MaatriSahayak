@@ -6,6 +6,56 @@ import type { Emergency, EmergencyFilters, EmergencyStats } from '../types';
  * Handles all emergency-related API calls
  */
 
+// Mock emergency data for development/testing
+const MOCK_EMERGENCIES: Emergency[] = [
+  {
+    event_id: 'EMG-001',
+    pregnancy_id: 'PREG-001',
+    patient_name: 'Priya Sharma',
+    patient_phone: '+91-9876543210',
+    trigger_timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+    event_type: 'SEVERE_BLEEDING',
+    severity_level: 'critical',
+    status: 'dispatched',
+    response_time_seconds: 180,
+    location: { latitude: 28.6139, longitude: 77.2090 },
+    ambulance_id: 'AMB-001',
+    patient_age: 28,
+    patient_village: 'Sarita Vihar',
+  },
+  {
+    event_id: 'EMG-002',
+    pregnancy_id: 'PREG-002',
+    patient_name: 'Anjali Verma',
+    patient_phone: '+91-9876543211',
+    trigger_timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
+    dispatch_timestamp: new Date(Date.now() - 6900000).toISOString(),
+    event_type: 'PREMATURE_LABOR',
+    severity_level: 'high',
+    status: 'in_transit',
+    response_time_seconds: 300,
+    location: { latitude: 28.5355, longitude: 77.3910 },
+    ambulance_id: 'AMB-002',
+    hospital_id: 'HOSP-001',
+    patient_age: 32,
+    patient_village: 'Noida Sector 62',
+  },
+  {
+    event_id: 'EMG-003',
+    pregnancy_id: 'PREG-003',
+    patient_name: 'Sunita Devi',
+    patient_phone: '+91-9876543212',
+    trigger_timestamp: new Date(Date.now() - 1800000).toISOString(), // 30 minutes ago
+    event_type: 'HIGH_BLOOD_PRESSURE',
+    severity_level: 'medium',
+    status: 'initiated',
+    response_time_seconds: 120,
+    location: { latitude: 28.7041, longitude: 77.1025 },
+    patient_age: 25,
+    patient_village: 'Rohini',
+  },
+];
+
 // Get list of emergencies with filters
 export const getEmergencies = async (
   filters: EmergencyFilters = {}
@@ -24,15 +74,54 @@ export const getEmergencies = async (
       `/emergencies?${params.toString()}`
     );
 
+    console.log('Emergency API Response:', response.data);
+
     const d = response.data.data;
     const rawArray = (d?.emergencies ?? d?.items ?? (Array.isArray(d) ? d : []));
 
-    // Map to ensure event_id field exists
-    return rawArray.map((item: any) => ({
-      ...item,
-      event_id: item.event_id || item.id || item.emergency_id,
+    console.log('Parsed emergencies array:', rawArray);
+
+    // Map to ensure event_id field exists and normalize field names
+    const mappedEmergencies = rawArray.map((item: any) => ({
+      event_id: item.event_id || item.eventId || item.id || item.emergency_id,
+      pregnancy_id: item.pregnancy_id || item.pregnancyId,
+      patient_name: item.patient_name || item.patientName || 'Unknown Patient',
+      patient_phone: item.patient_phone || item.patientPhone,
+      trigger_timestamp: item.trigger_timestamp || item.triggered_at || item.timestamp || item.createdAt || new Date().toISOString(),
+      dispatch_timestamp: item.dispatch_timestamp || item.dispatched_at || item.dispatchedAt,
+      arrival_timestamp: item.arrival_timestamp || item.arrived_at || item.arrivedAt,
+      completion_timestamp: item.completion_timestamp || item.completed_at || item.completedAt,
+      event_type: item.event_type || item.eventType || 'EMERGENCY',
+      severity_level: (item.severity_level || item.severity || 'medium').toLowerCase() as any,
+      ambulance_id: item.ambulance_id || item.ambulanceId || item.assignedAmbulanceId,
+      hospital_id: item.hospital_id || item.hospitalId || item.assignedHospitalId,
+      status: (item.status || 'initiated').toLowerCase().replace('active', 'initiated') as any,
+      response_time_seconds: item.response_time_seconds || item.responseTime || item.response_time,
+      outcome: item.outcome,
+      location: item.location || { latitude: 0, longitude: 0 },
+      patient_age: item.patient_age || item.patientAge,
+      patient_village: item.patient_village || item.patientVillage,
+      estimated_arrival_time: item.estimated_arrival_time || item.estimatedArrivalTime,
     }));
+
+    console.log('Mapped emergencies:', mappedEmergencies);
+
+    // If no emergencies found and we're in development, return mock data
+    if (mappedEmergencies.length === 0 && import.meta.env.DEV) {
+      console.log('No emergencies from API, using mock data for development');
+      return MOCK_EMERGENCIES;
+    }
+
+    return mappedEmergencies;
   } catch (error) {
+    console.error('Error fetching emergencies:', error);
+
+    // If we're in development and the API fails, return mock data
+    if (import.meta.env.DEV) {
+      console.log('API error in development, using mock data');
+      return MOCK_EMERGENCIES;
+    }
+
     throw new Error(handleApiError(error));
   }
 };

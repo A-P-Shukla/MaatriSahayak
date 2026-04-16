@@ -27,12 +27,51 @@ const OfficerInfoScreen = ({ navigation }: any) => {
     const fetchOfficerInfo = async () => {
         try {
             setLoading(true);
-            // Mock API call - replace with actual endpoint
-            const response = await apiClient.get(`/officers/district/${user?.district}`);
-            setOfficer(response.data.data);
+            
+            // Fetch ASHA worker profile which includes officer info
+            if (user?.ashaId) {
+                const response = await apiClient.get(`/asha/${user.ashaId}`);
+                const ashaData = response.data.data.asha;
+                
+                // Extract officer info from ASHA profile
+                if (ashaData.approved_by_name) {
+                    setOfficer({
+                        name: ashaData.approved_by_name || 'District Officer',
+                        designation: 'District Health Officer',
+                        district: ashaData.approved_by_district || user?.district || 'Unknown',
+                        phone: ashaData.approved_by_phone || '+91 98765 43210',
+                        email: ashaData.approved_by_email || 'officer@nhm.gov.in',
+                        office_address: 'District Health Office, Civil Lines',
+                        working_hours: 'Mon-Fri: 9:00 AM - 5:00 PM',
+                        approved_at: ashaData.verifiedAt,
+                    });
+                } else {
+                    // Fallback to mock data if no officer info
+                    setOfficer({
+                        name: 'Dr. Rajesh Kumar',
+                        designation: 'District Health Officer',
+                        district: user?.district || 'Unknown',
+                        phone: '+91 98765 43210',
+                        email: 'rajesh.kumar@nhm.gov.in',
+                        office_address: 'District Health Office, Civil Lines',
+                        working_hours: 'Mon-Fri: 9:00 AM - 5:00 PM',
+                    });
+                }
+            } else {
+                // No ASHA ID, use mock data
+                setOfficer({
+                    name: 'Dr. Rajesh Kumar',
+                    designation: 'District Health Officer',
+                    district: user?.district || 'Unknown',
+                    phone: '+91 98765 43210',
+                    email: 'rajesh.kumar@nhm.gov.in',
+                    office_address: 'District Health Office, Civil Lines',
+                    working_hours: 'Mon-Fri: 9:00 AM - 5:00 PM',
+                });
+            }
         } catch (error) {
             console.error('Failed to fetch officer info:', error);
-            // Mock data for demonstration
+            // Fallback to mock data on error
             setOfficer({
                 name: 'Dr. Rajesh Kumar',
                 designation: 'District Health Officer',
@@ -105,6 +144,15 @@ const OfficerInfoScreen = ({ navigation }: any) => {
                         <Text style={styles.districtIcon}>📍</Text>
                         <Text style={styles.districtText}>{officer?.district || user?.district}</Text>
                     </View>
+                    
+                    {officer?.approved_at && (
+                        <View style={styles.approvedBadge}>
+                            <Text style={styles.approvedIcon}>✓</Text>
+                            <Text style={styles.approvedText}>
+                                Approved your registration on {new Date(officer.approved_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Contact Information */}
@@ -318,6 +366,30 @@ const styles = StyleSheet.create({
     },
     districtIcon: { fontSize: 16 },
     districtText: { fontSize: 14, fontWeight: '700', color: GREEN },
+    
+    approvedBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: 'rgba(0,229,160,0.08)',
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        marginTop: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(0,229,160,0.15)',
+    },
+    approvedIcon: {
+        fontSize: 16,
+        color: GREEN,
+        fontWeight: '900',
+    },
+    approvedText: {
+        fontSize: 12,
+        color: DIM,
+        flex: 1,
+        lineHeight: 18,
+    },
 
     sectionLabel: {
         fontSize: 11,

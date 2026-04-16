@@ -9,6 +9,7 @@ export interface AshaWorker {
   phone: string;
   district: string;
   village: string;
+  photo_url?: string;
   location?: {
     latitude: number;
     longitude: number;

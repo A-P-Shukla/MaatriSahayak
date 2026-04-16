@@ -16,6 +16,7 @@ export interface RegisterPayload {
     village: string;
     age: number;
     password: string;
+    photo?: string; // base64 encoded image
 }
 
 export interface DriverRegisterPayload {

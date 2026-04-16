@@ -63,12 +63,12 @@ const LiveTracking: React.FC = () => {
   // WebSocket for real-time location updates
   const { isConnected } = useWebSocket({ enabled: true });
 
-  // Auto-refresh every 10 seconds
+  // Auto-refresh every 1 second for real-time tracking
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
       refetch();
-    }, 10000);
+    }, 1000);
     return () => clearInterval(interval);
   }, [autoRefresh, refetch]);
 

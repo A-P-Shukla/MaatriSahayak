@@ -15,6 +15,7 @@ from shared import (
     scan_items
 )
 from shared.constants import TABLE_NAMES, HTTP_STATUS
+from shared.auth_helper import get_user_from_event
 
 
 def lambda_handler(event, context):
@@ -43,17 +44,31 @@ def lambda_handler(event, context):
     try:
         log_info("Generate analytics request received")
         
+        # Get user info and enforce district-based access
+        user = get_user_from_event(event)
+        user_district = user.get('district')
+        user_role = user.get('role', 'ASHA')
+        
         # Get query parameters
         query_params = event.get('queryStringParameters') or {}
-        district = query_params.get('district')
+        
+        # For non-admin users, enforce their district
+        if user_role not in ['ADMIN', 'SUPER_ADMIN']:
+            district = user_district
+        else:
+            # Admins can optionally filter by district
+            district = query_params.get('district')
         
         # Get all pregnancies
         filter_expr = None
         expr_values = None
         
         if district:
-            filter_expr = 'district = :district'
-            expr_values = {':district': district}
+            # Normalize district name (Kanpur and Kanpur Nagar are the same)
+            district_normalized = district.replace(' Nagar', '').replace(' nagar', '').strip()
+            # Use contains to match both "Kanpur" and "Kanpur Nagar"
+            filter_expr = 'contains(district, :district)'
+            expr_values = {':district': district_normalized}
         
         pregnancies = scan_items(
             TABLE_NAMES['PREGNANCIES'],
@@ -97,6 +112,23 @@ def lambda_handler(event, context):
             p for p in pregnancies 
             if p.get('risk_level') in ['HIGH', 'CRITICAL']
         ]
+        
+        # Add risk_score to pregnancies if not present
+        for p in high_risk_pregnancies:
+            if 'risk_score' not in p or p.get('risk_score') == 0:
+                risk_level_upper = (p.get('risk_level') or 'LOW').upper()
+                risk_score_map = {
+                    'CRITICAL': 85,
+                    'HIGH': 70,
+                    'MEDIUM': 50,
+                    'LOW': 25
+                }
+                p['risk_score'] = risk_score_map.get(risk_level_upper, 25)
+            
+            # Ensure pregnancy_id exists
+            if 'pregnancy_id' not in p and 'id' in p:
+                p['pregnancy_id'] = p['id']
+        
         # Sort by risk score if available
         high_risk_pregnancies = sorted(
             high_risk_pregnancies,

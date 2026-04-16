@@ -1,10 +1,12 @@
 """
 MaatriSahayak - Record Vitals Lambda Function
 
-Records vital signs for a pregnancy with automatic alert detection.
+Records vital signs for a pregnancy with automatic alert detection and ML risk assessment.
 """
 
 import json
+import os
+import requests
 from shared import (
     ValidationError,
     DatabaseError,
@@ -17,6 +19,7 @@ from shared import (
     log_warning,
     put_item,
     get_item,
+    update_item,
     generate_id,
     get_current_timestamp,
     validate_vital_signs,
@@ -24,6 +27,9 @@ from shared import (
 )
 from shared.constants import TABLE_NAMES, HTTP_STATUS, VITAL_THRESHOLDS, ALERT_TYPES
 from shared.models import VitalSignsModel
+
+# ML API Configuration
+ML_API_URL = os.getenv('ML_API_URL', 'https://maatrisahyak-ml.onrender.com')
 
 
 def lambda_handler(event, context):
@@ -111,6 +117,21 @@ def lambda_handler(event, context):
         # Save to DynamoDB
         put_item(TABLE_NAMES['VITAL_SIGNS'], vitals_model.model_dump())
         
+        # Trigger ML risk assessment asynchronously
+        ml_risk_result = None
+        try:
+            ml_risk_result = assess_risk_with_ml(pregnancy, body)
+            if ml_risk_result:
+                log_info(
+                    "ML risk assessment completed",
+                    pregnancy_id=pregnancy_id,
+                    risk_level=ml_risk_result.get('risk_level'),
+                    risk_score=ml_risk_result.get('risk_score')
+                )
+        except Exception as ml_error:
+            log_error("ML risk assessment failed (non-critical)", ml_error)
+            # Continue execution - ML failure shouldn't block vitals recording
+        
         # Log alerts if any
         if alerts:
             log_warning(
@@ -127,8 +148,13 @@ def lambda_handler(event, context):
             has_alerts=len(alerts) > 0
         )
         
+        # Include ML risk result in response if available
+        response_data = vitals_model.model_dump()
+        if ml_risk_result:
+            response_data['ml_risk_assessment'] = ml_risk_result
+        
         return create_success_response(
-            vitals_model.model_dump(),
+            response_data,
             "Vital signs recorded successfully"
         )
     
@@ -238,3 +264,77 @@ def detect_alerts(vitals: dict) -> list:
             alerts.append(f"Critical Symptom: {symptom}")
     
     return alerts
+
+
+def assess_risk_with_ml(pregnancy: dict, vitals: dict) -> dict:
+    """
+    Call external ML API to assess pregnancy risk based on vitals.
+    
+    Args:
+        pregnancy: Pregnancy record from database
+        vitals: Newly recorded vital signs
+    
+    Returns:
+        Dict with risk_level and risk_score, or None if assessment fails
+    """
+    try:
+        # Prepare ML model input (11 features)
+        ml_input = {
+            "Age": pregnancy.get('age', 25),
+            "Systolic_BP": vitals.get('bp_systolic', 120),
+            "Diastolic": vitals.get('bp_diastolic', 80),
+            "BS": vitals.get('blood_sugar', 5.5),  # Blood sugar in mmol/L
+            "Body_Temp": vitals.get('temperature', 98.6),
+            "BMI": pregnancy.get('bmi', 22.0),
+            "Previous_Complications": 1 if pregnancy.get('previous_complications') else 0,
+            "Preexisting_Diabetes": 1 if pregnancy.get('medical_history', {}).get('diabetes') else 0,
+            "Gestational_Diabetes": 1 if pregnancy.get('gestational_diabetes') else 0,
+            "Mental_Health": 1 if pregnancy.get('mental_health_concerns') else 0,
+            "Heart_Rate": vitals.get('heart_rate', 75)
+        }
+        
+        log_info("Calling ML API for risk prediction", ml_api_url=ML_API_URL)
+        
+        # Call ML API
+        response = requests.post(
+            f"{ML_API_URL}/predict",
+            json=ml_input,
+            timeout=5  # 5 second timeout
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            prediction = result.get('prediction', 0)
+            risk_level = result.get('risk_level', 'Low').upper()
+            
+            # Convert to risk score (0-100 scale)
+            risk_score = 85 if prediction == 1 else 15
+            
+            # Update pregnancy record with new risk assessment
+            update_item(
+                TABLE_NAMES['PREGNANCIES'],
+                {'id': pregnancy['id']},
+                {
+                    'risk_level': risk_level,
+                    'risk_score': risk_score,
+                    'risk_category': 'high' if risk_level == 'HIGH' else 'low',
+                    'last_risk_assessment': get_current_timestamp()
+                }
+            )
+            
+            return {
+                'risk_level': risk_level,
+                'risk_score': risk_score,
+                'prediction': prediction,
+                'assessed_at': get_current_timestamp()
+            }
+        else:
+            log_error(f"ML API returned error: {response.status_code}", None)
+            return None
+            
+    except requests.exceptions.Timeout:
+        log_error("ML API timeout", None)
+        return None
+    except Exception as e:
+        log_error("ML risk assessment error", e)
+        return None

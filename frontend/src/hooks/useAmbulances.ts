@@ -53,7 +53,7 @@ export const useAmbulances = (filters: AmbulanceFilters = {}) => {
         return filtered;
       }
     },
-    refetchInterval: 30000, // Refetch every 30 seconds for live tracking
-    staleTime: 20000, // Consider data stale after 20 seconds
+    refetchInterval: 1000, // Refetch every 1 second for real-time tracking
+    staleTime: 0, // Always consider data stale for real-time updates
   });
 };

@@ -22,16 +22,24 @@ export const sendNotificationToAsha = async (payload: NotificationPayload): Prom
     return response.data.data;
   } catch (error: any) {
     console.error('Notification error:', error);
-    
+
     // Provide more specific error messages
     if (error.response?.status === 404) {
       throw new Error('Notification service is not available. Please contact support.');
     } else if (error.response?.status === 400) {
-      throw new Error(error.response?.data?.message || 'Invalid notification data');
+      const errorCode = error.response?.data?.error_code;
+      const errorMessage = error.response?.data?.message;
+
+      // Handle specific error for missing push token
+      if (errorCode === 'NoPushToken' || errorMessage?.includes('not registered for push notifications')) {
+        throw new Error('ASHA worker has not registered for push notifications');
+      }
+
+      throw new Error(errorMessage || 'Invalid notification data');
     } else if (error.code === 'ERR_NETWORK' || !error.response) {
       throw new Error('Unable to connect to server. Please check your internet connection.');
     }
-    
+
     const errorMsg = error.response?.data?.message || error.message || 'Failed to send notification';
     throw new Error(errorMsg);
   }

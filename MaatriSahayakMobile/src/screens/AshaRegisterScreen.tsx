@@ -153,7 +153,7 @@ const Field = ({
         </View>
         {showSuggestions && suggestions && suggestions.length > 0 && (
             <View style={styles.dropdown}>
-                <ScrollView 
+                <ScrollView
                     style={styles.dropdownScroll}
                     nestedScrollEnabled={true}
                     keyboardShouldPersistTaps="handled">
@@ -185,7 +185,7 @@ const AshaRegisterScreen = ({ navigation }: any) => {
     const [showPassword, setShowPassword] = useState(false);
     const [photo, setPhoto] = useState<string | null>(null);
     const confirmMatch = form.confirmPassword.length > 0 && form.confirmPassword === form.password;
-    
+
     const [villageSuggestions, setVillageSuggestions] = useState<string[]>([]);
     const [districtSuggestions, setDistrictSuggestions] = useState<string[]>([]);
     const [showVillageDropdown, setShowVillageDropdown] = useState(false);
@@ -234,7 +234,7 @@ const AshaRegisterScreen = ({ navigation }: any) => {
     const set = (key: keyof FormData) => (val: string) => {
         setForm(f => ({ ...f, [key]: val }));
         if (errors[key as keyof FormErrors]) setErrors(e => ({ ...e, [key]: undefined }));
-        
+
         // Handle autocomplete for village - fetch from API based on district
         if (key === 'village') {
             if (val.trim().length > 0 && form.district.trim()) {
@@ -250,12 +250,12 @@ const AshaRegisterScreen = ({ navigation }: any) => {
                 setShowVillageDropdown(false);
             }
         }
-        
+
         // Handle autocomplete for district
         if (key === 'district') {
             if (val.trim().length > 0) {
                 const allDistricts = getAllDistricts();
-                const filtered = allDistricts.filter(d => 
+                const filtered = allDistricts.filter(d =>
                     d.toLowerCase().startsWith(val.toLowerCase())
                 );
                 setDistrictSuggestions(filtered);
@@ -265,13 +265,13 @@ const AshaRegisterScreen = ({ navigation }: any) => {
             }
         }
     };
-    
+
     const selectVillage = (village: string) => {
         setForm(f => ({ ...f, village }));
         setShowVillageDropdown(false);
         ageRef.current?.focus();
     };
-    
+
     const selectDistrict = (district: string) => {
         setForm(f => ({ ...f, district, village: '' }));
         setShowDistrictDropdown(false);
@@ -281,6 +281,18 @@ const AshaRegisterScreen = ({ navigation }: any) => {
 
     const validate = (): boolean => {
         const e: FormErrors = {};
+
+        // Photo validation - Strongly encourage but don't block
+        if (!photo) {
+            Alert.alert(
+                'Photo Highly Recommended',
+                'Your photo is required for identity verification by the district officer. Without a photo, your registration may be delayed or rejected.\n\nDo you want to add your photo now?',
+                [
+                    { text: 'Add Photo Now', onPress: () => showPhotoOptions(), style: 'default' },
+                    { text: 'Skip (Not Recommended)', onPress: () => { }, style: 'cancel' }
+                ]
+            );
+        }
 
         // Enhanced name validation
         const name = form.fullName.trim();
@@ -341,10 +353,34 @@ const AshaRegisterScreen = ({ navigation }: any) => {
 
     const handleRegister = async () => {
         if (!validate()) return;
+
+        // Convert photo to base64 if available
+        let photoBase64 = undefined;
+        if (photo) {
+            try {
+                const response = await fetch(photo);
+                const blob = await response.blob();
+                const reader = new FileReader();
+                photoBase64 = await new Promise<string>((resolve, reject) => {
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (photoError) {
+                console.error("Failed to convert photo to base64", photoError);
+                // Continue without photo
+            }
+        }
+
         const result = await dispatch(registerThunk({
-            name: form.fullName, phone: `+91${form.phone}`, email: form.email,
-            village: form.village, age: parseInt(form.age, 10),
-            district: form.district, password: form.password,
+            name: form.fullName,
+            phone: `+91${form.phone}`,
+            email: form.email,
+            village: form.village,
+            age: parseInt(form.age, 10),
+            district: form.district,
+            password: form.password,
+            photo: photoBase64,
         }));
         if (registerThunk.fulfilled.match(result)) {
             navigation.replace('WaitingApproval', {
@@ -386,18 +422,23 @@ const AshaRegisterScreen = ({ navigation }: any) => {
                     <Text style={styles.heading}>{S.heading}</Text>
                     <Text style={styles.sub}>{S.sub}</Text>
 
-                    <TouchableOpacity style={styles.photoPicker} onPress={showPhotoOptions} activeOpacity={0.8}>
-                        {photo
-                            ? <Image source={{ uri: photo }} style={styles.photoImg} />
-                            : <View style={styles.photoEmpty}>
-                                <Text style={styles.photoEmoji}>📷</Text>
-                                <Text style={styles.photoLabel}>Add Photo</Text>
+                    <View style={styles.photoSection}>
+                        <TouchableOpacity style={styles.photoPicker} onPress={showPhotoOptions} activeOpacity={0.8}>
+                            {photo
+                                ? <Image source={{ uri: photo }} style={styles.photoImg} />
+                                : <View style={styles.photoEmpty}>
+                                    <Text style={styles.photoEmoji}>📷</Text>
+                                    <Text style={styles.photoLabel}>Add Photo</Text>
+                                </View>
+                            }
+                            <View style={styles.photoBadge}>
+                                <Text style={styles.photoBadgeText}>{photo ? '✎' : '+'}</Text>
                             </View>
-                        }
-                        <View style={styles.photoBadge}>
-                            <Text style={styles.photoBadgeText}>{photo ? '✎' : '+'}</Text>
+                        </TouchableOpacity>
+                        <View style={styles.photoRequiredBadge}>
+                            <Text style={styles.photoRequiredText}>* Required for Verification</Text>
                         </View>
-                    </TouchableOpacity>
+                    </View>
 
                     <Field label={S.fullName} placeholder={S.fullNamePH} value={form.fullName}
                         onChangeText={set('fullName')} error={errors.fullName}
@@ -570,14 +611,29 @@ const styles = StyleSheet.create({
     footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
     footerText: { fontSize: 14, color: DIM },
     footerLink: { fontSize: 14, color: GREEN, fontWeight: '700' },
+    photoSection: {
+        alignItems: 'center',
+        marginBottom: 24,
+    },
     photoPicker: {
-        alignSelf: 'center',
         width: 90, height: 90,
         borderRadius: 45,
         overflow: 'hidden',
         borderWidth: 2,
         borderColor: GREEN,
-        marginBottom: 24,
+        marginBottom: 8,
+    },
+    photoRequiredBadge: {
+        backgroundColor: RED,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    photoRequiredText: {
+        fontSize: 11,
+        color: WHITE,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
     photoImg: { width: '100%', height: '100%', resizeMode: 'cover' },
     photoEmpty: {

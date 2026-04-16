@@ -5,9 +5,10 @@ import {
 } from '@mui/material';
 import {
   LayoutDashboard, Baby, AlertTriangle, MapPin, BarChart2,
-  Users, Car, Hospital, UserCircle,
+  Users, Car, Hospital, UserCircle, Shield,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.png';
 
 interface SidebarProps {
@@ -21,6 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, emergencyCount = 0 }) 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const drawerWidth = 270;
 
   const menuItems = [
@@ -32,6 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, emergencyCount = 0 }) 
     { text: 'Live Tracking', icon: <MapPin size={20} />, path: '/tracking', badge: 0 },
     { text: 'Analytics', icon: <BarChart2 size={20} />, path: '/analytics', badge: 0 },
     { text: 'Hospitals', icon: <Hospital size={20} />, path: '/hospitals', badge: 0 },
+    ...(user?.role === 'admin' ? [{ text: 'Admin Portal', icon: <Shield size={20} />, path: '/admin', badge: 0 }] : []),
     { text: 'My Profile', icon: <UserCircle size={20} />, path: '/profile', badge: 0 },
   ];
 

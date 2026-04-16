@@ -197,6 +197,20 @@ const PregnancyDetails: React.FC = () => {
     );
   }
 
+  // Error state - check for undefined ID first
+  if (!id || id === 'undefined') {
+    return (
+      <Box>
+        <Button startIcon={<ArrowLeft size={16} />} onClick={() => navigate('/pregnancies')} sx={{ mb: 3 }}>
+          Back to List
+        </Button>
+        <Alert severity="error">
+          Invalid pregnancy ID. Please select a pregnancy from the list.
+        </Alert>
+      </Box>
+    );
+  }
+
   // Error state
   if (isErrorPregnancy || !pregnancy) {
     return (
@@ -206,7 +220,7 @@ const PregnancyDetails: React.FC = () => {
         </Button>
         <Alert severity="error">
           Failed to load pregnancy details:{' '}
-          {errorPregnancy instanceof Error ? errorPregnancy.message : 'Unknown error'}
+          {errorPregnancy instanceof Error ? errorPregnancy.message : `Pregnancy with ID '${id}' not found`}
         </Alert>
       </Box>
     );

@@ -127,8 +127,8 @@ def lambda_handler(event, context):
                     details={'ambulance_id': ambulance_id}
                 )
         
-        # Generate unique driver ID
-        driver_id = generate_id('drv_')
+        # Generate sequential driver ID
+        driver_id = generate_sequential_driver_id()
         timestamp = get_current_timestamp()
         
         # Prepare driver data
@@ -323,6 +323,35 @@ def validate_password_strength(password: str) -> None:
             f"Password must contain: {', '.join(errors)}",
             field='password'
         )
+
+
+def generate_sequential_driver_id() -> str:
+    """
+    Generate sequential driver ID like driver-001, driver-002, etc.
+    """
+    try:
+        table_name = TABLE_NAMES.get('DRIVERS', 'maatrisahayak-drivers-dev')
+        # Scan to get all existing IDs
+        response = scan_items(table_name)
+        
+        # Extract numeric parts from IDs like 'driver-001', 'driver-002'
+        max_num = 0
+        for item in response:
+            driver_id = item.get('id', '')
+            if driver_id.startswith('driver-') and len(driver_id.split('-')) == 2:
+                try:
+                    num = int(driver_id.split('-')[1])
+                    max_num = max(max_num, num)
+                except ValueError:
+                    continue
+        
+        # Generate next sequential ID
+        next_num = max_num + 1
+        return f"driver-{next_num:03d}"
+    except Exception as e:
+        log_error("Error generating sequential driver ID", e)
+        # Fallback to UUID-based ID
+        return generate_id('drv_')
 
 
 def check_existing_driver_by_phone(phone: str) -> list:

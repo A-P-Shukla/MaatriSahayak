@@ -21,6 +21,12 @@ from shared.constants import HTTP_STATUS
 
 dynamodb = boto3.resource('dynamodb')
 SENDER = os.environ.get('SES_SENDER_EMAIL', 'noreply@maatrisahayak.in')
+# Clean up sender email - remove any existing name wrapper
+if '<' in SENDER and '>' in SENDER:
+    SENDER = SENDER.split('<')[1].split('>')[0].strip()
+# Force use of verified domain - Resend doesn't allow gmail.com
+if '@gmail.com' in SENDER or '@' not in SENDER:
+    SENDER = 'noreply@maatrisahayak.in'
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 EMAIL_SUPPRESSION_TABLE = os.environ.get('EMAIL_SUPPRESSION_TABLE', 'EmailSuppressionList')
 

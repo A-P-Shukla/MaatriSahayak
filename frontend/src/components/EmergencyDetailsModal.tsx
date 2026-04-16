@@ -214,15 +214,8 @@ const EmergencyDetailsModal: React.FC<EmergencyDetailsModalProps> = ({
 
       {/* Dialog Content */}
       <DialogContent sx={{ pt: 3 }}>
-        {/* No emergency ID */}
-        {!emergencyId && (
-          <Alert severity="warning">
-            No emergency selected. Please select an emergency from the list.
-          </Alert>
-        )}
-
-        {/* Loading state */}
-        {emergencyId && isLoading && (
+        {/* Loading state - show while waiting for emergency ID or data */}
+        {(!emergencyId || isLoading) && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
           </Box>

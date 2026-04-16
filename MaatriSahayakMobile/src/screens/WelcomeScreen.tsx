@@ -13,6 +13,10 @@ const GREEN = '#00E5A0';
 const DIM = '#7FA898';
 const WHITE = '#FFFFFF';
 const BORDER = '#1E3D30';
+const RED = '#FF0000';
+const YELLOW = '#FFEB3B';
+const HEX = '#ff6347';
+const ERROR = '#ED4F32';
 
 const WelcomeScreen = ({ navigation }: any) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -94,7 +98,7 @@ const WelcomeScreen = ({ navigation }: any) => {
                     <View style={styles.featuresGrid}>
                         <View style={styles.featureCard}>
                             <View style={styles.featureIconWrap}>
-                                <Heart size={22} color={GREEN} strokeWidth={2.5} />
+                                <Heart size={22} color={RED} strokeWidth={2.5} />
                             </View>
                             <Text style={styles.featureTitle}>Health Tracking</Text>
                             <Text style={styles.featureDesc}>Monitor vitals & ANC visits</Text>
@@ -102,7 +106,7 @@ const WelcomeScreen = ({ navigation }: any) => {
 
                         <View style={styles.featureCard}>
                             <View style={styles.featureIconWrap}>
-                                <Ambulance size={22} color={GREEN} strokeWidth={2.5} />
+                                <Ambulance size={22} color={YELLOW} strokeWidth={2.5} />
                             </View>
                             <Text style={styles.featureTitle}>Emergency SOS</Text>
                             <Text style={styles.featureDesc}>Instant ambulance dispatch</Text>
@@ -110,7 +114,7 @@ const WelcomeScreen = ({ navigation }: any) => {
 
                         <View style={styles.featureCard}>
                             <View style={styles.featureIconWrap}>
-                                <Brain size={22} color={GREEN} strokeWidth={2.5} />
+                                <Brain size={22} color={HEX} strokeWidth={2.5} />
                             </View>
                             <Text style={styles.featureTitle}>AI Risk Prediction</Text>
                             <Text style={styles.featureDesc}>Early warning system</Text>
@@ -118,7 +122,7 @@ const WelcomeScreen = ({ navigation }: any) => {
 
                         <View style={styles.featureCard}>
                             <View style={styles.featureIconWrap}>
-                                <Shield size={22} color={GREEN} strokeWidth={2.5} />
+                                <Shield size={22} color={ERROR} strokeWidth={2.5} />
                             </View>
                             <Text style={styles.featureTitle}>Real-time Alerts</Text>
                             <Text style={styles.featureDesc}>24/7 monitoring support</Text>

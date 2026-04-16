@@ -9,7 +9,11 @@ export const usePregnancies = (filters: PregnancyFilters = {}) => {
   return useQuery({
     queryKey: ['pregnancies', filters],
     queryFn: () => getPregnancies(filters),
-    staleTime: 60000, // Consider data stale after 1 minute
+    staleTime: 0, // Always consider data stale for real-time updates
+    refetchInterval: 1000, // Auto-refresh every 1 second for real-time data
+    gcTime: 0, // Don't cache results
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 };
 
@@ -21,6 +25,8 @@ export const usePregnancy = (pregnancyId: string) => {
     queryKey: ['pregnancy', pregnancyId],
     queryFn: () => getPregnancyById(pregnancyId),
     enabled: !!pregnancyId, // Only fetch if pregnancyId is provided
+    staleTime: 0, // Always consider data stale for real-time updates
+    refetchInterval: 1000, // Auto-refresh every 1 second for real-time data
   });
 };
 
@@ -32,8 +38,8 @@ export const useVitals = (pregnancyId: string) => {
     queryKey: ['vitals', pregnancyId],
     queryFn: () => getVitalsByPregnancyId(pregnancyId),
     enabled: !!pregnancyId,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 1000, // Refetch every 1 second for real-time data
   });
-  
+
   return query;
 };

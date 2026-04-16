@@ -55,9 +55,10 @@ export interface EmergencyPayload {
 }
 
 export const PregnancyService = {
-    async list(district?: string): Promise<Pregnancy[]> {
+    async list(district?: string, ashaWorkerId?: string): Promise<Pregnancy[]> {
         const params = new URLSearchParams();
         if (district) params.append('district', district);
+        if (ashaWorkerId) params.append('asha_worker_id', ashaWorkerId);
         const qs = params.toString();
         const { data } = await api.get(`${ENDPOINTS.PREGNANCIES}${qs ? '?' + qs : ''}`);
         const result = data.data;

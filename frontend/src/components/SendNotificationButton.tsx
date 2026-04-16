@@ -58,7 +58,15 @@ const SendNotificationButton: React.FC<SendNotificationButtonProps> = ({
         setSuccess(false);
       }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Failed to send notification');
+      const errorMessage = err.message || 'Failed to send notification';
+
+      // Check if it's a push token error
+      if (errorMessage.includes('not registered for push notifications') ||
+        errorMessage.includes('NoPushToken')) {
+        setError(`${ashaWorkerName} has not registered for push notifications. Please ask them to log in to the mobile app to enable notifications.`);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -112,6 +120,11 @@ const SendNotificationButton: React.FC<SendNotificationButtonProps> = ({
               <Typography variant="body2" fontWeight={600}>
                 {error}
               </Typography>
+              {error.includes('not registered for push notifications') && (
+                <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#d32f2f' }}>
+                  💡 Solution: The ASHA worker needs to open the MaatriSahayak mobile app and log in. This will automatically register their device for push notifications.
+                </Typography>
+              )}
               {error.includes('not available') && (
                 <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
                   The notification service is currently unavailable. Please try again later or contact support.

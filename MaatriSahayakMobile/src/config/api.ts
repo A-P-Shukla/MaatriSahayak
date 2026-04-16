@@ -16,6 +16,12 @@ export const ENDPOINTS = {
     DRIVER_REGISTER: '/driver/register',
     REFRESH_TOKEN: '/auth/refresh',
 
+    // Push Notifications
+    UPDATE_PUSH_TOKEN: '/asha/push-token',
+
+    // ASHA Workers
+    ASHA_PROFILE: (id: string) => `/asha/${id}`,
+
     // Pregnancies
     PREGNANCIES: '/pregnancies',
     PREGNANCY_DETAILS: (id: string) => `/pregnancies/${id}`,

@@ -323,17 +323,47 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
 
+  # ==================== S3 Buckets ====================
+  ANCCardsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'maatrisahayak-anc-cards-${Environment}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 90
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3000
+
   # ==================== Lambda Layers ====================
   SharedDependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      Description: Shared dependencies and utilities for MaatriSahayak Lambda functions
+      Description: Shared dependencies and utilities for MaatriSahayak Lambda functions v1.0.2
       ContentUri: ../lambda_functions/shared/
       CompatibleRuntimes:
         - python3.12
       RetentionPolicy: Retain
     Metadata:
       BuildMethod: python3.12
+      BuildArchitecture: x86_64
 
   # ==================== Lambda Functions ====================
   RegisterPregnancyFunction:
@@ -365,17 +395,18 @@ Resources:
       CodeUri: ../lambda_functions/record_vitals/
       Handler: handler.lambda_handler
       Runtime: python3.12
-      Description: Record vital signs for a pregnancy
+      Description: Record vital signs for a pregnancy with ML risk assessment
       Layers:
         - !Ref SharedDependenciesLayer
       Environment:
         Variables:
           VITAL_SIGNS_TABLE: !Ref VitalSignsTable
           PREGNANCIES_TABLE: !Ref PregnanciesTable
+          ML_API_URL: https://maatrisahyak-ml.onrender.com
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref VitalSignsTable
-        - DynamoDBReadPolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref PregnanciesTable
       Events:
         RecordVitals:
@@ -585,7 +616,7 @@ Resources:
         Variables:
           USER_POOL_ID: !Ref UserPool
           ASHA_WORKERS_TABLE: !Ref ASHAWorkersTable
-          SES_SENDER_EMAIL: noreply.maatrisahayak@gmail.com
+          SES_SENDER_EMAIL: noreply@maatrisahayak.in
           RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
         - DynamoDBCrudPolicy:
@@ -1365,7 +1396,7 @@ Resources:
       CodeUri: ../lambda_functions/process_anc_card/
       Handler: handler.lambda_handler
       Runtime: python3.12
-      Description: OCR processing for ANC cards using Textract
+      Description: OCR processing for ANC cards using Amazon Textract
       Timeout: 60
       MemorySize: 1024
       Layers:
@@ -1373,16 +1404,17 @@ Resources:
       Environment:
         Variables:
           PREGNANCIES_TABLE: !Ref PregnanciesTable
+          ANC_CARDS_BUCKET: !Ref ANCCardsBucket
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref PregnanciesTable
+        - S3CrudPolicy:
+            BucketName: !Ref ANCCardsBucket
         - Statement:
             - Effect: Allow
               Action:
                 - textract:AnalyzeDocument
                 - textract:DetectDocumentText
-                - s3:GetObject
-                - s3:PutObject
               Resource: "*"
       Events:
         ProcessANCCard:
@@ -1483,7 +1515,7 @@ Resources:
           CLIENT_ID: !Ref UserPoolClient
           DRIVERS_TABLE: !Ref DriversTable
           AMBULANCES_TABLE: !Ref AmbulancesTable
-          SES_SENDER_EMAIL: noreply.maatrisahayak@gmail.com
+          SES_SENDER_EMAIL: noreply@maatrisahayak.in
           RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
         - DynamoDBCrudPolicy:
@@ -1635,7 +1667,7 @@ Resources:
         - !Ref SharedDependenciesLayer
       Environment:
         Variables:
-          SES_SENDER_EMAIL: noreply.maatrisahayak@gmail.com
+          SES_SENDER_EMAIL: noreply@maatrisahayak.in
           EMAIL_SUPPRESSION_TABLE: !Ref EmailSuppressionTable
           RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
@@ -1821,7 +1853,7 @@ Resources:
         Variables:
           USER_POOL_ID: !Ref UserPool
           RESET_TABLE: !Ref PasswordResetsTable
-          SES_SENDER_EMAIL: MatriSahayak <noreply.maatrisahayak@gmail.com>
+          SES_SENDER_EMAIL: noreply@maatrisahayak.in
           RESEND_API_KEY: re_NYPwRL1C_6bEpXEBCz6QCbRB5P215yuZM
       Policies:
         - DynamoDBCrudPolicy:

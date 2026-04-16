@@ -7,6 +7,7 @@ Handle ASHA worker authentication using AWS Cognito.
 import json
 import os
 import boto3
+from boto3.dynamodb.conditions import Attr
 from shared import (
     ValidationError,
     create_success_response,
@@ -17,7 +18,8 @@ from shared import (
     validate_required_fields,
     validate_phone_number
 )
-from shared.constants import HTTP_STATUS
+from shared.constants import HTTP_STATUS, TABLE_NAMES
+from shared.db_helper import get_table, convert_decimals
 
 
 # Initialize Cognito client
@@ -107,6 +109,13 @@ def lambda_handler(event, context):
             for attr in user_response['UserAttributes']:
                 user_attributes[attr['Name']] = attr['Value']
             
+            # Fetch ASHA worker record from DynamoDB to get ASHA ID
+            cognito_user_id = user_attributes.get('sub')
+            log_info(f"Fetching ASHA worker for cognito_user_id: {cognito_user_id}")
+            asha_worker = get_asha_worker_by_cognito_id(cognito_user_id)
+            asha_id = asha_worker.get('id') if asha_worker else None
+            log_info(f"ASHA worker found: {asha_worker}, asha_id: {asha_id}")
+            
             # Prepare response data
             auth_data = {
                 'access_token': response['AuthenticationResult']['AccessToken'],
@@ -115,19 +124,21 @@ def lambda_handler(event, context):
                 'expires_in': response['AuthenticationResult']['ExpiresIn'],
                 'token_type': response['AuthenticationResult']['TokenType'],
                 'user': {
-                    'id': user_attributes.get('sub'),
+                    'id': cognito_user_id,
                     'phone': user_attributes.get('phone_number'),
                     'name': user_attributes.get('name'),
                     'email': user_attributes.get('email', email),
                     'district': user_attributes.get('custom:district'),
-                    'role': user_attributes.get('custom:role', 'ASHA')
+                    'role': user_attributes.get('custom:role', 'ASHA'),
+                    'ashaId': asha_id
                 }
             }
             
             log_info(
                 "ASHA login successful",
                 user_id=auth_data['user']['id'],
-                email=email
+                email=email,
+                ashaId=asha_id
             )
             
             return create_success_response(
@@ -186,3 +197,38 @@ def lambda_handler(event, context):
             "An unexpected error occurred during login",
             {'error': str(e)}
         )
+
+
+def get_asha_worker_by_cognito_id(cognito_user_id: str) -> dict:
+    """
+    Get ASHA worker record by Cognito user ID.
+    
+    Args:
+        cognito_user_id: Cognito user ID (sub)
+    
+    Returns:
+        ASHA worker record or empty dict
+    """
+    try:
+        table_name = TABLE_NAMES.get('ASHA_WORKERS', 'maatrisahayak-asha-workers-dev')
+        log_info(f"Fetching ASHA worker from table: {table_name} for cognito_user_id: {cognito_user_id}")
+        
+        table = get_table(table_name)
+        
+        # Use scan with FilterExpression (no limit to scan all items)
+        response = table.scan(
+            FilterExpression=Attr('cognito_user_id').eq(cognito_user_id)
+        )
+        
+        log_info(f"Scan response: Count={response.get('Count')}, ScannedCount={response.get('ScannedCount')}")
+        
+        items = response.get('Items', [])
+        workers = [convert_decimals(item) for item in items]
+        
+        log_info(f"Found {len(workers)} ASHA workers. Worker ID: {workers[0].get('id') if workers else 'None'}")
+        return workers[0] if workers else {}
+    except Exception as e:
+        log_error("Error fetching ASHA worker by cognito_user_id", e, cognito_user_id=cognito_user_id)
+        import traceback
+        log_error(f"Traceback: {traceback.format_exc()}")
+        return {}

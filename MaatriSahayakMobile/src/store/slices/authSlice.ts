@@ -68,8 +68,13 @@ export const driverRegisterThunk = createAsyncThunk(
 
 export const restoreSessionThunk = createAsyncThunk(
     'auth/restoreSession',
-    async () => {
-        return await AuthService.getStoredSession();
+    async (_, { rejectWithValue }) => {
+        try {
+            return await AuthService.getStoredSession();
+        } catch (error) {
+            console.error('Failed to restore session:', error);
+            return null;
+        }
     }
 );
 
@@ -78,8 +83,13 @@ export const logoutThunk = createAsyncThunk('auth/logout', async () => {
 });
 
 export const checkPinThunk = createAsyncThunk('auth/checkPin', async () => {
-    const pin = await StorageService.getPin();
-    return !!pin;
+    try {
+        const pin = await StorageService.getPin();
+        return !!pin;
+    } catch (error) {
+        console.error('Failed to check PIN:', error);
+        return false;
+    }
 });
 
 export const verifyPinThunk = createAsyncThunk(

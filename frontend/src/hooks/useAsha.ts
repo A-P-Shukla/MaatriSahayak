@@ -9,7 +9,8 @@ export const useAshaWorkers = (filters: AshaFilters = {}) => {
   return useQuery({
     queryKey: ['asha-workers', filters],
     queryFn: () => getAshaWorkers(filters),
-    staleTime: 60000, // 1 minute
+    staleTime: 0, // Always consider data stale for real-time updates
+    refetchInterval: 1000, // Auto-refresh every 1 second for real-time data
   });
 };
 
@@ -21,6 +22,8 @@ export const useAshaWorker = (ashaId: string) => {
     queryKey: ['asha-worker', ashaId],
     queryFn: () => getAshaWorkerById(ashaId),
     enabled: !!ashaId,
+    staleTime: 0, // Always consider data stale for real-time updates
+    refetchInterval: 1000, // Auto-refresh every 1 second for real-time data
   });
 };
 
@@ -32,6 +35,8 @@ export const useAshaPregnancies = (ashaId: string) => {
     queryKey: ['asha-pregnancies', ashaId],
     queryFn: () => getAshaPregnancies(ashaId),
     enabled: !!ashaId,
+    staleTime: 0, // Always consider data stale for real-time updates
+    refetchInterval: 1000, // Auto-refresh every 1 second for real-time data
   });
 };
 
@@ -42,6 +47,7 @@ export const useAshaStats = () => {
   return useQuery({
     queryKey: ['asha-stats'],
     queryFn: getAshaStats,
-    staleTime: 60000, // 1 minute
+    staleTime: 0, // Always consider data stale for real-time updates
+    refetchInterval: 1000, // Auto-refresh every 1 second for real-time data
   });
 };

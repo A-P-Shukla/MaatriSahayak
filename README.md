@@ -542,11 +542,11 @@ MaatriSahayak uses **52 serverless Lambda functions** organized into 9 functiona
 ### 1. Authentication & User Management (11 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `register_asha` | Register new ASHA worker | POST `/asha/register` |
-| `login_asha` | ASHA worker authentication | POST `/asha/login` |
-| `get_asha_profile` | Retrieve ASHA profile | GET `/asha/{id}` |
-| `update_asha_profile` | Update ASHA profile | PUT `/asha/{id}` |
-| `list_asha_workers` | List all ASHA workers | GET `/asha/list` |
+| `register_asha` | Register new ASHA worker with Cognito integration | POST `/asha/register` |
+| `login_asha` | ASHA worker authentication, returns JWT + ashaId | POST `/asha/login` |
+| `get_asha_profile` | Retrieve ASHA profile by ID | GET `/asha/{id}` |
+| `update_asha_profile` | Update ASHA profile details | PUT `/asha/{id}` |
+| `list_asha_workers` | List all ASHA workers with filters | GET `/asha/list` |
 | `register_driver` | Register ambulance driver | POST `/driver/register` |
 | `login_driver` | Driver authentication | POST `/driver/login` |
 | `get_driver_profile` | Retrieve driver profile | GET `/driver/{id}` |
@@ -557,78 +557,80 @@ MaatriSahayak uses **52 serverless Lambda functions** organized into 9 functiona
 ### 2. Password Management (2 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `forgot_password` | Initiate password reset | POST `/auth/forgot-password` |
-| `reset_user_password` | Complete password reset | POST `/auth/reset-password` |
+| `forgot_password` | Initiate password reset via email | POST `/auth/forgot-password` |
+| `reset_user_password` | Complete password reset with token | POST `/auth/reset-password` |
 
 ### 3. Pregnancy Management (4 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `register_pregnancy` | Register new pregnancy | POST `/pregnancies` |
+| `register_pregnancy` | Register new pregnancy with ASHA worker ID | POST `/pregnancies` |
 | `update_pregnancy` | Update pregnancy details | PUT `/pregnancies/{id}` |
-| `list_pregnancies` | List pregnancies with filters | GET `/pregnancies` |
+| `list_pregnancies` | List pregnancies filtered by ASHA worker ID | GET `/pregnancies` |
 | `get_pregnancy_details` | Get detailed pregnancy info | GET `/pregnancies/{id}` |
 
 ### 4. Vitals & ANC Management (4 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `record_vitals` | Record vital signs | POST `/vitals` |
-| `get_vitals_history` | Get vitals timeline | GET `/pregnancies/{id}/vitals` |
-| `record_anc_visit` | Record ANC visit | POST `/anc/visits` |
+| `record_vitals` | Record vital signs (BP, weight, heart rate, etc.) | POST `/vitals` |
+| `get_vitals_history` | Get vitals timeline for a pregnancy | GET `/pregnancies/{id}/vitals` |
+| `record_anc_visit` | Record ANC visit details | POST `/anc/visits` |
 | `get_anc_history` | Get ANC visit history | GET `/pregnancies/{id}/anc` |
 
 ### 5. Emergency Management (9 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `trigger_emergency` | Initiate emergency response | POST `/emergency` |
-| `validate_emergency` | Validate emergency request | POST `/emergency/validate` |
-| `accept_emergency` | Accept emergency assignment | POST `/emergency/{id}/accept` |
-| `monitor_emergency` | Monitor emergency status | GET `/emergencies/{id}` |
-| `list_emergencies` | List all emergencies | GET `/emergencies` |
-| `get_assigned_emergencies` | Get assigned emergencies | GET `/emergencies/assigned` |
-| `get_emergency_history` | Get emergency history | GET `/emergencies/history` |
-| `update_emergency_status` | Update emergency status | PUT `/emergencies/{id}/status` |
-| `complete_emergency` | Complete emergency | PUT `/emergencies/{id}/complete` |
+| `trigger_emergency` | Initiate emergency response workflow | POST `/emergency` |
+| `validate_emergency` | Validate emergency request data | POST `/emergency/validate` |
+| `accept_emergency` | Driver accepts emergency assignment | POST `/emergency/{id}/accept` |
+| `monitor_emergency` | Monitor emergency status in real-time | GET `/emergencies/{id}` |
+| `list_emergencies` | List all emergencies with filters | GET `/emergencies` |
+| `get_assigned_emergencies` | Get emergencies assigned to driver | GET `/emergencies/assigned` |
+| `get_emergency_history` | Get emergency history for analytics | GET `/emergencies/history` |
+| `update_emergency_status` | Update emergency status (dispatched, in-transit, etc.) | PUT `/emergencies/{id}/status` |
+| `complete_emergency` | Mark emergency as completed | PUT `/emergencies/{id}/complete` |
 
-### 6. Ambulance Management (8 functions)
+### 6. Ambulance Management (9 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `register_ambulance` | Register new ambulance | POST `/ambulances` |
-| `list_ambulances` | List all ambulances | GET `/ambulances` |
-| `find_nearest_ambulance` | Find nearest available | POST `/ambulances/nearest` |
-| `dispatch_ambulance` | Dispatch to emergency | POST `/ambulances/dispatch` |
-| `update_ambulance_location` | Update GPS location | PUT `/ambulances/{id}/location` |
-| `get_ambulance_status` | Get ambulance status | GET `/ambulances/{id}/status` |
-| `get_ambulance_route` | Get route information | GET `/ambulances/{id}/route` |
+| `register_ambulance` | Register new ambulance with GPS capability | POST `/ambulances` |
+| `list_ambulances` | List all ambulances with status | GET `/ambulances` |
+| `find_nearest_ambulance` | Find nearest available ambulance using Haversine | POST `/ambulances/nearest` |
+| `dispatch_ambulance` | Dispatch ambulance to emergency | POST `/ambulances/dispatch` |
+| `update_ambulance_location` | Update GPS location (real-time tracking) | PUT `/ambulances/{id}/location` |
+| `get_ambulance_status` | Get current ambulance status | GET `/ambulances/{id}/status` |
+| `get_ambulance_route` | Get route information with ETA | GET `/ambulances/{id}/route` |
 | `complete_ride` | Complete ambulance ride | PUT `/ambulances/{id}/ride/complete` |
-| `update_driver_status` | Update driver availability | PUT `/driver/{id}/status` |
+| `update_driver_status` | Update driver availability status | PUT `/driver/{id}/status` |
 
 ### 7. Hospital Management (5 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `register_hospital` | Register new hospital | POST `/hospitals` |
-| `list_hospitals` | List all hospitals | GET `/hospitals` |
-| `check_hospital_capacity` | Check bed availability | GET `/hospitals/{id}/capacity` |
-| `update_hospital_capacity` | Update bed capacity | PUT `/hospitals/{id}/capacity` |
-| `alert_hospital` | Send alert to hospital | POST `/hospitals/{id}/alert` |
+| `register_hospital` | Register new hospital with bed capacity | POST `/hospitals` |
+| `list_hospitals` | List all hospitals with filters | GET `/hospitals` |
+| `check_hospital_capacity` | Check bed availability (maternity + NICU) | GET `/hospitals/{id}/capacity` |
+| `update_hospital_capacity` | Update bed capacity in real-time | PUT `/hospitals/{id}/capacity` |
+| `alert_hospital` | Send emergency alert to hospital | POST `/hospitals/{id}/alert` |
 
 ### 8. AI & ML Functions (4 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `assess_risk` | ML-based risk prediction | POST `/risk/assess/{id}` |
-| `get_risk_trends` | Get risk trends over time | GET `/risk/trends/{id}` |
-| `analyze_symptoms` | Bedrock NLP symptom analysis | POST `/symptoms/analyze` |
-| `process_anc_card` | Textract OCR for ANC cards | POST `/anc/process` |
+| `assess_risk` | ML-based risk prediction using Random Forest | POST `/risk/assess/{id}` |
+| `get_risk_trends` | Get risk trends over time for analytics | GET `/risk/trends/{id}` |
+| `analyze_symptoms` | Bedrock NLP symptom analysis (Hindi support) | POST `/symptoms/analyze` |
+| `process_anc_card` | Textract OCR for handwritten ANC cards | POST `/anc/process` |
 
-### 9. Utility Functions (5 functions)
+### 9. Utility & Notification Functions (8 functions)
 | Function | Purpose | Endpoint |
 |:---|:---|:---|
-| `send_notifications` | Send SMS/Push notifications | POST `/notifications/send` |
-| `send_welcome_email` | Send welcome email | POST `/email/welcome` |
-| `handle_ses_notifications` | Handle SES bounce/complaints | POST `/email/ses-notifications` |
-| `generate_analytics` | Generate analytics data | GET `/analytics/generate` |
-| `export_reports` | Export reports | POST `/reports/export` |
-| `sync_offline_data` | Sync offline mobile data | POST `/sync/offline-data` |
-| `sync_cognito_dynamodb` | Sync Cognito to DynamoDB | POST `/sync/cognito` |
+| `send_notifications` | Send SMS/Push notifications via SNS | POST `/notifications/send` |
+| `send_push_notification` | Send push notification to ASHA worker | POST `/notifications/push` |
+| `update_push_token` | Update ASHA worker push token | PUT `/asha/push-token` |
+| `send_welcome_email` | Send welcome email via SES | POST `/email/welcome` |
+| `handle_ses_notifications` | Handle SES bounce/complaint notifications | POST `/email/ses-notifications` |
+| `generate_analytics` | Generate analytics dashboard data | GET `/analytics/generate` |
+| `export_reports` | Export reports in PDF/Excel format | POST `/reports/export` |
+| `sync_offline_data` | Sync offline mobile data to cloud | POST `/sync/offline-data` |
+| `sync_cognito_dynamodb` | Sync Cognito users to DynamoDB | POST `/sync/cognito` |
 
 ### Function Statistics
 - **Total Functions**: 52
@@ -637,6 +639,13 @@ MaatriSahayak uses **52 serverless Lambda functions** organized into 9 functiona
 - **Runtime**: Python 3.12
 - **Deployment**: AWS SAM
 - **Architecture**: Serverless
+- **Shared Layer**: Common utilities, DB helpers, validators, models
+
+### Recent Updates
+- ✅ **ASHA Patient Filtering**: ASHA workers now only see patients they registered
+- ✅ **Push Notifications**: Fixed push notification registration and delivery
+- ✅ **Cognito Integration**: Linked Cognito user IDs with ASHA worker records
+- ✅ **Mobile App Sync**: Automatic push token registration on login
 
 ---
 
@@ -742,6 +751,8 @@ https://{api-id}.execute-api.{region}.amazonaws.com/{environment}/
 | Method | Endpoint | Description | Status |
 |:---|:---|:---|:---|
 | POST | `/notifications/send` | Send notifications (SMS/Push) | ✅ |
+| POST | `/notifications/push` | Send push notification to ASHA worker | ✅ |
+| PUT | `/asha/push-token` | Update ASHA worker push notification token | ✅ |
 | POST | `/email/welcome` | Send welcome email | ✅ |
 | POST | `/email/ses-notifications` | Handle SES bounce/complaint notifications | ✅ |
 | POST | `/sync/offline-data` | Sync offline data from mobile app | ✅ |
@@ -790,21 +801,24 @@ The project includes 4 GitHub Actions workflows:
 - API Gateway with Cognito authentication
 - DynamoDB database with 6 tables
 - Web Dashboard (live at maatrisahayak.in)
-- Mobile App (React Native - 85% complete)
+- Mobile App (React Native - 90% complete)
 - AI Risk Assessment (Random Forest model)
 - ANC Card OCR (Amazon Textract)
 - Email notifications via AWS SES
+- Push notifications via Expo (FCM)
 - Officer registration and approval workflow
 - Driver management system
 - Password reset functionality
 - Offline data synchronization
 - Analytics and reporting
+- ASHA worker patient filtering (only see their registered patients)
+- Real-time push notifications to ASHA workers
+- Cognito-DynamoDB user linking
 
 ### 🚧 In Progress
 - AWS Bedrock integration for Hindi NLP (handler exists, needs wiring)
 - Real-time WebSocket updates for dashboard
-- Mobile app offline SQLite database
-- Push notifications (FCM)
+- Mobile app offline SQLite database (80% complete)
 - IoT Core for real-time ambulance GPS tracking
 - Step Functions parallel emergency orchestration
 
