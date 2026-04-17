@@ -12,9 +12,12 @@
       "channel": "preview",
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       },
-      "prebuildCommand": "node scripts/prebuild.js"
+      "env": {
+        "EXPO_USE_PREBUILD": "1"
+      }
     },
     "production": {
       "autoIncrement": true,

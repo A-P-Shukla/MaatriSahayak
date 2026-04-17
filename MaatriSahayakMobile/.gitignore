@@ -37,6 +37,7 @@ local.properties
 
 # Expo
 android/
+!android/gradle.properties
 ios/
 
 # node.js
