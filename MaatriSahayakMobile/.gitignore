@@ -35,6 +35,10 @@ local.properties
 !debug.keystore
 .kotlin/
 
+# Expo
+android/
+ios/
+
 # node.js
 #
 node_modules/
