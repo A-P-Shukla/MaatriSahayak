@@ -14,7 +14,7 @@
       "android": {
         "buildType": "apk"
       },
-      "prebuildCommand": "bash scripts/prebuild.sh"
+      "prebuildCommand": "node scripts/prebuild.js"
     },
     "production": {
       "autoIncrement": true,
