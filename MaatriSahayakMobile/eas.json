@@ -14,7 +14,7 @@
       "android": {
         "buildType": "apk"
       },
-      "prebuildCommand": "npx expo prebuild --platform android --clean"
+      "prebuildCommand": "npx expo prebuild --platform android --clean && cp gradle.properties.template android/gradle.properties"
     },
     "production": {
       "autoIncrement": true,

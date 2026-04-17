@@ -1,0 +1,31 @@
+# Project-wide Gradle settings.
+org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
+org.gradle.parallel=true
+
+# AndroidX package structure
+android.useAndroidX=true
+# Automatically convert third-party libraries to use AndroidX
+android.enableJetifier=true
+
+# Enable AAPT2 PNG crunching
+android.enablePngCrunchInReleaseBuilds=true
+
+# React Native architectures
+reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+
+# New Architecture
+newArchEnabled=true
+
+# Hermes JS engine
+hermesEnabled=true
+
+# Edge-to-edge display support
+edgeToEdgeEnabled=true
+
+# Expo settings
+expo.gif.enabled=true
+expo.webp.enabled=true
+expo.webp.animated=false
+EX_DEV_CLIENT_NETWORK_INSPECTOR=true
+expo.useLegacyPackaging=false
+expo.edgeToEdgeEnabled=true
