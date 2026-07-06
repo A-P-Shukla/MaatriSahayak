@@ -5,7 +5,7 @@ boto3>=1.34.0
 botocore>=1.34.0
 
 # Environment variables
-python-dotenv>=1.0.0
+python-dotenv>=1.2.2
 
 # HTTP requests for API testing
 requests>=2.31.0
